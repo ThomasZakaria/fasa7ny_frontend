@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/pages/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/pages/login.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/pages/signup.html"
+    },
+    {
+      "source": "/home",
+      "destination": "/pages/home.html"
+    }
+  ]
+}
