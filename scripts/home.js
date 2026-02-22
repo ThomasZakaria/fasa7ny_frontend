@@ -6,6 +6,8 @@ let globalPlaceIdCounter = 0;
 let currentModalPlace = null;
 
 // Ensure API_BASE_URL is defined (Fallback if not in another script)
+const API_BASE_URL =
+  window.API_BASE_URL || "https://fasa7ny-backend.vercel.app";
 
 const placeModal = document.getElementById("placeModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
