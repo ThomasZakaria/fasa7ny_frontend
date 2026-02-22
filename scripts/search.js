@@ -54,14 +54,11 @@ async function performSmartSearch() {
     const userProfileStr = localStorage.getItem("userProfile");
     const userProfile = userProfileStr ? JSON.parse(userProfileStr) : {};
 
-    const response = await fetch(
-      "http://localhost:3000/api/v1/recommend-search",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userProfile, keyword, filters }),
-      },
-    );
+    const response = await fetch("${API_BASE_URL}/api/v1/recommend-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userProfile, keyword, filters }),
+    });
 
     const data = await response.json();
     searchLoadingState.classList.add("hidden");

@@ -83,7 +83,7 @@ function openPlaceModal(placeData) {
 
       // مناداة الـ API الخاص بالأماكن القريبة (في نطاق 30 كيلو مثلاً)
       fetch(
-        `http://localhost:3000/api/v1/places/near-me?lat=${lat}&lng=${lng}&distance=30`,
+        `${API_BASE_URL}/api/v1/places/near-me?lat=${lat}&lng=${lng}&distance=30`,
       )
         .then((res) => res.json())
         .then((data) => {
@@ -155,7 +155,7 @@ if (modalSaveBtn) {
 
     try {
       modalSaveText.textContent = "Saving...";
-      const res = await fetch("http://localhost:3000/api/v1/user/toggle-save", {
+      const res = await fetch("${API_BASE_URL}/api/v1/user/toggle-save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, place: placeToSave }),
@@ -239,7 +239,7 @@ if (uploadBtn && imageInput) {
     if (userId) formData.append("userId", userId);
 
     try {
-      const response = await fetch("http://localhost:3000/api/v1/detect", {
+      const response = await fetch("${API_BASE_URL}/api/v1/detect", {
         method: "POST",
         body: formData,
       });
@@ -315,14 +315,11 @@ async function performSearch() {
     const userProfileStr = localStorage.getItem("userProfile");
     const userProfile = userProfileStr ? JSON.parse(userProfileStr) : {};
 
-    const response = await fetch(
-      "http://localhost:3000/api/v1/recommend-search",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userProfile, keyword: keyword }),
-      },
-    );
+    const response = await fetch("${API_BASE_URL}/api/v1/recommend-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userProfile, keyword: keyword }),
+    });
     const data = await response.json();
     searchLoading.classList.add("hidden");
 
@@ -367,7 +364,7 @@ if (getLocationBtn) {
 
         try {
           const res = await fetch(
-            `http://localhost:3000/api/v1/places/near-me?lat=${lat}&lng=${lng}&limit=5`,
+            `${API_BASE_URL}/api/v1/places/near-me?lat=${lat}&lng=${lng}&limit=5`,
           );
           const data = await res.json();
           locationLoading.classList.add("hidden");
@@ -431,7 +428,7 @@ async function fetchAndRenderCategories(selectedCity = "all") {
   try {
     // Pass the city filter to the backend API
     const response = await fetch(
-      `http://localhost:3000/api/v1/categories?city=${selectedCity}`,
+      `${API_BASE_URL}/api/v1/categories?city=${selectedCity}`,
     );
     const data = await response.json();
 

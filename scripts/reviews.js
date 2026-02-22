@@ -17,7 +17,7 @@ async function loadReviews(placeId) {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/v1/places/${placeId}/reviews`,
+      `${API_BASE_URL}/api/v1/places/${placeId}/reviews`,
     );
     const data = await response.json();
 
@@ -67,7 +67,7 @@ async function submitReview() {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/v1/places/${currentActivePlaceId}/reviews`,
+      `${API_BASE_URL}/api/v1/places/${currentActivePlaceId}/reviews`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
