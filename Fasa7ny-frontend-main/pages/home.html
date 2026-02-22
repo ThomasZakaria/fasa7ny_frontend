@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fasa7ny - AI Tour Guide</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/home.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <h2 class="logo">Fasa7ny<span>.</span></h2>
+      <ul class="nav-links">
+        <li><a href="home.html" class="active">Home</a></li>
+        <li><a href="#dynamicCategoriesContainer">Categories</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="auth.html" class="login-btn" id="loginBtn">Sign In</a>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Discover Egypt Through AI</h1>
+        <p>
+          Take a photo or upload an image to identify any historical landmark
+          instantly.
+        </p>
+
+        <div class="ai-scanner-box">
+          <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+            capture="environment"
+            class="hidden-input"
+            aria-label="Upload landmark image"
+            title="Upload landmark image"
+          />
+          <button id="uploadBtn" class="scanner-btn">
+            <i class="fas fa-camera"></i> Scan Landmark
+          </button>
+          <div id="loadingState" class="hidden loading-container">
+            <div class="spinner"></div>
+            <p>AI is analyzing the image...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-section">
+      <h2 class="section-title">Smart Search</h2>
+      <p class="section-subtitle">
+        Find places even with typos, and filter by your exact needs.
+      </p>
+
+      <div class="search-box">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="e.g., Pyramds, Musem, Sfenx..."
+        />
+        <button id="searchBtn" class="search-submit-btn" aria-label="Search">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+
+      <div class="smart-filters-container">
+        <select id="filterCity" class="smart-filter-select">
+          <option value="all">📍 All Cities</option>
+          <option value="cairo">Cairo & Giza</option>
+          <option value="alexandria">Alexandria</option>
+          <option value="luxor">Luxor</option>
+          <option value="aswan">Aswan</option>
+        </select>
+
+        <select id="filterCategory" class="smart-filter-select">
+          <option value="all">🏛️ All Categories</option>
+          <option value="ancient temples">Ancient Temples</option>
+          <option value="pyramids">Pyramids</option>
+          <option value="mosque">Islamic & Mosques</option>
+          <option value="church">Coptic & Churches</option>
+          <option value="museum">Museums</option>
+          <option value="beach">Beaches</option>
+        </select>
+
+        <select id="filterBudget" class="smart-filter-select">
+          <option value="any">💰 Any Budget</option>
+          <option value="free">Free Places Only</option>
+          <option value="budget">Budget Friendly (< 60 EGP)</option>
+        </select>
+      </div>
+
+      <div id="searchLoading" class="hidden loading-container">
+        <div class="spinner"></div>
+        <p>AI is finding the best matches...</p>
+      </div>
+
+      <div id="searchResults" class="cards"></div>
+    </section>
+
+    <section class="near-me-section categories">
+      <h2 class="section-title">Places Near You</h2>
+      <p class="section-subtitle">
+        Discover amazing landmarks just a few kilometers away!
+      </p>
+
+      <div class="center-btn-container">
+        <button id="getLocationBtn" class="scanner-btn location-btn">
+          <i class="fas fa-map-marker-alt"></i> Find Places Near Me
+        </button>
+      </div>
+
+      <div id="locationLoading" class="hidden loading-container">
+        <div class="spinner"></div>
+        <p>Finding your location and searching database...</p>
+      </div>
+      <div id="nearMeCards" class="cards"></div>
+    </section>
+
+    <section class="categories" id="dynamicCategoriesContainer">
+      <div class="category-header-flex">
+        <h2 class="section-title" style="margin-bottom: 0">
+          Explore Categories
+        </h2>
+        <select
+          id="cityFilter"
+          class="city-filter-dropdown"
+          aria-label="Filter by City"
+        >
+          <option value="all">All Egypt</option>
+          <option value="cairo" selected>Cairo & Giza</option>
+          <option value="alexandria">Alexandria</option>
+          <option value="luxor">Luxor</option>
+          <option value="aswan">Aswan</option>
+          <option value="sinai">Sinai (Sharm / Dahab)</option>
+        </select>
+      </div>
+
+      <div id="categoriesLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading amazing places...</p>
+      </div>
+
+      <div id="categoriesContentWrapper"></div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-about">
+          <h2>Fasa7ny</h2>
+          <p>
+            Your AI-powered smart tourism guide. Rediscovering Egypt’s history
+            through computer vision.
+          </p>
+          <div class="socials">
+            <a href="#" aria-label="Facebook"
+              ><i class="fab fa-facebook-f"></i
+            ></a>
+            <a href="#" aria-label="Instagram"
+              ><i class="fab fa-instagram"></i
+            ></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Site Map</h4>
+          <a href="home.html">Home</a>
+          <a href="#dynamicCategoriesContainer">Categories</a>
+          <a href="about.html">About</a>
+        </div>
+        <div class="footer-links">
+          <h4>Legal</h4>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+      <div class="footer-bottom">© 2026 Fasa7ny. All rights reserved.</div>
+    </footer>
+
+    <div id="placeModal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="close-modal" id="closeModalBtn">×</span>
+        <img id="modalImg" src="" alt="Landmark Image" class="modal-hero-img" />
+
+        <div class="modal-body">
+          <h2 id="modalTitle">Landmark Name</h2>
+          <div id="modalArabicName" class="modal-arabic-name">
+            الاسم بالعربي
+          </div>
+
+          <div class="modal-meta">
+            <span
+              ><i class="fas fa-map-marker-alt"></i>
+              <b id="modalLocation">Location</b></span
+            >
+            <span><i class="fas fa-clock"></i> <b id="modalTime">Time</b></span>
+            <span
+              ><i class="fas fa-ticket-alt"></i>
+              <b id="modalPrice">Price</b></span
+            >
+            <span
+              ><i class="fas fa-tag"></i>
+              <b id="modalCategory">Category</b></span
+            >
+          </div>
+
+          <p id="modalHistory" class="modal-desc">History goes here...</p>
+
+          <div style="display: flex; gap: 15px; flex-wrap: wrap">
+            <a href="#" id="modalMapLink" target="_blank" class="modal-map-btn">
+              <i class="fas fa-map-marked-alt"></i> Open in Google Maps
+            </a>
+            <button
+              id="modalSaveBtn"
+              class="modal-map-btn"
+              style="background: #e74c3c; border: none; cursor: pointer"
+            >
+              <i class="far fa-heart" id="modalSaveIcon"></i>
+              <span id="modalSaveText">Save Place</span>
+            </button>
+          </div>
+
+          <div class="modal-rating">
+            <h3><i class="fas fa-star rating-star"></i> Average Rating</h3>
+            <div class="stars" id="modalStars">★★★★★</div>
+          </div>
+          <div class="modal-reviews-section">
+            <h3 class="section-subtitle-modal">
+              <i class="fas fa-comments"></i> Visitor Reviews
+            </h3>
+
+            <div id="reviewFormContainer" class="review-form">
+              <div class="star-rating">
+                <input type="radio" name="stars" id="star-5" value="5" /><label
+                  for="star-5"
+                  >★</label
+                >
+                <input type="radio" name="stars" id="star-4" value="4" /><label
+                  for="star-4"
+                  >★</label
+                >
+                <input type="radio" name="stars" id="star-3" value="3" /><label
+                  for="star-3"
+                  >★</label
+                >
+                <input type="radio" name="stars" id="star-2" value="2" /><label
+                  for="star-2"
+                  >★</label
+                >
+                <input type="radio" name="stars" id="star-1" value="1" /><label
+                  for="star-1"
+                  >★</label
+                >
+              </div>
+              <textarea
+                id="reviewComment"
+                placeholder="Share your experience with this landmark..."
+              ></textarea>
+              <button onclick="submitReview()" class="submit-review-btn">
+                <i class="fas fa-paper-plane"></i> Post Review
+              </button>
+            </div>
+
+            <div id="reviewsList" class="reviews-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../scripts/home.js"></script>
+    <script src="../scripts/reviews.js"></script>
+    <script src="../scripts/search.js"></script>
+  </body>
+</html>

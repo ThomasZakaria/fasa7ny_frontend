@@ -1,0 +1,51 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* خلفية الصفحة */
+.welcome {
+  height: 100vh;
+  background: url("images/hero.jpg") center/cover no-repeat;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* طبقة خفيفة فوق الصورة */
+.overlay {
+  text-align: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  border-radius: 20px;
+}
+
+.overlay h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.overlay p {
+  font-size: 20px;
+  margin-bottom: 25px;
+}
+
+/* زرار الدخول */
+.enter-btn {
+  display: inline-block;
+  background: #f4b860;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.enter-btn:hover {
+  background: #e2a74f;
+  transform: scale(1.05);
+}
