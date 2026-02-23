@@ -19,7 +19,7 @@ async function signup() {
   popup.style.display = "flex";
 
   try {
-    const response = await fetch("${API_BASE_URL}/api/v1/auth/signup", {
+    const response = await fetch("http://localhost:3000/api/v1/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -69,7 +69,7 @@ async function login() {
   popup.style.display = "flex";
 
   try {
-    const response = await fetch("${API_BASE_URL}/api/v1/auth/login", {
+    const response = await fetch("http://localhost:3000/api/v1/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password: pass }),

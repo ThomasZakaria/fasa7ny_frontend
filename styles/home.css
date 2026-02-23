@@ -16,7 +16,10 @@ body {
 html {
   scroll-behavior: smooth;
 }
-
+.card.place-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px 400px; /* الارتفاع المتوقع للكارت */
+}
 /* =========================================
    2. Utilities (Replaced Inline CSS)
    ========================================= */
@@ -773,4 +776,34 @@ html {
     align-items: stretch;
     padding: 0 20px;
   }
+}
+/* تنسيق قسم التوصيات داخل الموديل */
+.modal-recommendations-wrapper .cards {
+  display: flex !important; /* تحويل الشبكة إلى صف أفقي */
+  flex-wrap: nowrap !important;
+  overflow-x: auto; /* تمكين السكرول العرضي */
+  gap: 15px;
+  padding: 10px 5px;
+  scrollbar-width: thin; /* تحسين شكل السكرول في فايرفوكس */
+}
+
+/* إخفاء السكرول بار في المتصفحات الأخرى لشكل أنظف */
+.modal-recommendations-wrapper .cards::-webkit-scrollbar {
+  height: 6px;
+}
+
+.modal-recommendations-wrapper .cards::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* تصغير الكروت داخل الموديل لتناسب العرض الأفقي */
+.modal-recommendations-wrapper .place-card {
+  min-width: 180px;
+  max-width: 180px;
+  flex-shrink: 0;
+}
+
+.modal-recommendations-wrapper .place-card img {
+  height: 110px;
 }

@@ -108,7 +108,7 @@ async function removeInterest(index) {
 // دالة التواصل مع الـ Backend لحفظ الاهتمامات
 async function updateInterestsInBackend(userId, interests) {
   try {
-    await fetch("${API_BASE_URL}/api/v1/user/update-interests", {
+    await fetch("http://localhost:3000/api/v1/user/update-interests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, interests }),

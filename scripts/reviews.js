@@ -3,63 +3,85 @@
  * Handles fetching existing reviews and submitting new ones
  */
 
-// Global state for the active landmark being viewed
+// متغير عالمي لتخزين معرف المكان النشط حالياً في الموديل
 let currentActivePlaceId = null;
 
+const REVIEWS_API_BASE = "http://127.0.0.1:3000/api/v1/places";
+
 /**
- * Fetches all reviews for a specific landmark from the server
- * @param {string} placeId - The ID of the landmark
+ * جلب كافة التقييمات الخاصة بمكان معين من السيرفر
+ * @param {string} placeId - المعرف الخاص بالمكان
  */
 async function loadReviews(placeId) {
   currentActivePlaceId = placeId;
   const container = document.getElementById("reviewsList");
-  container.innerHTML = `<div class="spinner" style="width:25px; height:25px;"></div>`;
+  if (!container) return;
+
+  // إظهار علامة تحميل بسيطة
+  container.innerHTML = `<div class="spinner" style="width:25px; height:25px; margin: 20px auto;"></div>`;
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/places/${placeId}/reviews`,
-    );
+    const response = await fetch(`${REVIEWS_API_BASE}/${placeId}/reviews`);
     const data = await response.json();
 
     if (data.status === "success" && data.data.reviews.length > 0) {
       container.innerHTML = "";
       data.data.reviews.forEach((review) => {
+        const stars = "★".repeat(review.rating) + "☆".repeat(5 - review.rating);
         const reviewHtml = `
-                    <div class="review-item">
-                        <div class="review-header">
-                            <span class="reviewer-name">${review.username || "Anonymous Traveler"}</span>
-                            <span class="review-stars">${"★".repeat(review.rating)}${"☆".repeat(5 - review.rating)}</span>
-                        </div>
-                        <p class="review-text">${review.comment}</p>
-                    </div>
-                `;
+            <div class="review-item" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span class="reviewer-name" style="font-weight: 600; color: #0b4a6f;">
+                        <i class="fas fa-user-circle"></i> ${review.username || "Anonymous Traveler"}
+                    </span>
+                    <span class="review-stars" style="color: #f1c40f;">${stars}</span>
+                </div>
+                <p class="review-text" style="color: #444; font-size: 0.95rem; line-height: 1.5; margin: 0;">
+                    ${review.comment}
+                </p>
+                <small style="color: #999; font-size: 0.75rem;">
+                    ${new Date(review.createdAt).toLocaleDateString()}
+                </small>
+            </div>
+        `;
         container.insertAdjacentHTML("beforeend", reviewHtml);
       });
     } else {
-      container.innerHTML = `<p style="text-align:center; color:#94a3b8; font-style:italic;">No reviews yet. Share your experience!</p>`;
+      container.innerHTML = `
+        <div style="text-align:center; padding: 20px; color: #999;">
+            <i class="far fa-comments" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+            No reviews yet. Be the first to share your experience!
+        </div>`;
     }
   } catch (error) {
-    console.error("Critical: Failed to fetch reviews:", error);
-    container.innerHTML = `<p style="color:#ef4444;">Could not load reviews. Check server connection.</p>`;
+    console.error("Reviews Load Error:", error);
+    container.innerHTML = `<p style="color:red; text-align:center;">Could not load reviews.</p>`;
   }
 }
 
 /**
- * Validates and submits a new user review to the Backend
+ * التحقق من البيانات وإرسال تقييم جديد للسيرفر
  */
 async function submitReview() {
+  // جلب بيانات المستخدم من localStorage (يتم تخزينها عند تسجيل الدخول)
   const userId = localStorage.getItem("userId");
   const username = localStorage.getItem("username");
-  const comment = document.getElementById("reviewComment").value.trim();
+
+  const commentInput = document.getElementById("reviewComment");
+  const comment = commentInput ? commentInput.value.trim() : "";
   const ratingElement = document.querySelector('input[name="stars"]:checked');
 
-  // 1. Security & Validation Check
+  // 1. فحص الأمان وتسجيل الدخول
   if (!userId) {
-    alert("Authentication Required: Please sign in to post a review.");
+    alert("Please Sign In first to post a review.");
+    // اختياري: تحويل المستخدم لصفحة تسجيل الدخول
+    // window.location.href = "auth.html";
     return;
   }
+
+  // 2. فحص اكتمال البيانات
   if (!ratingElement || !comment) {
-    alert("Incomplete Data: Please provide both a star rating and a comment.");
+    alert("Please provide both a star rating and a comment.");
     return;
   }
 
@@ -67,25 +89,36 @@ async function submitReview() {
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/v1/places/${currentActivePlaceId}/reviews`,
+      `${REVIEWS_API_BASE}/${currentActivePlaceId}/reviews`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, username, rating, comment }),
+        body: JSON.stringify({
+          userId,
+          username: username || "Traveler",
+          rating,
+          comment,
+        }),
       },
     );
 
     const data = await response.json();
 
     if (data.status === "success") {
-      // Reset UI form upon successful submission
-      document.getElementById("reviewComment").value = "";
+      // 3. تصفير النموذج بعد النجاح
+      commentInput.value = "";
       ratingElement.checked = false;
-      // Hot-reload reviews list
+
+      // 4. إعادة تحميل القائمة فوراً لإظهار التقييم الجديد
       loadReviews(currentActivePlaceId);
+
+      // رسالة نجاح بسيطة
+      console.log("Review posted successfully!");
+    } else {
+      alert("Error: " + (data.message || "Could not post review."));
     }
   } catch (error) {
-    console.error("Error: Review submission failed:", error);
-    alert("Network Error: Unable to post your review at this time.");
+    console.error("Submission Error:", error);
+    alert("Server connection failed. Please try again later.");
   }
 }

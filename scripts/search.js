@@ -1,83 +1,104 @@
 /**
- * Fasa7ny - Smart Search & Filtering Logic
- * Handles Keyword (Fuzzy Search) + Dropdown Filters
- */
-
-const searchInputObj = document.getElementById("searchInput");
-const searchBtnObj = document.getElementById("searchBtn");
-const searchResultsContainer = document.getElementById("searchResults");
-const searchLoadingState = document.getElementById("searchLoading");
-
-// Filters
-const filterCity = document.getElementById("filterCity");
-const filterCategory = document.getElementById("filterCategory");
-const filterBudget = document.getElementById("filterBudget");
-
-if (searchBtnObj) {
-  searchBtnObj.addEventListener("click", performSmartSearch);
-  searchInputObj.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") performSmartSearch();
-  });
-
-  // تفعيل البحث التلقائي عند تغيير أي فلتر
-  filterCity.addEventListener("change", performSmartSearch);
-  filterCategory.addEventListener("change", performSmartSearch);
-  filterBudget.addEventListener("change", performSmartSearch);
-}
-
-/**
- * Gathers user input and filters, then fetches recommendations from the backend
+ * Fasa7ny - Smart Search Logic (Fixed & Safe)
  */
 async function performSmartSearch() {
+  // 1. فحص وجود العناصر الأساسية لمنع الانهيار
+  const searchInputObj = document.getElementById("searchInput");
+  const searchResultsContainer = document.getElementById("searchResults");
+  const searchLoadingState = document.getElementById("searchLoading");
+
+  if (!searchInputObj || !searchResultsContainer) return;
+
   const keyword = searchInputObj.value.trim();
+
+  // فحص أمان للفلاتر (لو مش موجودة ياخد قيمة افتراضية)
+  const cityEl = document.getElementById("filterCity");
+  const catEl = document.getElementById("filterCategory");
+  const budgetEl = document.getElementById("filterBudget");
+  const sortEl = document.getElementById("sortBy");
+
   const filters = {
-    city: filterCity.value,
-    category: filterCategory.value,
-    budget: filterBudget.value,
+    city: cityEl ? cityEl.value : "all",
+    category: catEl ? catEl.value : "all",
+    budget: budgetEl ? budgetEl.value : "any",
   };
 
-  // If everything is empty/default, don't search
-  if (
-    !keyword &&
-    filters.city === "all" &&
-    filters.category === "all" &&
-    filters.budget === "any"
-  ) {
-    searchResultsContainer.innerHTML = "";
+  const sort = sortEl ? sortEl.value : "relevance";
+
+  // منع البحث لو الخانات فاضية تماماً
+  if (!keyword && filters.city === "all" && filters.category === "all") {
+    console.log("Search skipped: No criteria provided.");
     return;
   }
 
   searchResultsContainer.innerHTML = "";
-  searchLoadingState.classList.remove("hidden");
+  if (searchLoadingState) searchLoadingState.classList.remove("hidden");
 
   try {
-    const userProfileStr = localStorage.getItem("userProfile");
-    const userProfile = userProfileStr ? JSON.parse(userProfileStr) : {};
-
-    const response = await fetch("${API_BASE_URL}/api/v1/recommend-search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userProfile, keyword, filters }),
-    });
+    const response = await fetch(
+      "http://127.0.0.1:3000/api/v1/recommend-search",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          keyword,
+          filters,
+          sort,
+          page: 1, // لدعم الـ Pagination اللي ضيفناه في app.js
+          limit: 12,
+        }),
+      },
+    );
 
     const data = await response.json();
-    searchLoadingState.classList.add("hidden");
+    if (searchLoadingState) searchLoadingState.classList.add("hidden");
 
-    if (data.status === "success" && data.data.recommendations.length > 0) {
-      // استخدام دالة renderCards الموجودة في home.js
+    if (
+      data.status === "success" &&
+      data.data.recommendations &&
+      data.data.recommendations.length > 0
+    ) {
+      // التأكد من أن دالة renderCards متاحة للعمل
       if (typeof renderCards === "function") {
         renderCards(data.data.recommendations, searchResultsContainer);
+      } else {
+        console.error(
+          "Critical Error: renderCards function not found. Make sure home.js is loaded.",
+        );
       }
     } else {
-      searchResultsContainer.innerHTML = `<div style="text-align:center; padding:30px; width:100%;">
-            <i class="fas fa-search-minus" style="font-size:3rem; color:#cbd5e1; margin-bottom:15px;"></i>
-            <p style="color:#64748b; font-size:1.1rem;">No matching places found. Try adjusting your filters or spelling.</p>
-         </div>`;
+      searchResultsContainer.innerHTML = `
+        <div style="text-align:center; width:100%; padding:40px; color:#64748b;">
+            <i class="fas fa-search-minus" style="font-size:3rem; margin-bottom:15px;"></i>
+            <p>No matching places found. Try different keywords or filters.</p>
+        </div>`;
     }
   } catch (error) {
-    console.error("Search Error:", error);
-    searchLoadingState.classList.add("hidden");
-    searchResultsContainer.innerHTML =
-      "<p style='width: 100%; text-align: center; color: red;'>Search failed. Please check server connection.</p>";
+    if (searchLoadingState) searchLoadingState.classList.add("hidden");
+    console.error("Search Fetch Error:", error);
   }
 }
+
+// ربط الأزرار والفلاتر بأمان
+document.addEventListener("DOMContentLoaded", () => {
+  const searchBtn = document.getElementById("searchBtn");
+  const searchInput = document.getElementById("searchInput");
+
+  if (searchBtn) {
+    searchBtn.onclick = performSmartSearch;
+  }
+
+  if (searchInput) {
+    searchInput.onkeypress = (e) => {
+      if (e.key === "Enter") performSmartSearch();
+    };
+  }
+
+  // تحديث البحث عند تغيير أي فلتر تلقائياً (بشرط وجود العنصر)
+  ["filterCity", "filterCategory", "filterBudget", "sortBy"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.onchange = performSmartSearch;
+    }
+  });
+});
