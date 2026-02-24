@@ -708,7 +708,9 @@ html {
   border-bottom: 2px solid #eee;
   padding-bottom: 15px;
 }
-
+.category-title {
+  margin-bottom: 15px;
+}
 .city-filter-dropdown {
   padding: 10px 20px;
   border-radius: 25px;

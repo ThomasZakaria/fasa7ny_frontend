@@ -2,29 +2,33 @@
 // 1. SIGNUP LOGIC
 // ==========================================
 async function signup() {
-  const name = document.getElementById("name")?.value.trim();
-  const email = document.getElementById("email")?.value.trim();
-  const pass = document.getElementById("pass")?.value.trim();
+  const nameInput = document.getElementById("name");
+  const emailInput = document.getElementById("email");
+  const passInput = document.getElementById("pass");
+
+  const name = nameInput?.value.trim();
+  const email = emailInput?.value.trim();
+  const pass = passInput?.value.trim();
 
   const popup = document.getElementById("popup");
   const msg = document.getElementById("msg");
 
   if (!name || !email || !pass) {
-    msg.textContent = "Please fill all fields!";
-    popup.style.display = "flex";
+    if (msg) msg.textContent = "Please fill all fields!";
+    if (popup) popup.style.display = "flex";
     return;
   }
 
-  msg.textContent = "Creating account...";
-  popup.style.display = "flex";
+  if (msg) msg.textContent = "Creating account...";
+  if (popup) popup.style.display = "flex";
 
   try {
-    const response = await fetch("http://localhost:3000/api/v1/auth/signup", {
+    const response = await fetch("http://127.0.0.1:3000/api/v1/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name,
-        email,
+        username: name, // إرسال الاسم كـ username للـ Backend
+        email: email,
         password: pass,
       }),
     });
@@ -32,20 +36,24 @@ async function signup() {
     const data = await response.json();
 
     if (data.status === "success") {
-      // حفظ البيانات في المتصفح
-      localStorage.setItem("username", data.data.user.name);
-      localStorage.setItem("userId", data.data.user.id);
-      localStorage.setItem("userProfile", JSON.stringify(data.data.user));
+      const user = data.data.user;
 
-      msg.textContent = "Account created successfully!";
+      // ✅ تخزين البيانات بشكل سليم لتجنب undefined
+      localStorage.setItem("userId", user.id);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("userProfile", JSON.stringify(user));
+
+      if (msg) msg.textContent = "Account created successfully!";
+
       setTimeout(() => {
         window.location.href = "home.html";
       }, 1200);
     } else {
-      msg.textContent = data.message || "Failed to create account.";
+      if (msg) msg.textContent = data.message || "Email already exists!";
     }
   } catch (error) {
-    msg.textContent = "Network error. Please check the server.";
+    if (msg) msg.textContent = "Server is offline. Please try again later.";
+    console.error("Signup Error:", error);
   }
 }
 
@@ -53,23 +61,26 @@ async function signup() {
 // 2. LOGIN LOGIC
 // ==========================================
 async function login() {
-  const email = document.getElementById("emailField")?.value.trim();
-  const pass = document.getElementById("passField")?.value.trim();
+  const emailField = document.getElementById("emailField");
+  const passField = document.getElementById("passField");
+
+  const email = emailField?.value.trim();
+  const pass = passField?.value.trim();
 
   const popup = document.getElementById("loginPopup");
   const message = document.getElementById("popupMessage");
 
   if (!email || !pass) {
-    message.textContent = "Please enter email and password";
-    popup.style.display = "flex";
+    if (message) message.textContent = "Please enter email and password";
+    if (popup) popup.style.display = "flex";
     return;
   }
 
-  message.textContent = "Logging in...";
-  popup.style.display = "flex";
+  if (message) message.textContent = "Checking credentials...";
+  if (popup) popup.style.display = "flex";
 
   try {
-    const response = await fetch("http://localhost:3000/api/v1/auth/login", {
+    const response = await fetch("http://127.0.0.1:3000/api/v1/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password: pass }),
@@ -78,30 +89,28 @@ async function login() {
     const data = await response.json();
 
     if (data.status === "success") {
-      // حفظ البيانات في المتصفح عشان تظهر في الـ Navbar وتستخدم في الترشيحات
-      localStorage.setItem("username", data.data.user.name);
-      localStorage.setItem("userId", data.data.user.id);
-      localStorage.setItem("userProfile", JSON.stringify(data.data.user));
+      const user = data.data.user;
 
-      message.textContent = "Login successful!";
+      // ✅ تخزين البيانات بشكل سليم لتجنب undefined
+      localStorage.setItem("userId", user.id);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("userProfile", JSON.stringify(user));
+
+      if (message) message.textContent = "Login successful! Welcome back.";
+
       setTimeout(() => {
         window.location.href = "home.html";
       }, 1200);
     } else {
-      message.textContent = data.message || "Invalid credentials.";
+      if (message)
+        message.textContent = data.message || "Invalid email or password.";
     }
   } catch (error) {
-    message.textContent = "Network error. Please check the server.";
+    if (message) message.textContent = "Network error. Check your connection.";
+    console.error("Login Error:", error);
   }
 }
-function setCookie(name, value, days) {
-  const date = new Date();
-  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // تحديد مدة الصلاحية بالأيام
-  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
-}
 
-// طريقة الاستخدام وقت تسجيل الدخول:
-// setCookie("username", data.data.user.name, 7); // يحفظ الاسم لمدة 7 أيام
 // ==========================================
 // 3. POPUP UTILITIES
 // ==========================================

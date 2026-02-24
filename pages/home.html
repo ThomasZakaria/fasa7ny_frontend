@@ -15,6 +15,31 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
     <script src="../scripts/config.js"></script>
+
+    <style>
+      .show-more-global-btn {
+        padding: 12px 30px;
+        background: #0b4a6f;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .show-more-global-btn:hover {
+        background: #ff9800; /* يتغير للبرتقالي عند تمرير الماوس */
+        transform: translateY(-2px);
+      }
+      .show-more-global-btn.hidden {
+        display: none !important;
+      }
+    </style>
   </head>
 
   <body>
@@ -78,19 +103,39 @@
 
       <div class="smart-filters-container">
         <select id="filterCity" class="smart-filter-select">
-          <option value="all">📍 All Cities</option>
-          <option value="cairo">Cairo & Giza</option>
-          <option value="alexandria">Alexandria</option>
-          <option value="luxor">Luxor</option>
-          <option value="aswan">Aswan</option>
+          <option value="all">📍 All Cities & Regions</option>
+          <option value="cairo">Cairo (القاهرة)</option>
+          <option value="giza">Giza (الجيزة)</option>
+          <option value="alexandria">Alexandria (الإسكندرية)</option>
+          <option value="luxor">Luxor (الأقصر)</option>
+          <option value="aswan">Aswan (أسوان)</option>
+          <option value="qena">Qena & Dendera (قنا)</option>
+          <option value="fayoum">Fayoum (الفيوم)</option>
+          <option value="minya">Minya (المنيا)</option>
+          <option value="sinai">Sinai & Red Sea (سيناء والبحر الأحمر)</option>
+          <option value="egypt">Other (أخرى)</option>
         </select>
 
         <select id="filterCategory" class="smart-filter-select">
           <option value="all">🏛️ All Categories</option>
-          <option value="ancient temples">Ancient Temples</option>
-          <option value="pyramids">Pyramids</option>
-          <option value="mosque">Islamic & Mosques</option>
-          <option value="museum">Museums</option>
+          <option value="temple">Ancient Temples (معابد)</option>
+          <option value="pyramid">Pyramids (أهرامات)</option>
+          <option value="mosque">Mosques (مساجد إسلامية)</option>
+          <option value="church">Churches & Monasteries (كنائس وأديرة)</option>
+          <option value="museum">Museums (متاحف)</option>
+          <option value="palace">Palaces (قصور)</option>
+          <option value="tomb">Tombs & Necropolis (مقابر أثرية)</option>
+          <option value="fort">Forts & Citadels (قلاع وحصون)</option>
+          <option value="monument">Monuments & Statues (معالم وتماثيل)</option>
+          <option value="nature">Nature & Islands (طبيعة وجزر)</option>
+        </select>
+
+        <select id="filterBudget" class="smart-filter-select">
+          <option value="any">💸 Any Price</option>
+          <option value="free">Free (مجاني)</option>
+          <option value="budget">Budget (اقتصادي)</option>
+          <option value="moderate">Moderate (متوسط)</option>
+          <option value="expensive">Expensive (مرتفع)</option>
         </select>
 
         <select
@@ -98,10 +143,11 @@
           class="smart-filter-select"
           style="border: 2px solid #ff9800"
         >
-          <option value="relevance">🔍 Sort: Relevance</option>
-          <option value="nearest">📍 Sort: Nearest to Me</option>
-          <option value="budget-asc">💰 Price: Low to High</option>
-          <option value="rating">⭐ Top Rated</option>
+          <option value="relevance">🔍 Sort: Relevance (الأقرب للبحث)</option>
+          <option value="budget-asc">
+            💰 Price: Low to High (الأرخص أولاً)
+          </option>
+          <option value="rating">⭐ Top Rated (الأعلى تقييماً)</option>
         </select>
       </div>
 
@@ -110,6 +156,12 @@
         <p>AI is finding the best matches...</p>
       </div>
       <div id="searchResults" class="cards"></div>
+
+      <div style="text-align: center; margin-top: 30px">
+        <button id="showMoreBtn" class="show-more-global-btn hidden">
+          Show More <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
     </section>
 
     <section class="near-me-section categories">
@@ -124,6 +176,12 @@
         <p>Finding your location...</p>
       </div>
       <div id="nearMeCards" class="cards"></div>
+
+      <div style="text-align: center; margin-top: 20px">
+        <button id="showMoreNearMeBtn" class="show-more-global-btn hidden">
+          Show More Nearby <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
     </section>
 
     <section class="categories" id="dynamicCategoriesContainer">
@@ -132,8 +190,8 @@
           Explore Categories
         </h2>
         <select id="cityFilter" class="city-filter-dropdown">
-          <option value="all">All Egypt</option>
-          <option value="cairo" selected>Cairo & Giza</option>
+          <option value="all" selected>All Egypt</option>
+          <option value="cairo">Cairo & Giza</option>
           <option value="alexandria">Alexandria</option>
           <option value="luxor">Luxor</option>
           <option value="aswan">Aswan</option>

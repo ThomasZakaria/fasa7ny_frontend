@@ -1,5 +1,5 @@
 /**
- * Fasa7ny - Smart Search Logic (Fixed & Safe)
+ * Fasa7ny - Smart Search Logic (Fixed & Safe with Live Search)
  */
 async function performSmartSearch() {
   // 1. فحص وجود العناصر الأساسية لمنع الانهيار
@@ -27,7 +27,8 @@ async function performSmartSearch() {
 
   // منع البحث لو الخانات فاضية تماماً
   if (!keyword && filters.city === "all" && filters.category === "all") {
-    console.log("Search skipped: No criteria provided.");
+    // تنظيف النتائج لو المستخدم مسح كل الكلام
+    searchResultsContainer.innerHTML = "";
     return;
   }
 
@@ -79,26 +80,45 @@ async function performSmartSearch() {
   }
 }
 
-// ربط الأزرار والفلاتر بأمان
+// ==========================================
+// 🚀 Events Binding (Live Search & Debounce)
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   const searchBtn = document.getElementById("searchBtn");
   const searchInput = document.getElementById("searchInput");
 
+  // 1. البحث عند الضغط على زر البحث
   if (searchBtn) {
-    searchBtn.onclick = performSmartSearch;
+    searchBtn.addEventListener("click", performSmartSearch);
   }
 
+  // 2. البحث المباشر أثناء الكتابة (Live Search)
+  let debounceTimer;
   if (searchInput) {
-    searchInput.onkeypress = (e) => {
-      if (e.key === "Enter") performSmartSearch();
-    };
+    searchInput.addEventListener("input", () => {
+      // مسح العداد إذا استمر المستخدم في الكتابة
+      clearTimeout(debounceTimer);
+
+      // تنفيذ البحث بعد التوقف عن الكتابة بـ 400 ملي ثانية
+      debounceTimer = setTimeout(() => {
+        performSmartSearch();
+      }, 400);
+    });
+
+    // التنفيذ الفوري عند الضغط على Enter لتجاوز الانتظار
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        clearTimeout(debounceTimer);
+        performSmartSearch();
+      }
+    });
   }
 
-  // تحديث البحث عند تغيير أي فلتر تلقائياً (بشرط وجود العنصر)
+  // 3. تحديث البحث تلقائياً عند تغيير أي فلتر (مدينة، فئة، الخ)
   ["filterCity", "filterCategory", "filterBudget", "sortBy"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
-      el.onchange = performSmartSearch;
+      el.addEventListener("change", performSmartSearch);
     }
   });
 });

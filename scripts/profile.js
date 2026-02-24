@@ -1,154 +1,197 @@
 // ==========================================
-// Profile Page Logic
+// Profile Page Logic - Final Fixed Version
 // ==========================================
+
+const DEFAULT_PLACE_IMAGE =
+  "https://s7g10.scene7.com/is/image/barcelo/pyramids-of-giza-facts_ancient-pyramids-of-giza?&&fmt=webp-alpha&qlt=75&wid=1300&fit=crop,1";
 
 document.addEventListener("DOMContentLoaded", () => {
   loadProfileData();
 });
 
-function loadProfileData() {
-  const userStr = localStorage.getItem("userProfile");
+/**
+ * دالة مساعدة لاختيار الرابط الصحيح للصورة من البيانات
+ */
+function getValidProfileImg(item) {
+  if (!item) return DEFAULT_PLACE_IMAGE;
+  // البحث في كل المسميات الممكنة للصورة (تحويلها لـ String أولاً لتجنب الأخطاء)
+  const url = item.image || item.img || item["Main Image URL"] || "";
+  const isValid =
+    typeof url === "string" && url.startsWith("http") && !url.includes("[URL]");
+  return isValid ? url : DEFAULT_PLACE_IMAGE;
+}
 
-  if (!userStr) {
+/**
+ * 1. جلب بيانات المستخدم وعرض الاسم والبريد
+ */
+async function loadProfileData() {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId || userId === "undefined") {
     window.location.href = "auth.html";
     return;
   }
 
-  const user = JSON.parse(userStr);
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:3000/api/v1/users/${userId}`,
+    );
+    const result = await response.json();
 
-  document.getElementById("profileName").textContent = user.name || "Tourist";
-  document.getElementById("profileEmail").textContent =
-    user.email || "No Email";
+    if (result.status === "success" && result.data.user) {
+      const user = result.data.user;
 
-  // رسم الاهتمامات وتاريخ البحث
-  renderInterests(user.interests);
-  renderHistory(user.scan_history);
-  renderSavedPlaces();
+      // حفظ النسخة الأحدث لضمان عدم ظهور undefined مستقبلاً
+      localStorage.setItem("userProfile", JSON.stringify(user));
+      localStorage.setItem("username", user.username || user.name);
+
+      // ✅ حل مشكلة الاسم: نتحقق من كل الاحتمالات
+      const displayName =
+        user.username ||
+        user.name ||
+        localStorage.getItem("username") ||
+        "Tourist";
+      document.getElementById("profileName").textContent = displayName;
+      document.getElementById("profileEmail").textContent =
+        user.email || "No Email";
+
+      // رسم الأقسام
+      renderInterests(user.interests || []);
+      renderHistory(user.scan_history || []);
+      renderSavedPlaces(user.saved_places || []);
+    }
+  } catch (error) {
+    console.error("Error loading profile:", error);
+    // حالة احتياطية قوية
+    const fallbackUser = JSON.parse(
+      localStorage.getItem("userProfile") || "{}",
+    );
+    const fallbackName =
+      fallbackUser.username ||
+      fallbackUser.name ||
+      localStorage.getItem("username") ||
+      "Tourist";
+    document.getElementById("profileName").textContent = fallbackName;
+  }
 }
 
-// --- 🌟 Interests Logic (Add, Remove, Render) ---
+/**
+ * 2. رسم الاهتمامات (Interests)
+ */
 function renderInterests(interestsArray) {
   const container = document.getElementById("interestsContainer");
+  if (!container) return;
   container.innerHTML = "";
 
-  const tags = interestsArray || [];
-
-  if (tags.length === 0) {
+  if (!interestsArray || interestsArray.length === 0) {
     container.innerHTML =
       "<p style='color:#888; font-size: 0.9rem;'>No interests added yet.</p>";
     return;
   }
 
-  tags.forEach((tag, index) => {
+  interestsArray.forEach((tag, index) => {
     const span = document.createElement("span");
     span.className = "tag";
-    // ضفنا علامة (X) جنب كل اهتمام عشان المستخدم يقدر يمسحه
     span.innerHTML = `
       <i class="fas fa-hashtag"></i> ${tag} 
-      <i class="fas fa-times" onclick="removeInterest(${index})" style="margin-left: 8px; cursor: pointer; color: #e74c3c;" title="Remove"></i>
+      <i class="fas fa-times" onclick="removeInterest(${index})" style="margin-left: 8px; cursor: pointer; color: #e74c3c;"></i>
     `;
     container.appendChild(span);
   });
 }
 
-// دالة إضافة اهتمام جديد
+/**
+ * 3. إضافة وحذف الاهتمامات
+ */
 async function addInterest() {
   const input = document.getElementById("interestInput");
   const newInterest = input.value.trim();
+  const userId = localStorage.getItem("userId");
 
-  if (!newInterest) return;
+  if (!newInterest || !userId) return;
 
-  const userStr = localStorage.getItem("userProfile");
-  if (!userStr) return;
+  const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+  if (!userProfile.interests) userProfile.interests = [];
 
-  const user = JSON.parse(userStr);
-  if (!user.interests) user.interests = []; // لو مفيش array نكريت واحدة
-
-  // منع إضافة نفس الاهتمام مرتين
   if (
-    user.interests
-      .map((i) => i.toLowerCase())
-      .includes(newInterest.toLowerCase())
+    userProfile.interests.some(
+      (i) => i.toLowerCase() === newInterest.toLowerCase(),
+    )
   ) {
     alert("This interest is already added!");
     return;
   }
 
-  // إضافة الاهتمام محلياً
-  user.interests.push(newInterest);
+  userProfile.interests.push(newInterest);
 
-  // حفظ في الداتا بيز
-  await updateInterestsInBackend(user.id, user.interests);
-
-  // تحديث المتصفح والشاشة
-  localStorage.setItem("userProfile", JSON.stringify(user));
-  renderInterests(user.interests);
-  input.value = ""; // تفريغ المربع
+  await updateInterestsInBackend(userId, userProfile.interests);
+  localStorage.setItem("userProfile", JSON.stringify(userProfile));
+  renderInterests(userProfile.interests);
+  input.value = "";
 }
 
-// دالة مسح اهتمام
 async function removeInterest(index) {
-  const userStr = localStorage.getItem("userProfile");
-  if (!userStr) return;
+  const userId = localStorage.getItem("userId");
+  const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+  if (!userProfile.interests || !userId) return;
 
-  const user = JSON.parse(userStr);
-  if (!user.interests) return;
-
-  // مسح الاهتمام من الـ Array
-  user.interests.splice(index, 1);
-
-  // حفظ في الداتا بيز
-  await updateInterestsInBackend(user.id, user.interests);
-
-  // تحديث المتصفح والشاشة
-  localStorage.setItem("userProfile", JSON.stringify(user));
-  renderInterests(user.interests);
+  userProfile.interests.splice(index, 1);
+  await updateInterestsInBackend(userId, userProfile.interests);
+  localStorage.setItem("userProfile", JSON.stringify(userProfile));
+  renderInterests(userProfile.interests);
 }
 
-// دالة التواصل مع الـ Backend لحفظ الاهتمامات
 async function updateInterestsInBackend(userId, interests) {
   try {
-    await fetch("http://localhost:3000/api/v1/user/update-interests", {
+    await fetch("http://127.0.0.1:3000/api/v1/user/update-interests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, interests }),
     });
   } catch (err) {
-    console.error("Failed to update interests in DB", err);
+    console.error("Sync Error:", err);
   }
 }
 
-// --- History Logic ---
+/**
+ * 4. رسم تاريخ المسح (مع إصلاح %% والترتيب)
+ */
 function renderHistory(historyArray) {
   const container = document.getElementById("historyContainer");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!historyArray || historyArray.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-camera-retro" style="font-size: 2.5rem; color: #ccc; margin-bottom: 10px; display: block;"></i>
-        You haven't scanned any landmarks yet. Try the AI Scanner!
-      </div>
-    `;
+    container.innerHTML = `<p class="empty-msg">No scans yet. Try the AI Scanner!</p>`;
     return;
   }
 
-  historyArray.forEach((item) => {
+  // ترتيب من الأحدث للأقدم
+  const sortedHistory = [...historyArray].reverse();
+
+  sortedHistory.forEach((item) => {
     const date = item.scannedAt
       ? new Date(item.scannedAt).toLocaleDateString()
       : "Recently";
 
+    // ✅ إصلاح مشكلة الأرقام الطويلة والعلامة المزدوجة %%
+    let confidenceVal = item.confidence
+      ? String(item.confidence).replace("%", "")
+      : "99";
+    let formattedConfidence = parseFloat(confidenceVal).toFixed(2);
+
     const cardHtml = `
-      <div class="card" style="cursor: default;">
-        <img src="https://images.unsplash.com/photo-1539650116574-8efeb43e2b50?q=80&w=600&auto=format&fit=crop" alt="History" />
-        <div style="padding: 20px; text-align: left;">
-          <h3 style="color: #0b4a6f; margin-bottom: 5px; padding: 0;">${item.place_name}</h3>
-          <p style="color: #666; font-size: 0.85rem; margin-bottom: 5px;">
-            <i class="fas fa-calendar-alt"></i> Scanned on: ${date}
+      <div class="card history-card" style="display: flex; align-items: center; margin-bottom: 15px; overflow: hidden; text-align: left;">
+        <img src="${getValidProfileImg(item)}" alt="${item.place_name}" 
+             style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+        <div style="padding: 15px; flex: 1;">
+          <h3 style="color: #0b4a6f; font-size: 1.1rem; margin-bottom: 5px; padding:0;">${item.place_name}</h3>
+          <p style="font-size: 0.85rem; color:#666; margin-bottom: 5px;">
+            <i class="fas fa-calendar-alt"></i> ${date}
           </p>
-          <div style="display:inline-block; background:#e8f5e9; color:#2e7d32; padding:3px 10px; border-radius:15px; font-size:0.8rem; font-weight:bold;">
-            AI Match: ${item.confidence || "99"}%
-          </div>
+          <span class="confidence-badge" style="background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;">
+            Match: ${formattedConfidence}%
+          </span>
         </div>
       </div>
     `;
@@ -156,72 +199,31 @@ function renderHistory(historyArray) {
   });
 }
 
-function renderSavedPlaces() {
+/**
+ * 5. رسم الأماكن المحفوظة
+ */
+function renderSavedPlaces(savedPlaces) {
   const container = document.getElementById("savedContainer");
-  const savedPlaces = [
-    {
-      name: "Pyramid of Djoser",
-      location: "Saqqara",
-      img: "https://images.unsplash.com/photo-1600521605613-267f814b1eb7?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      name: "Karnak Temple",
-      location: "Luxor",
-      img: "https://images.unsplash.com/photo-1572005408401-44754eb0531c?q=80&w=600&auto=format&fit=crop",
-    },
-  ];
-
+  if (!container) return;
   container.innerHTML = "";
 
-  savedPlaces.forEach((place) => {
-    const cardHtml = `
-      <div class="card">
-        <img src="${place.img}" alt="${place.name}" />
-        <div style="padding: 20px; text-align: left;">
-          <h3 style="color: #0b4a6f; margin-bottom: 5px; padding: 0;">${place.name}</h3>
-          <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">
-            <i class="fas fa-map-marker-alt"></i> ${place.location}
-          </p>
-          <button style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1rem; font-weight:600;">
-            <i class="fas fa-heart"></i> Saved
-          </button>
-        </div>
-      </div>
-    `;
-    container.insertAdjacentHTML("beforeend", cardHtml);
-  });
-}
-function renderSavedPlaces() {
-  const container = document.getElementById("savedContainer");
-
-  // جلب الداتا الحقيقية للمستخدم
-  const userStr = localStorage.getItem("userProfile");
-  if (!userStr) return;
-  const user = JSON.parse(userStr);
-  const savedPlaces = user.saved_places || [];
-
-  container.innerHTML = "";
-
-  if (savedPlaces.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="far fa-heart" style="font-size: 2.5rem; color: #ccc; margin-bottom: 10px; display: block;"></i>
-        You haven't saved any places yet. Explore categories and save your favorites!
-      </div>
-    `;
+  if (!savedPlaces || savedPlaces.length === 0) {
+    container.innerHTML = `<p class="empty-msg">No saved places yet.</p>`;
     return;
   }
 
   savedPlaces.forEach((place) => {
     const cardHtml = `
-      <div class="card" style="cursor: default;">
-        <img src="${place.img}" alt="${place.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1539650116574-8efeb43e2b50?q=80&w=600&auto=format&fit=crop'" />
+      <div class="card">
+        <img src="${getValidProfileImg(place)}" alt="${place.name}" 
+             style="width: 100%; height: 180px; object-fit: cover;"
+             onerror="this.onerror=null; this.src='${DEFAULT_PLACE_IMAGE}'">
         <div style="padding: 20px; text-align: left;">
-          <h3 style="color: #0b4a6f; margin-bottom: 5px; padding: 0;">${place.name}</h3>
-          <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">
-            <i class="fas fa-map-marker-alt"></i> ${place.location}
+          <h3 style="color: #0b4a6f; margin-bottom: 5px; padding:0;">${place.name}</h3>
+          <p style="color:#666; font-size: 0.9rem; margin-bottom: 10px;">
+            <i class="fas fa-map-marker-alt"></i> ${place.location || "Egypt"}
           </p>
-          <div style="color:#e74c3c; font-size:1rem; font-weight:600;">
+          <div style="color:#e74c3c; font-weight:bold; font-size: 0.9rem;">
             <i class="fas fa-heart"></i> Saved
           </div>
         </div>
@@ -231,12 +233,7 @@ function renderSavedPlaces() {
   });
 }
 
-// ==========================================
-// Logout Logic
-// ==========================================
 function logout() {
-  localStorage.removeItem("username");
-  localStorage.removeItem("userId");
-  localStorage.removeItem("userProfile");
+  localStorage.clear();
   window.location.href = "auth.html";
 }

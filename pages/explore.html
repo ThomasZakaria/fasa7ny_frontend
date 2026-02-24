@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explore - Fasa7ny</title>
+    <link rel="stylesheet" href="../styles/home.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body style="background: #f4f7f6">
+    <nav class="navbar">
+      <h2
+        class="logo"
+        onclick="window.location.href = 'home.html'"
+        style="cursor: pointer"
+      >
+        Fasa7ny<span>.</span>
+      </h2>
+      <a href="home.html" class="login-btn">Back Home</a>
+    </nav>
+
+    <header
+      style="
+        background: #0b4a6f;
+        color: white;
+        padding: 100px 20px 40px;
+        text-align: center;
+      "
+    >
+      <h1 id="exploreTitle">Discover Egypt</h1>
+      <p id="exploreSub">Everything you need to see in one place.</p>
+    </header>
+
+    <section style="padding: 40px 20px">
+      <div
+        id="exploreGrid"
+        class="cards"
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 25px;
+        "
+      ></div>
+
+      <div id="loading" style="text-align: center; padding: 50px">
+        <div class="spinner"></div>
+      </div>
+    </section>
+
+    <div id="placeModal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="close-modal" id="closeModalBtn">×</span>
+        <img id="modalImg" src="" alt="Landmark Image" class="modal-hero-img" />
+
+        <div class="modal-body">
+          <h2 id="modalTitle">Landmark Name</h2>
+          <div id="modalArabicName" class="modal-arabic-name">
+            الاسم بالعربي
+          </div>
+
+          <div class="modal-meta">
+            <span
+              ><i class="fas fa-map-marker-alt"></i> <b id="modalLocation"></b
+            ></span>
+            <span><i class="fas fa-clock"></i> <b id="modalTime"></b></span>
+            <span
+              ><i class="fas fa-ticket-alt"></i> <b id="modalPrice"></b
+            ></span>
+            <span><i class="fas fa-tag"></i> <b id="modalCategory"></b></span>
+          </div>
+
+          <p id="modalHistory" class="modal-desc"></p>
+
+          <div
+            style="
+              display: flex;
+              gap: 15px;
+              flex-wrap: wrap;
+              margin-bottom: 25px;
+            "
+          >
+            <a href="#" id="modalMapLink" target="_blank" class="modal-map-btn">
+              <i class="fas fa-map-marked-alt"></i> Open in Maps
+            </a>
+            <button
+              id="modalSaveBtn"
+              class="modal-map-btn"
+              style="background: #e74c3c; border: none; cursor: pointer"
+            >
+              <i class="far fa-heart" id="modalSaveIcon"></i>
+              <span id="modalSaveText">Save Place</span>
+            </button>
+          </div>
+
+          <div
+            class="modal-recommendations-wrapper"
+            style="border-top: 1px solid #eee; padding-top: 20px"
+          >
+            <h3 style="color: #0b4a6f; margin-bottom: 15px">
+              <i class="fas fa-walking"></i> Nearest Landmarks
+            </h3>
+            <div
+              id="modalNearbyCards"
+              class="cards"
+              style="
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+              "
+            ></div>
+
+            <h3 style="color: #ff9800; margin-top: 20px; margin-bottom: 15px">
+              <i class="fas fa-magic"></i> AI Similar Wonders
+            </h3>
+            <div
+              id="modalSimilarCards"
+              class="cards"
+              style="
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+              "
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../scripts/home.js"></script>
+    <script src="../scripts/reviews.js"></script>
+    <script src="../scripts/explore.js"></script>
+  </body>
+</html>
