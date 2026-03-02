@@ -1,0 +1,131 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: url("../images/hero.jpg") center/cover no-repeat;
+  position: relative;
+  padding: 40px;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: -1;
+}
+
+/* Contact */
+.contact {
+  max-width: 500px;
+  margin: auto;
+  padding: 30px;
+
+  /* الشكل الزجاجي */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+
+  color: black;
+}
+
+.contact h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.contact input,
+.contact textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+
+  border-radius: 10px;
+  border: none;
+  outline: none;
+
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.contact button {
+  width: 100%;
+  padding: 12px;
+  background: #0b4a6f;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.contact button:hover {
+  background: #083652;
+}
+
+.contact input,
+.contact textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.contact textarea {
+  height: 120px;
+  resize: none;
+}
+
+.contact button {
+  width: 100%;
+  padding: 12px;
+  background: #0b4a6f;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.contact button:hover {
+  background: #083652;
+}
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0b4a6f;
+  padding: 15px 40px;
+  color: white;
+}
+.nav-links {
+  list-style: none; /* يشيل النقط */
+  display: flex; /* يخليهم جنب بعض */
+  gap: 40px; /* مسافة بينهم */
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+/* شكل اللينكات */
+.nav-links a {
+  color: white; /* يخلي اللون أبيض */
+  text-decoration: none; /* يشيل الخط اللي تحت */
+  font-size: 18px; /* يكبر الخط شوية */
+  font-weight: 500; /* يخليه أوضح */
+  font-family: "Poppins", sans-serif; /* خط حلو */
+  transition: 0.3s;
+}
+
+/* شكل اللينك لما الماوس يعدي عليه */
+.nav-links a:hover {
+  color: #f4b860;
+}

@@ -53,8 +53,15 @@
     <div id="placeModal" class="modal-overlay">
       <div class="modal-content">
         <span class="close-modal" id="closeModalBtn">×</span>
-        <img id="modalImg" src="" alt="Landmark Image" class="modal-hero-img" />
-
+        
+        <div class="modal-image-section">
+          <img id="modalImg" src="" alt="Landmark Image" class="modal-hero-img" />
+          
+          <div 
+            id="modalGallery" 
+            style="display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; background: #f4f7f6; border-bottom: 1px solid #ddd;"
+          ></div>
+        </div>
         <div class="modal-body">
           <h2 id="modalTitle">Landmark Name</h2>
           <div id="modalArabicName" class="modal-arabic-name">

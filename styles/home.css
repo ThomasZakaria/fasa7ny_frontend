@@ -809,3 +809,37 @@ html {
 .modal-recommendations-wrapper .place-card img {
   height: 110px;
 }
+/* تنسيق معرض الصور */
+.modal-gallery-container {
+  display: flex;
+  gap: 10px;
+  padding: 10px 20px;
+  overflow-x: auto;
+  background: #f9f9f9;
+}
+
+.gallery-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: 0.3s;
+}
+
+.gallery-thumb:hover {
+  transform: scale(1.1);
+}
+
+.active-thumb {
+  border-color: #0b4a6f;
+  box-shadow: 0 0 5px rgba(11, 74, 111, 0.5);
+}
+
+.modal-hero-img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  transition: opacity 0.3s ease-in-out;
+}

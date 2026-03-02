@@ -23,48 +23,94 @@ const imageInput = document.getElementById("imageInput");
 const getLocationBtn = document.getElementById("getLocationBtn");
 
 // ==========================================
-// 1. HELPERS
+// 1. HELPERS & AUTH
 // ==========================================
-async function loadPlaceRecommendations(placeId) {
-  const nearbyContainer = document.getElementById("modalNearbyCards");
-  const similarContainer = document.getElementById("modalSimilarCards");
 
-  if (nearbyContainer) nearbyContainer.innerHTML = "<p>Loading nearby...</p>";
-  if (similarContainer)
-    similarContainer.innerHTML = "<p>Analyzing similar wonders...</p>";
+// قراءة الصورة بذكاء متوافقة مع الهيكل القديم والجديد للـ JSON
+// ==========================================
+// 1. HELPERS & AUTH
+// ==========================================
 
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/places/${placeId}/recommendations`,
-    );
-    const result = await res.json();
+// دالة للتحقق من صحة الرابط برمجياً
+const isValidUrl = (url) =>
+  typeof url === "string" && url.startsWith("http") && !url.includes("[URL]");
 
-    if (result.status === "success") {
-      const { nearest, similar } = result.data;
-      // Use renderCards (already in home.js) to fill the modal sections
-      if (nearbyContainer) renderCards(nearest || [], nearbyContainer, false);
-      if (similarContainer) renderCards(similar || [], similarContainer, false);
-    }
-  } catch (err) {
-    console.error("Recommendations UI Error:", err);
-  }
-}
+// 1. جلب الصورة الرئيسية (أو المعرض كبديل أول)
 function getValidImageUrl(place) {
   if (!place) return DEFAULT_THUMB;
-  const url = place.image || place["Main Image URL"] || "";
-  const isValid =
-    typeof url === "string" && url.startsWith("http") && !url.includes("[URL]");
-  return isValid ? url : DEFAULT_THUMB;
+
+  // المحاولة الأولى: الصورة الرئيسية
+  if (place.images && isValidUrl(place.images.main)) {
+    return place.images.main;
+  }
+
+  // المحاولة الثانية: أول صورة صالحة من المعرض (Fallback 1)
+  if (place.images && Array.isArray(place.images.gallery)) {
+    const validGalleryImg = place.images.gallery.find(isValidUrl);
+    if (validGalleryImg) return validGalleryImg;
+  }
+
+  // المحاولة الثالثة: الهيكل القديم
+  const oldUrl = place.image || place.img || place["Main Image URL"];
+  if (isValidUrl(oldUrl)) return oldUrl;
+
+  // الملاذ الأخير: الصورة الافتراضية
+  return DEFAULT_THUMB;
 }
 
-function updateAuthUI() {
-  const username = localStorage.getItem("username");
+// 2. جلب صورة بديلة في حالة تلف الرابط أثناء التحميل (Network Error 404)
+function getFallbackImageUrl(place) {
+  if (!place) return DEFAULT_THUMB;
+
+  // نبحث عن صورة في المعرض "مختلفة" عن الصورة الرئيسية التالفة
+  if (place.images && Array.isArray(place.images.gallery)) {
+    const fallback = place.images.gallery.find(
+      (img) => isValidUrl(img) && img !== place.images.main,
+    );
+    if (fallback) return fallback;
+  }
+
+  return DEFAULT_THUMB;
+}
+
+// 3. دالة ضغط الصور (التي أضفناها لتسريع الموقع)
+function optimizeImage(url, width = 400) {
+  if (!url || url === DEFAULT_THUMB || url.includes("wsrv.nl")) return url;
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=70`;
+}
+// دالة قوية لجلب الاسم من السيرفر إذا كان مفقوداً (لحل مشكلة undefined)
+async function updateAuthUI() {
   const loginBtn = document.getElementById("loginBtn");
-  if (username && loginBtn) {
+  if (!loginBtn) return;
+
+  const userId = localStorage.getItem("userId");
+  let username = localStorage.getItem("username");
+
+  if (
+    userId &&
+    (!username || username === "undefined" || username.trim() === "")
+  ) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${userId}`);
+      const result = await res.json();
+
+      if (result.status === "success" && result.data.user) {
+        const user = result.data.user;
+        username = user.username || user.name || "Tourist";
+        localStorage.setItem("username", username);
+        localStorage.setItem("userProfile", JSON.stringify(user));
+      }
+    } catch (err) {
+      console.error("Auth Sync Error:", err);
+    }
+  }
+
+  if (username && username !== "undefined") {
     loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${username}`;
     loginBtn.href = "profile.html";
     loginBtn.style.background = "#ff9800";
     loginBtn.style.color = "#fff";
+    loginBtn.style.border = "none";
   }
 }
 
@@ -86,11 +132,22 @@ function renderCards(places, container, limit = false) {
     const name = place["Landmark Name (English)"] || place.name;
     const city = place.Location || "Egypt";
 
+    // 1. نجلب الرابط الأصلي من ملفك
+    const originalMainUrl = getValidImageUrl(place);
+    // 2. نصنع نسخة مضغوطة وسريعة
+    const optimizedMainUrl = optimizeImage(originalMainUrl, 400);
+
+    // السحر هنا: لو المضغوطة فشلت، نستخدم الأصلية فوراً قبل اللجوء للافتراضية!
     container.insertAdjacentHTML(
       "beforeend",
       `
       <div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
-        <img src="${getValidImageUrl(place)}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${DEFAULT_THUMB}'">
+        <img 
+          src="${optimizedMainUrl}" 
+          alt="${name}" 
+          loading="lazy" 
+          onerror="this.onerror=null; this.src='${originalMainUrl}';"
+        >
         <div style="padding: 15px;">
           <h3 style="color:#0b4a6f; font-size:1.1rem; margin-bottom:5px;">${name}</h3>
           <p style="color:#666; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${city}</p>
@@ -100,6 +157,7 @@ function renderCards(places, container, limit = false) {
     );
   });
 }
+
 async function loadPlaceRecommendations(placeId) {
   const nearbyContainer = document.getElementById("modalNearbyCards");
   const similarContainer = document.getElementById("modalSimilarCards");
@@ -122,8 +180,9 @@ async function loadPlaceRecommendations(placeId) {
     console.error("Recommendations UI Error:", err);
   }
 }
+
 // ==========================================
-// 4. MODAL LOGIC (تم إصلاح الخرائط والحفظ هنا)
+// 3. MODAL LOGIC & IMAGE GALLERY
 // ==========================================
 
 function openPlaceModal(placeData) {
@@ -143,28 +202,116 @@ function openPlaceModal(placeData) {
   safeSetText("modalPrice", placeData.price || "Free");
   safeSetText("modalCategory", placeData.category || "General");
 
-  const imgEl = document.getElementById("modalImg");
-  if (imgEl) imgEl.src = getValidImageUrl(placeData);
-
   const historyEl = document.getElementById("modalHistory");
   if (historyEl)
     historyEl.innerText =
       placeData["Short History Summary"] || "Discover the wonders of Egypt.";
 
-  // 2. إصلاح زر الخرائط (Open in Maps)
+  // 2. معرض الصور المتطور
+  const imgEl = document.getElementById("modalImg");
+  const galleryEl = document.getElementById("modalGallery");
+
+  let allImages = [];
+  const mainImage = getValidImageUrl(placeData);
+  if (mainImage && mainImage !== DEFAULT_THUMB) allImages.push(mainImage);
+
+  // دعم هيكل JSON الجديد (images.gallery)
+  if (placeData.images && Array.isArray(placeData.images.gallery)) {
+    placeData.images.gallery.forEach((img) => {
+      if (img && !allImages.includes(img) && !img.includes("[URL]"))
+        allImages.push(img);
+    });
+  }
+  // دعم الهيكل لو كانت الصور مصفوفة عادية
+  else if (placeData.images && Array.isArray(placeData.images)) {
+    placeData.images.forEach((img) => {
+      if (img && !allImages.includes(img) && !img.includes("[URL]"))
+        allImages.push(img);
+    });
+  }
+  // دعم الهيكل لو كانت الصور نصاً (مفصولة بفاصلة)
+  else if (placeData.images && typeof placeData.images === "string") {
+    placeData.images.split(",").forEach((img) => {
+      let cleanImg = img.trim();
+      if (
+        cleanImg &&
+        !allImages.includes(cleanImg) &&
+        !cleanImg.includes("[URL]")
+      )
+        allImages.push(cleanImg);
+    });
+  }
+  // رسم الصورة الرئيسية في المودال مع الحماية
+  if (imgEl) {
+    const originalHero = allImages.length > 0 ? allImages[0] : DEFAULT_THUMB;
+    // نطلب الصورة مضغوطة بحجم 800 بكسل
+    imgEl.src = optimizeImage(originalHero, 800);
+
+    // لو فشل الضغط، نعود للصورة الأصلية فوراً
+    imgEl.onerror = function () {
+      this.onerror = null;
+      this.src = originalHero;
+    };
+  }
+
+  if (galleryEl) {
+    galleryEl.innerHTML = "";
+    if (allImages.length > 1) {
+      galleryEl.style.display = "flex";
+      allImages.forEach((originalUrl, index) => {
+        const thumb = document.createElement("img");
+
+        // نطلب الصورة المصغرة بحجم 100 بكسل للسرعة القصوى
+        thumb.src = optimizeImage(originalUrl, 100);
+
+        // لو فشل السيرفر في ضغطها، نعرض الأصلية ولا نذهب للافتراضية
+        thumb.onerror = function () {
+          this.onerror = null;
+          this.src = originalUrl;
+        };
+
+        thumb.style.minWidth = "65px";
+        thumb.style.height = "65px";
+        thumb.style.objectFit = "cover";
+        thumb.style.borderRadius = "8px";
+        thumb.style.cursor = "pointer";
+        thumb.style.border =
+          index === 0 ? "2px solid #0b4a6f" : "2px solid transparent";
+        thumb.style.transition = "0.3s";
+        thumb.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+
+        thumb.onclick = () => {
+          if (imgEl) {
+            imgEl.src = optimizeImage(originalUrl, 800);
+            imgEl.onerror = function () {
+              this.onerror = null;
+              this.src = originalUrl;
+            };
+          }
+          Array.from(galleryEl.children).forEach(
+            (child) => (child.style.border = "2px solid transparent"),
+          );
+          thumb.style.border = "2px solid #0b4a6f";
+        };
+        galleryEl.appendChild(thumb);
+      });
+    } else {
+      galleryEl.style.display = "none";
+    }
+  }
+
+  // 3. إصلاح زر الخرائط (رابط صحيح لجوجل ماب)
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${cleanCoords}`;
+    mapBtn.href = `https://maps.google.com/?q=${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
   }
 
-  // 3. تحديث حالة زر الحفظ (Save Button)
+  // 4. الحفظ والمراجعات
   updateSaveButtonUI();
-
-  // 4. جلب المراجعات والتوصيات
   const placeId =
     placeData.ID ||
     (placeData._id ? placeData._id.$oid || placeData._id : null);
@@ -179,7 +326,6 @@ function openPlaceModal(placeData) {
   document.body.style.overflow = "hidden";
 }
 
-// تحديث شكل زر الحفظ بناءً على هل المكان محفوظ أم لا
 function updateSaveButtonUI() {
   const saveBtn = document.getElementById("modalSaveBtn");
   const saveIcon = document.getElementById("modalSaveIcon");
@@ -192,21 +338,20 @@ function updateSaveButtonUI() {
   const isSaved = user.saved_places?.some((p) => p.id == placeId);
 
   if (isSaved) {
-    saveBtn.style.background = "#27ae60"; // أخضر
+    saveBtn.style.background = "#27ae60";
     saveText.textContent = "Saved";
     if (saveIcon) saveIcon.className = "fas fa-heart";
   } else {
-    saveBtn.style.background = "#e74c3c"; // أحمر
+    saveBtn.style.background = "#e74c3c";
     saveText.textContent = "Save Place";
     if (saveIcon) saveIcon.className = "far fa-heart";
   }
 }
 
 // ==========================================
-// 5. BUTTON ACTIONS (Save & Review)
+// 4. BUTTON ACTIONS (Save & Review)
 // ==========================================
 
-// منطق زر الحفظ
 const modalSaveBtn = document.getElementById("modalSaveBtn");
 if (modalSaveBtn) {
   modalSaveBtn.onclick = async function () {
@@ -236,16 +381,13 @@ if (modalSaveBtn) {
 
       const result = await response.json();
       if (result.status === "success") {
-        // تحديث الـ LocalStorage ليعرف المتصفح أن المكان حُفظ
         const user = JSON.parse(localStorage.getItem("userProfile") || "{}");
         if (!user.saved_places) user.saved_places = [];
         user.saved_places.push({
           id: currentModalPlace.ID || currentModalPlace._id,
         });
         localStorage.setItem("userProfile", JSON.stringify(user));
-
         updateSaveButtonUI();
-        alert("Place saved to your profile!");
       }
     } catch (err) {
       console.error("Save Error:", err);
@@ -253,7 +395,6 @@ if (modalSaveBtn) {
   };
 }
 
-// منطق إضافة مراجعة (Review)
 async function submitReview() {
   const userId = localStorage.getItem("userId");
   const username = localStorage.getItem("username");
@@ -279,8 +420,8 @@ async function submitReview() {
 
     const data = await res.json();
     if (data.status === "success") {
-      document.getElementById("reviewComment").value = ""; // تفريغ النص
-      if (typeof loadReviews === "function") loadReviews(placeId.toString()); // تحديث القائمة
+      document.getElementById("reviewComment").value = "";
+      if (typeof loadReviews === "function") loadReviews(placeId.toString());
       alert("Review posted!");
     }
   } catch (err) {
@@ -289,7 +430,7 @@ async function submitReview() {
 }
 
 // ==========================================
-// 6. INITIALIZATION & CORE FEATURES
+// 5. INITIALIZATION & CORE FEATURES
 // ==========================================
 
 async function fetchAndRenderCategories(selectedCity = "all") {
@@ -369,18 +510,18 @@ document.addEventListener("click", (e) => {
     if (data) openPlaceModal(data);
   }
 });
+
 // ==========================================
-// 7. AI SCANNER LOGIC (الجزء الناقص)
+// 6. AI SCANNER & GPS LOGIC
 // ==========================================
+
 if (uploadBtn && imageInput) {
-  // فتح نافذة اختيار الملفات عند الضغط على الزر
   uploadBtn.onclick = () => imageInput.click();
 
   imageInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // إظهار حالة التحميل
     const loadState = document.getElementById("loadingState");
     if (loadState) loadState.classList.remove("hidden");
 
@@ -395,7 +536,6 @@ if (uploadBtn && imageInput) {
       const data = await res.json();
 
       if (data.status === "success" && data.data.details) {
-        // فتح المودال ببيانات المكان الذي تعرف عليه الـ AI
         openPlaceModal(data.data.details);
       } else {
         alert("AI couldn't identify this landmark clearly. Try another angle!");
@@ -405,11 +545,11 @@ if (uploadBtn && imageInput) {
       alert("Make sure both Node.js and Python servers are running!");
     } finally {
       if (loadState) loadState.classList.add("hidden");
-      imageInput.value = ""; // تفريغ المدخل لتجربة صورة أخرى
+      imageInput.value = "";
     }
   };
 }
-// GPS Location Logic
+
 if (getLocationBtn) {
   getLocationBtn.onclick = function () {
     const loader = document.getElementById("locationLoading");
@@ -428,11 +568,8 @@ if (getLocationBtn) {
           const d = await res.json();
 
           if (loader) loader.classList.add("hidden");
-
-          // Render current preview on home page
           renderCards(d.data.places, container, true);
 
-          // Setup the "Show More" button to redirect to Explore page
           const showBtn = document.getElementById("showMoreNearMeBtn");
           if (showBtn && d.data.places.length > 0) {
             showBtn.classList.remove("hidden");
