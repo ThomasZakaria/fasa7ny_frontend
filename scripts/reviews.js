@@ -6,7 +6,7 @@
 // متغير عالمي لتخزين معرف المكان النشط حالياً في الموديل
 let currentActivePlaceId = null;
 
-const REVIEWS_API_BASE = "http://127.0.0.1:3000/api/v1/places";
+const REVIEWS_API_BASE = "${API_BASE_URL}/places";
 
 /**
  * جلب كافة التقييمات الخاصة بمكان معين من السيرفر

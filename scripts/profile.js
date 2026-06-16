@@ -1,7 +1,7 @@
 // ==========================================
 // Profile Page Logic - Final Fixed Version
 // ==========================================
-const API_BASE_URL = "http://127.0.0.1:3000/api/v1";
+const API_BASE_URL = "${API_BASE_URL}";
 const DEFAULT_PLACE_IMAGE =
   "https://s7g10.scene7.com/is/image/barcelo/pyramids-of-giza-facts_ancient-pyramids-of-giza?&&fmt=webp-alpha&qlt=75&wid=1300&fit=crop,1";
 
