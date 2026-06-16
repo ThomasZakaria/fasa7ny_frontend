@@ -4,7 +4,7 @@
 window.globalPlacesMap = {};
 let globalPlaceIdCounter = 0;
 let isFetchingCategories = false;
-let currentModalPlace = null; // هام جداً لربط زر الحفظ والتعليقات
+window.currentModalPlace = null; // هام جداً لربط الحفظ، التعليقات، والحاسبة
 
 const API_BASE_URL = "http://127.0.0.1:3000/api/v1";
 const DEFAULT_THUMB =
@@ -26,59 +26,37 @@ const getLocationBtn = document.getElementById("getLocationBtn");
 // 1. HELPERS & AUTH
 // ==========================================
 
-// قراءة الصورة بذكاء متوافقة مع الهيكل القديم والجديد للـ JSON
-// ==========================================
-// 1. HELPERS & AUTH
-// ==========================================
-
-// دالة للتحقق من صحة الرابط برمجياً
 const isValidUrl = (url) =>
   typeof url === "string" && url.startsWith("http") && !url.includes("[URL]");
 
-// 1. جلب الصورة الرئيسية (أو المعرض كبديل أول)
 function getValidImageUrl(place) {
   if (!place) return DEFAULT_THUMB;
-
-  // المحاولة الأولى: الصورة الرئيسية
-  if (place.images && isValidUrl(place.images.main)) {
-    return place.images.main;
-  }
-
-  // المحاولة الثانية: أول صورة صالحة من المعرض (Fallback 1)
+  if (place.images && isValidUrl(place.images.main)) return place.images.main;
   if (place.images && Array.isArray(place.images.gallery)) {
     const validGalleryImg = place.images.gallery.find(isValidUrl);
     if (validGalleryImg) return validGalleryImg;
   }
-
-  // المحاولة الثالثة: الهيكل القديم
   const oldUrl = place.image || place.img || place["Main Image URL"];
   if (isValidUrl(oldUrl)) return oldUrl;
-
-  // الملاذ الأخير: الصورة الافتراضية
   return DEFAULT_THUMB;
 }
 
-// 2. جلب صورة بديلة في حالة تلف الرابط أثناء التحميل (Network Error 404)
 function getFallbackImageUrl(place) {
   if (!place) return DEFAULT_THUMB;
-
-  // نبحث عن صورة في المعرض "مختلفة" عن الصورة الرئيسية التالفة
   if (place.images && Array.isArray(place.images.gallery)) {
     const fallback = place.images.gallery.find(
       (img) => isValidUrl(img) && img !== place.images.main,
     );
     if (fallback) return fallback;
   }
-
   return DEFAULT_THUMB;
 }
 
-// 3. دالة ضغط الصور (التي أضفناها لتسريع الموقع)
 function optimizeImage(url, width = 400) {
   if (!url || url === DEFAULT_THUMB || url.includes("wsrv.nl")) return url;
   return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=70`;
 }
-// دالة قوية لجلب الاسم من السيرفر إذا كان مفقوداً (لحل مشكلة undefined)
+
 async function updateAuthUI() {
   const loginBtn = document.getElementById("loginBtn");
   if (!loginBtn) return;
@@ -93,7 +71,6 @@ async function updateAuthUI() {
     try {
       const res = await fetch(`${API_BASE_URL}/users/${userId}`);
       const result = await res.json();
-
       if (result.status === "success" && result.data.user) {
         const user = result.data.user;
         username = user.username || user.name || "Tourist";
@@ -132,12 +109,9 @@ function renderCards(places, container, limit = false) {
     const name = place["Landmark Name (English)"] || place.name;
     const city = place.Location || "Egypt";
 
-    // 1. نجلب الرابط الأصلي من ملفك
     const originalMainUrl = getValidImageUrl(place);
-    // 2. نصنع نسخة مضغوطة وسريعة
     const optimizedMainUrl = optimizeImage(originalMainUrl, 400);
 
-    // السحر هنا: لو المضغوطة فشلت، نستخدم الأصلية فوراً قبل اللجوء للافتراضية!
     container.insertAdjacentHTML(
       "beforeend",
       `
@@ -187,14 +161,13 @@ async function loadPlaceRecommendations(placeId) {
 
 function openPlaceModal(placeData) {
   if (!placeData || !placeModal) return;
-  currentModalPlace = placeData; // تعيين المكان الحالي عالمياً
+  window.currentModalPlace = placeData;
 
   const safeSetText = (id, text) => {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   };
 
-  // 1. البيانات الأساسية
   safeSetText("modalTitle", placeData["Landmark Name (English)"] || "Landmark");
   safeSetText("modalArabicName", placeData["Arabic Name"] || "");
   safeSetText("modalLocation", placeData["Location"] || "Egypt");
@@ -207,7 +180,6 @@ function openPlaceModal(placeData) {
     historyEl.innerText =
       placeData["Short History Summary"] || "Discover the wonders of Egypt.";
 
-  // 2. معرض الصور المتطور
   const imgEl = document.getElementById("modalImg");
   const galleryEl = document.getElementById("modalGallery");
 
@@ -215,22 +187,17 @@ function openPlaceModal(placeData) {
   const mainImage = getValidImageUrl(placeData);
   if (mainImage && mainImage !== DEFAULT_THUMB) allImages.push(mainImage);
 
-  // دعم هيكل JSON الجديد (images.gallery)
   if (placeData.images && Array.isArray(placeData.images.gallery)) {
     placeData.images.gallery.forEach((img) => {
       if (img && !allImages.includes(img) && !img.includes("[URL]"))
         allImages.push(img);
     });
-  }
-  // دعم الهيكل لو كانت الصور مصفوفة عادية
-  else if (placeData.images && Array.isArray(placeData.images)) {
+  } else if (placeData.images && Array.isArray(placeData.images)) {
     placeData.images.forEach((img) => {
       if (img && !allImages.includes(img) && !img.includes("[URL]"))
         allImages.push(img);
     });
-  }
-  // دعم الهيكل لو كانت الصور نصاً (مفصولة بفاصلة)
-  else if (placeData.images && typeof placeData.images === "string") {
+  } else if (placeData.images && typeof placeData.images === "string") {
     placeData.images.split(",").forEach((img) => {
       let cleanImg = img.trim();
       if (
@@ -241,13 +208,10 @@ function openPlaceModal(placeData) {
         allImages.push(cleanImg);
     });
   }
-  // رسم الصورة الرئيسية في المودال مع الحماية
+
   if (imgEl) {
     const originalHero = allImages.length > 0 ? allImages[0] : DEFAULT_THUMB;
-    // نطلب الصورة مضغوطة بحجم 800 بكسل
     imgEl.src = optimizeImage(originalHero, 800);
-
-    // لو فشل الضغط، نعود للصورة الأصلية فوراً
     imgEl.onerror = function () {
       this.onerror = null;
       this.src = originalHero;
@@ -260,16 +224,11 @@ function openPlaceModal(placeData) {
       galleryEl.style.display = "flex";
       allImages.forEach((originalUrl, index) => {
         const thumb = document.createElement("img");
-
-        // نطلب الصورة المصغرة بحجم 100 بكسل للسرعة القصوى
         thumb.src = optimizeImage(originalUrl, 100);
-
-        // لو فشل السيرفر في ضغطها، نعرض الأصلية ولا نذهب للافتراضية
         thumb.onerror = function () {
           this.onerror = null;
           this.src = originalUrl;
         };
-
         thumb.style.minWidth = "65px";
         thumb.style.height = "65px";
         thumb.style.objectFit = "cover";
@@ -300,17 +259,15 @@ function openPlaceModal(placeData) {
     }
   }
 
-  // 3. إصلاح زر الخرائط (رابط صحيح لجوجل ماب)
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `https://maps.google.com/?q=${cleanCoords}`;
+    mapBtn.href = `https://maps.google.com/?q=$${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
   }
 
-  // 4. الحفظ والمراجعات
   updateSaveButtonUI();
   const placeId =
     placeData.ID ||
@@ -334,7 +291,7 @@ function updateSaveButtonUI() {
   if (!saveBtn) return;
 
   const user = JSON.parse(localStorage.getItem("userProfile") || "{}");
-  const placeId = currentModalPlace.ID || currentModalPlace._id;
+  const placeId = window.currentModalPlace.ID || window.currentModalPlace._id;
   const isSaved = user.saved_places?.some((p) => p.id == placeId);
 
   if (isSaved) {
@@ -369,12 +326,12 @@ if (modalSaveBtn) {
         body: JSON.stringify({
           userId: userId,
           place: {
-            id: currentModalPlace.ID || currentModalPlace._id,
+            id: window.currentModalPlace.ID || window.currentModalPlace._id,
             name:
-              currentModalPlace["Landmark Name (English)"] ||
-              currentModalPlace.name,
-            location: currentModalPlace.Location,
-            img: getValidImageUrl(currentModalPlace),
+              window.currentModalPlace["Landmark Name (English)"] ||
+              window.currentModalPlace.name,
+            location: window.currentModalPlace.Location,
+            img: getValidImageUrl(window.currentModalPlace),
           },
         }),
       });
@@ -384,7 +341,7 @@ if (modalSaveBtn) {
         const user = JSON.parse(localStorage.getItem("userProfile") || "{}");
         if (!user.saved_places) user.saved_places = [];
         user.saved_places.push({
-          id: currentModalPlace.ID || currentModalPlace._id,
+          id: window.currentModalPlace.ID || window.currentModalPlace._id,
         });
         localStorage.setItem("userProfile", JSON.stringify(user));
         updateSaveButtonUI();
@@ -404,7 +361,7 @@ async function submitReview() {
   if (!userId) return alert("Please login to post a review!");
   if (!comment || !rating) return alert("Please add a comment and rating!");
 
-  const placeId = currentModalPlace.ID || currentModalPlace._id;
+  const placeId = window.currentModalPlace.ID || window.currentModalPlace._id;
 
   try {
     const res = await fetch(`${API_BASE_URL}/places/${placeId}/reviews`, {
@@ -428,7 +385,228 @@ async function submitReview() {
     console.error("Review Error:", err);
   }
 }
+// ==========================================
+// TRIP COST CALCULATOR LOGIC (Advanced)
+// ==========================================
+window.updateStepper = function (inputId, change) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  let newVal = parseInt(input.value) + change;
+  if (newVal < 1) newVal = 1;
+  input.value = newVal;
+  if (window.triggerTripCalculation) window.triggerTripCalculation();
+};
 
+document.addEventListener("DOMContentLoaded", () => {
+  const calcModal = document.getElementById("calc-modal");
+  const openCalcBtn = document.getElementById("open-calc-btn");
+  const closeCalcBtn = document.getElementById("close-calc-modal");
+  const aiBudgetBtn = document.getElementById("ai-budget-btn");
+
+  const inputs = {
+    days: document.getElementById("calc-days"),
+    travelers: document.getElementById("calc-travelers"),
+    transport: document.getElementById("calc-transport"),
+    accommodation: document.getElementById("calc-accommodation"),
+    food: document.getElementById("calc-food"),
+  };
+  const currencySelect = document.getElementById("currency-switcher");
+  const totalCostEl = document.getElementById("total-cost");
+  const costPerPersonEl = document.getElementById("cost-per-person");
+
+  const exchangeRates = { EGP: 1, USD: 0.021, EUR: 0.019 };
+
+  // متغيرات لتتبع الحالة
+  let previousCurrency = "EGP";
+  let lastCalcPlaceId = null;
+
+  // 1. الاتصال بـ Gemini
+  async function fetchAIRecommendations(placeObj) {
+    const costInputs = [inputs.accommodation, inputs.food, inputs.transport];
+    costInputs.forEach((input) => {
+      if (input) input.style.opacity = "0.5";
+    });
+
+    if (aiBudgetBtn) {
+      aiBudgetBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> جاري الحساب...';
+      aiBudgetBtn.style.background = "#e68a00";
+      aiBudgetBtn.disabled = true;
+    }
+
+    try {
+      // سحب تفاصيل أكتر من الكائن لزيادة دقة الذكاء الاصطناعي
+      const placeDataToSend = {
+        placeName:
+          placeObj["Landmark Name (English)"] ||
+          placeObj.name ||
+          "Giza Pyramids",
+        location: placeObj["Location"] || "Egypt",
+        category: placeObj["category"] || "Tourist Attraction",
+        description: placeObj["Short History Summary"] || "",
+      };
+
+      const response = await fetch(`${API_BASE_URL}/ai/budget`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(placeDataToSend), // إرسال الكائن بالكامل للباك إند
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success" && result.data) {
+        const currentRate = exchangeRates[currencySelect.value] || 1;
+
+        if (inputs.accommodation)
+          inputs.accommodation.value = Math.round(
+            (result.data.accommodation || 1500) * currentRate,
+          );
+        if (inputs.food)
+          inputs.food.value = Math.round(
+            (result.data.food || 600) * currentRate,
+          );
+        if (inputs.transport)
+          inputs.transport.value = Math.round(
+            (result.data.transport || 300) * currentRate,
+          );
+      }
+    } catch (error) {
+      console.error("Failed to fetch smart defaults", error);
+    } finally {
+      costInputs.forEach((input) => {
+        if (input) input.style.opacity = "1";
+      });
+      if (aiBudgetBtn) {
+        aiBudgetBtn.innerHTML =
+          '<i class="fas fa-magic"></i> اقترح ميزانية بالذكاء الاصطناعي';
+        aiBudgetBtn.style.background = "#ff9800";
+        aiBudgetBtn.disabled = false;
+      }
+      window.triggerTripCalculation();
+    }
+  }
+
+  if (aiBudgetBtn) {
+    aiBudgetBtn.addEventListener("click", () => {
+      fetchAIRecommendations(window.currentModalPlace || {});
+    });
+  }
+
+  // 2. فتح الحاسبة (مع ميزة التصفير التلقائي للمكان الجديد)
+  if (openCalcBtn) {
+    openCalcBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const currentPlaceId = window.currentModalPlace
+        ? window.currentModalPlace.ID || window.currentModalPlace._id
+        : null;
+
+      // لو ده مكان جديد، فضي الخانات ورجع الأيام 1 والعملة EGP
+      if (currentPlaceId !== lastCalcPlaceId) {
+        inputs.days.value = 1;
+        inputs.travelers.value = 1;
+        inputs.transport.value = "";
+        inputs.accommodation.value = "";
+        inputs.food.value = "";
+        if (currencySelect) currencySelect.value = "EGP";
+        previousCurrency = "EGP";
+
+        lastCalcPlaceId = currentPlaceId;
+        window.triggerTripCalculation();
+      }
+
+      if (calcModal) calcModal.classList.add("active");
+    });
+  }
+
+  if (closeCalcBtn) {
+    closeCalcBtn.addEventListener("click", () => {
+      if (calcModal) calcModal.classList.remove("active");
+    });
+  }
+
+  window.addEventListener("click", (e) => {
+    if (e.target === calcModal) calcModal.classList.remove("active");
+  });
+
+  // 3. الحسبة الأساسية
+  window.triggerTripCalculation = function () {
+    if (!inputs.days) return;
+
+    const days = Math.max(1, parseInt(inputs.days.value) || 1);
+    const travelers = Math.max(1, parseInt(inputs.travelers.value) || 1);
+    const transport = Math.max(0, parseFloat(inputs.transport.value) || 0);
+    const accommodation = Math.max(
+      0,
+      parseFloat(inputs.accommodation.value) || 0,
+    );
+    const food = Math.max(0, parseFloat(inputs.food.value) || 0);
+
+    // تم التعديل: حساب الإقامة بعدد الأيام عشان متتحذفش في رحلة اليوم الواحد
+    const nights = days;
+
+    // الإجمالي مش محتاج ينضرب في rate لأن الخانات نفسها بقت بتتحول!
+    const grandTotal =
+      transport + accommodation * nights + food * days * travelers;
+    const perPerson = travelers > 0 ? grandTotal / travelers : 0;
+
+    if (totalCostEl)
+      totalCostEl.textContent = grandTotal.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      });
+    if (costPerPersonEl)
+      costPerPersonEl.textContent = perPerson.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      });
+
+    const selectedCurrency = currencySelect ? currencySelect.value : "EGP";
+    document.querySelectorAll(".curr-symbol").forEach((el) => {
+      el.textContent =
+        selectedCurrency === "USD"
+          ? "$"
+          : selectedCurrency === "EUR"
+            ? "€"
+            : "ج.م";
+    });
+  };
+
+  Object.values(inputs).forEach((input) => {
+    if (input) {
+      input.addEventListener("input", window.triggerTripCalculation);
+      input.addEventListener("blur", (e) => {
+        let val = parseInt(e.target.value, 10);
+        e.target.value = isNaN(val) || val < 0 ? "" : val;
+        window.triggerTripCalculation();
+      });
+    }
+  });
+
+  // 4. السحر هنا: تغيير الأرقام جوه الخانات لما تغير العملة!
+  if (currencySelect) {
+    currencySelect.addEventListener("change", (e) => {
+      const newCurrency = e.target.value;
+      const oldRate = exchangeRates[previousCurrency];
+      const newRate = exchangeRates[newCurrency];
+
+      const convertField = (input) => {
+        let val = parseFloat(input.value);
+        if (!isNaN(val) && val > 0) {
+          // نحول الرقم للجنيه الأول، وبعدين نضربه في سعر العملة الجديدة
+          let baseEGP = val / oldRate;
+          let newVal = baseEGP * newRate;
+          input.value = Math.round(newVal);
+        }
+      };
+
+      convertField(inputs.transport);
+      convertField(inputs.accommodation);
+      convertField(inputs.food);
+
+      previousCurrency = newCurrency;
+      window.triggerTripCalculation();
+    });
+  }
+});
 // ==========================================
 // 5. INITIALIZATION & CORE FEATURES
 // ==========================================
@@ -496,13 +674,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (closeModalBtn) {
     closeModalBtn.onclick = () => {
-      placeModal.classList.remove("active");
+      if (placeModal) placeModal.classList.remove("active");
       document.body.style.overflow = "auto";
     };
   }
 });
 
-// مراقبة الضغط على الكروت
 document.addEventListener("click", (e) => {
   const card = e.target.closest(".place-card");
   if (card) {
@@ -588,4 +765,432 @@ if (getLocationBtn) {
       },
     );
   };
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn = document.getElementById("openTripPlannerBtn");
+
+  const modal = document.getElementById("tripPlannerModal");
+
+  const closeBtn = document.getElementById("closeTripPlannerBtn");
+
+  if (openBtn) {
+    openBtn.addEventListener("click", () => {
+      modal.classList.add("active");
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.classList.remove("active");
+    });
+  }
+});
+let selectedCities = [];
+let selectedInterests = [];
+
+// Event Delegation موحد بيتحكم في المدن والاهتمامات بذكاء
+document.addEventListener("click", (e) => {
+  // 1. تشغيل زراير المدن
+  const cityChip = e.target.closest(".city-chip:not(.interest-chip)");
+  if (cityChip) {
+    const city = cityChip.dataset.city;
+    cityChip.classList.toggle("active");
+
+    if (selectedCities.includes(city)) {
+      selectedCities = selectedCities.filter((c) => c !== city);
+    } else {
+      selectedCities.push(city);
+    }
+    console.log("Selected Cities:", selectedCities);
+  }
+
+  // 2. تشغيل زراير الاهتمامات
+  const interestChip = e.target.closest(".interest-chip");
+  if (interestChip) {
+    const interest = interestChip.dataset.interest;
+    interestChip.classList.toggle("active");
+
+    if (selectedInterests.includes(interest)) {
+      selectedInterests = selectedInterests.filter((i) => i !== interest);
+    } else {
+      selectedInterests.push(interest);
+    }
+    console.log("Selected Interests:", selectedInterests);
+  }
+});
+const generateBtn = document.getElementById("generateTripBtn");
+const tripLoading = document.getElementById("tripLoading");
+const loadingMessage = document.getElementById("loadingMessage");
+
+const loadingMessages = [
+  "Analyzing destinations...",
+  "Finding top attractions...",
+  "Optimizing travel route...",
+  "Calculating visit times...",
+  "Building itinerary...",
+  "Finalizing your trip...",
+];
+
+if (generateBtn) {
+  generateBtn.addEventListener("click", () => {
+    if (selectedCities.length === 0) {
+      alert("Please select at least one city");
+      return;
+    }
+
+    tripLoading.style.display = "block";
+    document.getElementById("tripResult").innerHTML = "";
+
+    let index = 0;
+    const interval = setInterval(() => {
+      loadingMessage.textContent = loadingMessages[index];
+      index++;
+      if (index >= loadingMessages.length) {
+        index = 0;
+      }
+    }, 1000);
+
+    setTimeout(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/trip-planner`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cities: selectedCities,
+            days: tripDays.value,
+            interests: selectedInterests, // بعتنا الـ Array بتاع الزراير الشيك
+          }),
+        });
+
+        const data = await response.json();
+        clearInterval(interval);
+        tripLoading.style.display = "none";
+
+        const itinerary = data.data.itinerary;
+
+        if (!itinerary || !itinerary.days) {
+          document.getElementById("tripResult").innerHTML = `
+            <div class="trip-card error-card" style="text-align: center; color: #e74c3c; padding: 20px; background: #fdf0ed; border-radius: 12px;">
+              ⚠️ Could not generate itinerary. Please try again.
+            </div>
+          `;
+          return;
+        }
+
+        // بناء الـ UI الجديد بالتفاصيل الأنيقة
+        let htmlContent = `
+          <div class="premium-itinerary">
+            <div class="itinerary-header" style="text-align: center; margin-bottom: 20px;">
+              <h3 style="color: #0b4a6f;">✨ Your Personalized Adventure</h3>
+              <p style="color: #666;">A ${tripDays.value}-Day Journey curated for your taste.</p>
+            </div>
+        `;
+
+        itinerary.days.forEach((dayObj) => {
+          htmlContent += `
+            <div class="day-card" style="margin-bottom: 20px; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
+              <div class="day-header" style="display: flex; justify-content: flex-start; align-items: center; border-bottom: 2px dashed #eee; padding-bottom: 15px;">
+                <span class="day-badge" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 6px 15px; border-radius: 20px; font-weight: bold;">Day ${dayObj.day}</span>
+                <h4 class="day-city" style="margin: 0 0 0 15px; font-size: 1.2rem; color: #2c3e50;">📍 ${dayObj.city}</h4>
+              </div>
+              <ul class="places-list" style="margin-top: 15px; padding: 0; display: flex; flex-direction: column; gap: 15px;">
+          `;
+
+          dayObj.places.forEach((place) => {
+            // Defensive Programming + Price Extraction
+            let placeName = "";
+            let placeTime = "Anytime";
+            let placeReason = "";
+            let placePrice = "Free"; // القيمة الافتراضية
+
+            if (typeof place === "string") {
+              placeName = place;
+            } else {
+              placeName =
+                place.name ||
+                place["Landmark Name"] ||
+                place.Landmark ||
+                "Amazing Attraction";
+              placeTime = place.time || "Anytime";
+              placeReason = place.reason || place.description || "";
+              placePrice = place.price || "Free"; // استخراج السعر
+            }
+
+            htmlContent += `
+                <li class="place-item" style="background: #f8f9fa; border-radius: 12px; padding: 15px; border-left: 4px solid #3498db; list-style: none; transition: transform 0.2s; margin-bottom: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-weight: bold; color: #2c3e50; font-size: 1.1rem;">
+                      🏛️ ${placeName}
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                      <span style="font-size: 0.8rem; background: #fff7ed; color: #c2410c; padding: 4px 10px; border-radius: 12px; font-weight: bold; white-space: nowrap; border: 1px solid #ffedd5;">
+                        💸 ${placePrice}
+                      </span>
+                      
+                      <span style="font-size: 0.8rem; background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 12px; font-weight: bold; white-space: nowrap;">
+                        <i class="far fa-clock"></i> ${placeTime}
+                      </span>
+                    </div>
+                  </div>
+                  ${placeReason ? `<p style="color: #666; font-size: 0.95rem; margin: 0; line-height: 1.5;">${placeReason}</p>` : ""}
+                </li>
+            `;
+          });
+
+          htmlContent += `
+              </ul>
+            </div>
+          `;
+        });
+
+        // إضافة زرار الحفظ في نهاية الرحلة
+        htmlContent += `
+            <div style="text-align: center; margin-top: 30px;">
+              <button id="saveAiTripBtn" class="scanner-btn" style="background: #27ae60; width: 100%; border: none;">
+                <i class="fas fa-bookmark"></i> Save Trip to My Profile
+              </button>
+            </div>
+          </div>`;
+
+        document.getElementById("tripResult").innerHTML = htmlContent;
+
+        // تفعيل زرار الحفظ عشان يكلم الـ Backend
+        const saveTripBtn = document.getElementById("saveAiTripBtn");
+        if (saveTripBtn) {
+          saveTripBtn.addEventListener("click", async () => {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+              alert("Please sign in to save your trip!");
+              window.location.href = "auth.html"; // حوله لصفحة اللوجين لو مش عامل
+              return;
+            }
+
+            saveTripBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+            saveTripBtn.disabled = true;
+
+            try {
+              const saveRes = await fetch(`${API_BASE_URL}/user/save-trip`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId: userId,
+                  itinerary: itinerary, // بنبعت تفاصيل الرحلة اللي الـ AI عملها
+                  cities: selectedCities,
+                  days: tripDays.value,
+                }),
+              });
+
+              const saveResult = await saveRes.json();
+              if (saveResult.status === "success") {
+                saveTripBtn.innerHTML = `<i class="fas fa-check"></i> Trip Saved Successfully!`;
+                saveTripBtn.style.background = "#0b4a6f";
+
+                setTimeout(() => {
+                  // تحويل المستخدم لتاب التتبع (Tracker) فوراً بدل الـ Alert!
+                  const tabTrips = document.getElementById("tabMyTrips");
+                  if (tabTrips) tabTrips.click();
+                }, 800);
+              }
+            } catch (err) {
+              console.error("Save Trip Error:", err);
+              saveTripBtn.innerHTML = `⚠️ Error Saving`;
+              saveTripBtn.style.background = "#e74c3c";
+            }
+          });
+        }
+      } catch (error) {
+        clearInterval(interval);
+        tripLoading.style.display = "none";
+        document.getElementById("tripResult").innerHTML = `
+          <div class="trip-card error-card" style="text-align: center; color: #e74c3c; padding: 20px; background: #fdf0ed; border-radius: 12px;">
+            ⚠️ Failed to connect to AI.
+          </div>
+        `;
+        console.error(error);
+      }
+    }, 2000);
+  });
+}
+
+const tripDays = document.getElementById("tripDays");
+const daysDisplay = document.querySelector(".days-display");
+
+if (tripDays && daysDisplay) {
+  tripDays.addEventListener("input", () => {
+    daysDisplay.textContent = `${tripDays.value} Days`;
+  });
+}
+// ==========================================
+// 9. PROGRESS TRACKER & TABS LOGIC
+// ==========================================
+const tabCreate = document.getElementById("tabCreateTrip");
+const tabTrips = document.getElementById("tabMyTrips");
+const plannerCont = document.getElementById("plannerContainer");
+const trackerCont = document.getElementById("trackerContainer");
+
+if (tabCreate && tabTrips) {
+  tabCreate.addEventListener("click", () => {
+    tabCreate.classList.add("active");
+    tabCreate.style.background = "#fff";
+    tabCreate.style.color = "#0b4a6f";
+    tabCreate.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+
+    tabTrips.classList.remove("active");
+    tabTrips.style.background = "transparent";
+    tabTrips.style.color = "#666";
+    tabTrips.style.boxShadow = "none";
+
+    if (plannerCont) plannerCont.style.display = "block";
+    if (trackerCont) trackerCont.style.display = "none";
+  });
+
+  tabTrips.addEventListener("click", () => {
+    tabTrips.classList.add("active");
+    tabTrips.style.background = "#fff";
+    tabTrips.style.color = "#0b4a6f";
+    tabTrips.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+
+    tabCreate.classList.remove("active");
+    tabCreate.style.background = "transparent";
+    tabCreate.style.color = "#666";
+    tabCreate.style.boxShadow = "none";
+
+    if (plannerCont) plannerCont.style.display = "none";
+    if (trackerCont) trackerCont.style.display = "block";
+
+    loadMyTripsTracker(); // سحب وعرض الرحلات المحفوظة
+  });
+}
+
+async function loadMyTripsTracker() {
+  const userId = localStorage.getItem("userId");
+  const container = document.getElementById("myTripsList");
+
+  if (!container) return;
+
+  if (!userId) {
+    container.innerHTML = `<div class="error-card" style="text-align:center; padding:20px; color:#e74c3c; background:#fdf0ed; border-radius:12px;">Please sign in to track your trips.</div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="spinner"></div><p style="text-align:center; margin-top:10px; color:#666;">Syncing your adventures...</p>`;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/users/${userId}`);
+    const data = await res.json();
+    const trips = data.data.user.saved_trips || [];
+
+    if (trips.length === 0) {
+      container.innerHTML = `<div style="text-align:center; padding: 30px; color:#666;"><i class="fas fa-suitcase-rolling" style="font-size:3rem; margin-bottom:15px; color:#ddd;"></i><br>You haven't saved any trips yet.<br>Go to "Plan New Trip" to create one!</div>`;
+      return;
+    }
+
+    let html = "";
+
+    // ترتيب الرحلات من الأحدث للأقدم
+    trips.reverse().forEach((trip) => {
+      let totalPlaces = 0;
+      let completedPlaces = 0;
+      let tasksHtml = "";
+
+      if (trip.itinerary && trip.itinerary.days) {
+        trip.itinerary.days.forEach((day) => {
+          tasksHtml += `<h5 style="margin: 15px 0 8px 0; color:#0b4a6f; border-bottom: 2px dashed #eee; padding-bottom: 5px; font-size:1.1rem;">📅 Day ${day.day} - ${day.city}</h5>`;
+
+          day.places.forEach((place, pIndex) => {
+            totalPlaces++;
+            // التعامل مع أي لخبطة من الداتابيز
+            const placeName =
+              typeof place === "string" ? place : place.name || "Attraction";
+            const uniqueId = `chk_${trip.tripId}_d${day.day}_p${pIndex}`;
+
+            // قراءة لو المكان ده اتعلم عليه قبل كدا
+            const isChecked = localStorage.getItem(uniqueId) === "true";
+            if (isChecked) completedPlaces++;
+
+            tasksHtml += `
+              <div class="place-task ${isChecked ? "completed" : ""}" id="taskDiv_${uniqueId}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${isChecked ? "#f0fdf4" : "#f9f9f9"}; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${isChecked ? "#27ae60" : "#ccc"}; transition: all 0.3s ease; flex-wrap: wrap; gap: 10px;">
+                <label style="display:flex; align-items:center; gap:12px; cursor:pointer; flex:1; min-width: 200px;">
+                  <input type="checkbox" class="trip-checkbox" data-id="${uniqueId}" ${isChecked ? "checked" : ""} style="width:20px; height:20px; accent-color:#27ae60; cursor:pointer;">
+                  <span class="task-text" style="font-weight:bold; font-size:1rem; color:${isChecked ? "#888" : "#2c3e50"}; text-decoration:${isChecked ? "line-through" : "none"}; transition: 0.3s;">${placeName}</span>
+                </label>
+                <div class="task-actions" style="display:flex; gap:8px;">
+                  <button onclick="alert('🔄 AI Swap feature is planned for V2! This will use the Recommendation AI to replace this spot.')" style="border:none; background:#e0f2fe; color:#0284c7; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fas fa-exchange-alt"></i> Swap</button>
+                  <button onclick="alert('✏️ Manual Edit feature coming soon!')" style="border:none; background:#fef08a; color:#c2410c; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fas fa-edit"></i> Edit</button>
+                </div>
+              </div>
+            `;
+          });
+        });
+      }
+
+      // الحسبة الرياضية للـ Progress
+      const progressPercent =
+        totalPlaces === 0
+          ? 0
+          : Math.round((completedPlaces / totalPlaces) * 100);
+
+      html += `
+        <div class="day-card" style="margin-bottom:25px; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background:#fff;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h4 style="margin:0; color:#e67e22; font-size:1.2rem;">🌍 Trip to ${trip.cities.join(", ")}</h4>
+            <span class="day-badge" id="badge_${trip.tripId}" style="background:linear-gradient(90deg, #27ae60, #2ecc71); color:white; padding:5px 12px; border-radius:20px; font-weight:bold; font-size:1rem; transition: 0.4s;">${progressPercent}%</span>
+          </div>
+          
+          <div class="progress-container" style="width: 100%; height: 12px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+            <div class="progress-fill" id="progBar_${trip.tripId}" style="height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: ${progressPercent}%; transition: width 0.5s ease-in-out;"></div>
+          </div>
+          
+          <div style="margin-top: 20px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
+            ${tasksHtml}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+
+    // تفعيل الـ Checkboxes عشان تغير البار والنسبة لايف (Wow-Factor!)
+    document.querySelectorAll(".trip-checkbox").forEach((chk) => {
+      chk.addEventListener("change", (e) => {
+        const id = e.target.dataset.id;
+        const taskDiv = document.getElementById(`taskDiv_${id}`);
+        const tripId = id.split("_")[1];
+        const taskText = taskDiv.querySelector(".task-text");
+
+        // تغيير الألوان لما يدوس Complete
+        if (e.target.checked) {
+          localStorage.setItem(id, "true");
+          taskDiv.style.borderLeftColor = "#27ae60";
+          taskDiv.style.background = "#f0fdf4";
+          taskText.style.color = "#888";
+          taskText.style.textDecoration = "line-through";
+        } else {
+          localStorage.removeItem(id);
+          taskDiv.style.borderLeftColor = "#ccc";
+          taskDiv.style.background = "#f9f9f9";
+          taskText.style.color = "#2c3e50";
+          taskText.style.textDecoration = "none";
+        }
+
+        // إعادة حساب النسبة برمجياً لنفس الرحلة بدون تحميل الصفحة
+        const tripCard = taskDiv.closest(".day-card");
+        const totalCheckboxes =
+          tripCard.querySelectorAll(".trip-checkbox").length;
+        const checkedBoxes = tripCard.querySelectorAll(
+          ".trip-checkbox:checked",
+        ).length;
+        const newPercent = Math.round((checkedBoxes / totalCheckboxes) * 100);
+
+        document.getElementById(`progBar_${tripId}`).style.width =
+          `${newPercent}%`;
+        document.getElementById(`badge_${tripId}`).textContent =
+          `${newPercent}%`;
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `<div class="error-card" style="text-align:center; padding:20px; color:#e74c3c; background:#fdf0ed; border-radius:12px;">Failed to load trips.</div>`;
+  }
 }

@@ -843,3 +843,434 @@ html {
   object-fit: cover;
   transition: opacity 0.3s ease-in-out;
 }
+/* Calculator Modal Enhancements */
+.calc-modal-content {
+  max-width: 450px; /* Prevents fields from stretching too wide on desktop */
+  padding: 25px;
+}
+
+.calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.currency-select {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  cursor: pointer;
+  background: #f8f9fa;
+}
+
+.calc-grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.input-group label i {
+  color: #0b4a6f;
+  margin-left: 5px; /* RTL spacing */
+  width: 16px;
+  text-align: center;
+}
+
+/* Stepper UI */
+.stepper-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.stepper-btn {
+  background: #f8f9fa;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  transition: 0.2s;
+}
+
+.stepper-btn:hover {
+  background: #e2e6ea;
+}
+
+.stepper-wrapper input {
+  width: 100%;
+  text-align: center;
+  border: none;
+  padding: 10px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  pointer-events: none; /* Prevents typing, only steppers work */
+}
+
+/* Standard Inputs */
+.cost-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.cost-input:focus {
+  border-color: #ff9800;
+  outline: none;
+}
+
+/* Results Styling */
+.results-box {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 25px;
+  border: 1px solid #dee2e6;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.hero-row {
+  margin-bottom: 0;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #ccc;
+}
+
+.result-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 1rem;
+}
+
+.result-value {
+  font-weight: 800;
+}
+.secondary-val {
+  color: #0b4a6f;
+  font-size: 1.2rem;
+}
+.primary-val {
+  color: #ff9800;
+  font-size: 1.8rem;
+}
+
+/* Call to Action */
+.primary-action-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  background: #0b4a6f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background 0.3s,
+    transform 0.1s;
+}
+.primary-action-btn:hover {
+  background: #083854;
+  transform: translateY(-2px);
+}
+.primary-action-btn:active {
+  transform: translateY(0);
+}
+/* 1. Responsiveness for small screens (< 375px) */
+@media (max-width: 375px) {
+  .calc-grid-2-col {
+    grid-template-columns: 1fr; /* Stacks Steppers Vertically */
+    gap: 10px;
+  }
+}
+
+/* 2. Skeleton / Shimmer Loading State for Inputs */
+.shimmer-loading {
+  animation: shimmer 1.5s infinite linear;
+  background: linear-gradient(to right, #f6f7f8 4%, #edeef1 25%, #f6f7f8 36%);
+  background-size: 1000px 100%;
+  pointer-events: none;
+  color: transparent !important;
+  border-color: #eee !important;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+.city-chip {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  margin: 5px;
+  background: #f1f5f9;
+}
+
+.city-chip.active {
+  background: #ff9800;
+  color: white;
+}
+/* =========================================
+   AI TRIP PLANNER HERO CARD
+   ========================================= */
+
+.ai-assistant-section {
+  padding: 0 5%;
+  margin-top: -70px;
+  position: relative;
+  z-index: 20;
+}
+
+.ai-card {
+  background: white;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 24px;
+  padding: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+.ai-card-left {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.ai-card-icon {
+  width: 120px;
+  height: 120px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 4rem;
+
+  background: linear-gradient(135deg, #f8fafc, #eef2f7);
+
+  border-radius: 20px;
+}
+
+.ai-card-content {
+  flex: 1;
+}
+
+.ai-badge {
+  display: inline-block;
+
+  background: rgba(255, 152, 0, 0.12);
+  color: #ff9800;
+
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  font-size: 0.85rem;
+  font-weight: 700;
+
+  margin-bottom: 12px;
+}
+
+.ai-card-content h2 {
+  color: #0b4a6f;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.ai-card-content p {
+  color: #64748b;
+  line-height: 1.7;
+  max-width: 500px;
+}
+
+.ai-card-action {
+  min-width: 280px;
+}
+
+.ai-trip-btn {
+  width: 100%;
+  padding: 20px;
+
+  border: none;
+  border-radius: 16px;
+
+  background: #ff9800;
+  color: white;
+
+  font-size: 1.2rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.ai-trip-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 25px rgba(255, 152, 0, 0.35);
+}
+
+/* Mobile */
+
+@media (max-width: 900px) {
+  .ai-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ai-card-left {
+    flex-direction: column;
+  }
+
+  .ai-card-action {
+    width: 100%;
+    min-width: auto;
+  }
+}
+.planner-step {
+  margin-bottom: 25px;
+}
+
+.step-title {
+  display: block;
+  font-weight: 700;
+  color: #0b4a6f;
+  margin-bottom: 12px;
+}
+
+.days-display {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ff9800;
+}
+
+#tripDays {
+  width: 100%;
+  accent-color: #ff9800;
+}
+#tripPlannerModal .modal-content {
+  max-height: 85vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.city-chip {
+  transition: all 0.25s ease;
+}
+
+.city-chip:hover {
+  transform: translateY(-2px);
+}
+
+.city-chip.active {
+  background: #ff9800;
+  color: white;
+  box-shadow: 0 8px 20px rgba(255, 152, 0, 0.25);
+}
+.trip-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  line-height: 1.8;
+}
+
+.trip-card h3 {
+  color: #0b4a6f;
+  margin-bottom: 15px;
+}
+/* =======================================
+   TRIP TRACKER & TABS STYLES
+   ======================================= */
+.progress-container {
+  width: 100%;
+  height: 12px;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 15px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  width: 0%;
+  transition: width 0.5s ease-in-out;
+}
+
+.place-task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border-left: 4px solid #ccc;
+  transition: all 0.3s ease;
+}
+
+.place-task.completed {
+  border-left-color: #27ae60;
+  background: #f0fdf4;
+  opacity: 0.8;
+}
+
+.place-task.completed .task-text {
+  text-decoration: line-through;
+  color: #888 !important;
+}
+
+.task-actions button {
+  border: none;
+  background: #e0f2fe;
+  color: #0284c7;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.task-actions button:hover {
+  background: #bae6fd;
+}

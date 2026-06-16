@@ -15,7 +15,8 @@
     />
 
     <link rel="stylesheet" href="../styles/home.css" />
-    <link rel="stylesheet" href="../styles/profile.css" /><script src="../scripts/config.js"></script>
+    <link rel="stylesheet" href="../styles/profile.css" />
+    <script src="../scripts/config.js"></script>
   </head>
 
   <body>
@@ -27,40 +28,70 @@
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
-      <button onclick="logout()" class="login-btn logout-btn">
-        <i class="fas fa-sign-out-alt"></i> Log Out
+      <button
+        onclick="logout()"
+        class="login-btn logout-btn"
+        style="background: #e74c3c; border: none"
+      >
+        <i class="fas fa-sign-out-alt"></i> Logout
       </button>
     </nav>
 
-    <header class="profile-header">
-      <div class="profile-avatar">
-        <i class="fas fa-user-tie"></i>
+    <div
+      class="profile-container"
+      style="max-width: 900px; margin: 40px auto; padding: 0 20px"
+    >
+      <div
+        class="profile-header"
+        style="text-align: center; margin-bottom: 40px"
+      >
+        <div class="profile-avatar" style="font-size: 4rem; color: #0b4a6f">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="profile-info" style="margin-top: 15px">
+          <h1 id="profileName" style="color: #2c3e50">Loading...</h1>
+          <p id="profileEmail" style="color: #666; font-size: 1.1rem">
+            Loading...
+          </p>
+        </div>
       </div>
-      <h1 id="profileName">User Name</h1>
-      <p id="profileEmail">user@example.com</p>
-    </header>
 
-    <main class="profile-container">
-      <section class="profile-section">
-        <h2 class="section-title">
+      <section
+        class="profile-section"
+        style="
+          background: #fff;
+          padding: 25px;
+          border-radius: 16px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+          margin-bottom: 30px;
+        "
+      >
+        <h2
+          class="section-title"
+          style="
+            color: #0b4a6f;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 15px;
+          "
+        >
           <i class="fas fa-heart" style="color: #e74c3c"></i> My Interests
         </h2>
-
         <div
           style="
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            max-width: 500px;
+            flex-wrap: wrap;
+            margin-top: 15px;
           "
         >
           <input
             type="text"
-            id="interestInput"
-            placeholder="Add an interest (e.g. Diving, Temples...)"
+            id="newInterest"
+            placeholder="e.g., Pyramids, Museums..."
             style="
               flex: 1;
-              padding: 12px 15px;
+              padding: 12px;
               border-radius: 10px;
               border: 1px solid #ccc;
               outline: none;
@@ -84,29 +115,89 @@
             Add
           </button>
         </div>
-
         <div id="interestsContainer" class="tags-container"></div>
       </section>
 
-      <section class="profile-section">
-        <h2 class="section-title">
+      <section
+        class="profile-section"
+        style="
+          background: #fff;
+          padding: 25px;
+          border-radius: 16px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+          margin-bottom: 30px;
+        "
+      >
+        <h2
+          class="section-title"
+          style="
+            color: #0b4a6f;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 15px;
+          "
+        >
+          <i class="fas fa-route" style="color: #27ae60"></i> My Trips Tracker
+        </h2>
+        <div id="profileTripsList" style="margin-top: 15px">
+          <p style="text-align: center; color: #666">Loading your trips...</p>
+        </div>
+      </section>
+
+      <section
+        class="profile-section"
+        style="
+          background: #fff;
+          padding: 25px;
+          border-radius: 16px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+          margin-bottom: 30px;
+        "
+      >
+        <h2
+          class="section-title"
+          style="
+            color: #0b4a6f;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 15px;
+          "
+        >
           <i class="fas fa-history" style="color: #0b4a6f"></i> Scan History &
           Past Trips
         </h2>
-        <div id="historyContainer" class="cards profile-cards"></div>
+        <div
+          id="historyContainer"
+          class="cards profile-cards"
+          style="margin-top: 15px"
+        ></div>
       </section>
 
-      <section class="profile-section">
-        <h2 class="section-title">
+      <section
+        class="profile-section"
+        style="
+          background: #fff;
+          padding: 25px;
+          border-radius: 16px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+          margin-bottom: 30px;
+        "
+      >
+        <h2
+          class="section-title"
+          style="
+            color: #0b4a6f;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 15px;
+          "
+        >
           <i class="fas fa-bookmark" style="color: #ff9800"></i> Saved Places
         </h2>
-        <div id="savedContainer" class="cards profile-cards"></div>
+        <div
+          id="savedContainer"
+          class="cards profile-cards"
+          style="margin-top: 15px"
+        ></div>
       </section>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-bottom">© 2026 Fasa7ny. All rights reserved.</div>
-    </footer>
+    </div>
 
     <script src="../scripts/profile.js"></script>
   </body>
