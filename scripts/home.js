@@ -493,8 +493,10 @@ function renderGroupedCategories(groupedData, selectedCity) {
       iconClass = "fa-tree";
 
     const bgRowClass = index % 2 === 0 ? "bg-white" : "bg-gray";
+    const carouselId = `carousel_cat_${index}_${Date.now()}`;
     const uniqueGridId = `grid_cat_${index}_${Date.now()}`;
 
+    // بناء الهيكل الفاخر مع حاوية الكاروسيل وأزرار التنقل الذكية
     const sectionHtml = `
       <section class="premium-category-section ${bgRowClass}">
         <div class="premium-section-container">
@@ -515,7 +517,30 @@ function renderGroupedCategories(groupedData, selectedCity) {
                 : ""
             }
           </div>
-          <div id="${uniqueGridId}" class="premium-cards-grid"></div>
+          
+          <div class="premium-carousel-wrapper">
+            ${
+              places.length > 4
+                ? `
+            <button class="premium-carousel-btn prev" onclick="document.getElementById('${carouselId}').scrollBy({left: -document.getElementById('${carouselId}').offsetWidth, behavior: 'smooth'})" aria-label="Previous">
+              <i class="fas fa-chevron-left"></i>
+            </button>`
+                : ""
+            }
+            
+            <div id="${carouselId}" class="premium-carousel-track">
+              <div id="${uniqueGridId}" class="premium-cards-grid-carousel"></div>
+            </div>
+            
+            ${
+              places.length > 4
+                ? `
+            <button class="premium-carousel-btn next" onclick="document.getElementById('${carouselId}').scrollBy({left: document.getElementById('${carouselId}').offsetWidth, behavior: 'smooth'})" aria-label="Next">
+              <i class="fas fa-chevron-right"></i>
+            </button>`
+                : ""
+            }
+          </div>
         </div>
       </section>
     `;
@@ -528,7 +553,6 @@ function renderGroupedCategories(groupedData, selectedCity) {
     }
   });
 }
-
 async function fetchAndRenderCategories(selectedCity = "all") {
   if (isFetchingCategories || !categoriesContentWrapper) return;
   isFetchingCategories = true;

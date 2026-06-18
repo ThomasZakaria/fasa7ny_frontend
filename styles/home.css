@@ -2683,3 +2683,103 @@ html {
     font-size: 0.65rem !important;
   }
 }
+/* =========================================================================
+   📥 PREMIUM CAROUSEL INTERFACE OVERRIDES (Airbnb Layout Framework)
+   ========================================================================= */
+
+.premium-carousel-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* مسار التصفح الأفقي المخفي شريط التمرير */
+.premium-carousel-track {
+  width: 100%;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  padding: 12px 4px;
+}
+
+.premium-carousel-track::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* حاوية الكروت المرنة لمنع الالتفاف السطري */
+.premium-cards-grid-carousel {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 24px;
+}
+
+/* إجبار الديسكتوب على عرض 4 كروت متساوية العرض بالضبط في الفيو بورت */
+.premium-cards-grid-carousel .premium-place-card {
+  flex: 0 0 calc(25% - 18px) !important;
+  min-width: calc(25% - 18px) !important;
+  height: auto;
+}
+
+/* أزرار التنقل الدائرية العائمة (Airbnb Floating Style) */
+.premium-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: #222222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-carousel-btn:hover {
+  background: #f7f7f7;
+  color: #0b4a6f;
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.premium-carousel-btn.prev {
+  left: -20px;
+}
+
+.premium-carousel-btn.next {
+  right: -20px;
+}
+
+/* =========================================================================
+   📱 RESPONSIVE RESPONSIVENESS ADAPTATIONS (Micro Viewports Grid)
+   ========================================================================= */
+
+/* شاشات التابلت والشاشات المتوسطة: كارتين في الصف */
+@media (max-width: 1024px) {
+  .premium-cards-grid-carousel .premium-place-card {
+    flex: 0 0 calc(50% - 12px) !important;
+    min-width: calc(50% - 12px) !important;
+  }
+}
+
+/* شاشات الموبايل: سحب حر ناعم مع ظهور طرف الكارت القادم */
+@media (max-width: 768px) {
+  .premium-carousel-btn {
+    display: none !important; /* إخفاء الأسهم على الموبايل لسهولة السحب بالإصبع */
+  }
+  .premium-cards-grid-carousel {
+    gap: 16px;
+  }
+  .premium-cards-grid-carousel .premium-place-card {
+    min-width: 240px !important;
+    max-width: 240px !important;
+    flex: 0 0 auto;
+  }
+}
