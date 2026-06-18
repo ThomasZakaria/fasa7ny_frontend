@@ -1186,7 +1186,7 @@ html {
   accent-color: #ff9800;
 }
 #tripPlannerModal .modal-content {
-  max-height: 95vh;
+  max-height: 100vh;
   overflow-y: auto;
   padding-right: 10px;
 }
