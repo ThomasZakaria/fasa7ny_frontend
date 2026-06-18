@@ -90,8 +90,93 @@ async function updateAuthUI() {
   }
 }
 // ==========================================
-// PREMIUM CATEGORIES CONFIGURATION (Airbnb / GetYourGuide Style)
+// 2. RENDER LOGIC (Standard, Premium & Categories)
 // ==========================================
+
+// 1. الدالة الأساسية (تخدم البحث، الأماكن القريبة، والتوصيات)
+function renderCards(places, container, limit = false) {
+  if (!container) return;
+  container.innerHTML = "";
+
+  places.forEach((place, index) => {
+    if (!place || (!place["Landmark Name (English)"] && !place.name)) return;
+
+    const currentPlaceId = "place_" + globalPlaceIdCounter++;
+    window.globalPlacesMap[currentPlaceId] = place;
+
+    const isHiddenClass = limit && index >= 4 ? "hidden" : "";
+    const name = place["Landmark Name (English)"] || place.name;
+    const city = place.Location || "Egypt";
+
+    const originalMainUrl = getValidImageUrl(place);
+    const optimizedMainUrl = optimizeImage(originalMainUrl, 400);
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
+        <img 
+          src="${optimizedMainUrl}" 
+          alt="${name}" 
+          loading="lazy" 
+          onerror="this.onerror=null; this.src='${originalMainUrl}';"
+        >
+        <div style="padding: 15px;">
+          <h3 style="color:#0b4a6f; font-size:1.1rem; margin-bottom:5px;">${name}</h3>
+          <p style="color:#666; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${city}</p>
+          ${place.distanceAway && place.distanceAway !== Infinity ? `<p style="color:#2ecc71; font-size:0.75rem; font-weight:bold;">${place.distanceAway.toFixed(1)} km away</p>` : ""}
+        </div>
+      </div>`,
+    );
+  });
+}
+
+// 2. الدالة الفاخرة (تخدم قسم التصنيفات الرأسي المودرن وتدعم فتح المودال)
+function renderPremiumCards(places, container) {
+  if (!container) return;
+  container.innerHTML = "";
+
+  places.forEach((place) => {
+    if (!place || (!place["Landmark Name (English)"] && !place.name)) return;
+
+    const currentPlaceId = "place_" + globalPlaceIdCounter++;
+    window.globalPlacesMap[currentPlaceId] = place;
+
+    const name = place["Landmark Name (English)"] || place.name;
+    const city = place.Location || "Egypt";
+
+    const originalMainUrl = getValidImageUrl(place);
+    const optimizedMainUrl = optimizeImage(originalMainUrl, 500);
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
+        <div class="card-image-wrapper">
+          <img 
+            src="${optimizedMainUrl}" 
+            alt="${name}" 
+            loading="lazy" 
+            onerror="this.onerror=null; this.src='${originalMainUrl}';"
+          >
+        </div>
+        <div class="card-content-wrapper">
+          <h4 class="card-landmark-name">${name}</h4>
+          <p class="card-landmark-location">
+            <i class="fas fa-map-marker-alt"></i> ${city}
+          </p>
+          ${
+            place.distanceAway && place.distanceAway !== Infinity
+              ? `<p class="card-landmark-distance"><i class="fas fa-location-arrow"></i> ${place.distanceAway.toFixed(1)} km away</p>`
+              : ""
+          }
+        </div>
+      </div>`,
+    );
+  });
+}
+
+// 3. كائن بيانات التصنيفات (Airbnb / GetYourGuide Style)
 const categoryMeta = {
   Museums: {
     icon: "fas fa-museum",
@@ -131,6 +216,7 @@ const categoryMeta = {
   },
 };
 
+// 4. بناء التصنيفات وتوزيعها في سكاشن متبادلة الخلفية
 function renderGroupedCategories(groupedData, selectedCity) {
   if (!categoriesContentWrapper) return;
   categoriesContentWrapper.innerHTML = "";
@@ -142,7 +228,6 @@ function renderGroupedCategories(groupedData, selectedCity) {
   for (const [categoryName, places] of Object.entries(groupedData)) {
     if (!places || places.length === 0) continue;
 
-    // تحسين ذكي: البحث عن التصنيف بدون الحساسية لحالة الأحرف (Case-Insensitive) منعاً لـ Bugs الباك إند
     const matchedKey =
       Object.keys(categoryMeta).find(
         (key) => key.toLowerCase().trim() === categoryName.toLowerCase().trim(),
@@ -186,48 +271,28 @@ function renderGroupedCategories(groupedData, selectedCity) {
   }
 }
 
-function renderPremiumCards(places, container) {
-  if (!container) return;
-  container.innerHTML = "";
+// 5. جلب توصيات المودال (تعتمد على renderCards التقليدية)
+async function loadPlaceRecommendations(placeId) {
+  const nearbyContainer = document.getElementById("modalNearbyCards");
+  const similarContainer = document.getElementById("modalSimilarCards");
 
-  places.forEach((place) => {
-    if (!place || (!place["Landmark Name (English)"] && !place.name)) return;
+  if (nearbyContainer) nearbyContainer.innerHTML = "Loading...";
+  if (similarContainer) similarContainer.innerHTML = "Loading...";
 
-    const currentPlaceId = "place_" + globalPlaceIdCounter++;
-    window.globalPlacesMap[currentPlaceId] = place;
-
-    const name = place["Landmark Name (English)"] || place.name;
-    const city = place.Location || "Egypt";
-
-    const originalMainUrl = getValidImageUrl(place);
-    const optimizedMainUrl = optimizeImage(originalMainUrl, 500);
-
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-      <div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
-        <div class="card-image-wrapper">
-          <img 
-            src="${optimizedMainUrl}" 
-            alt="${name}" 
-            loading="lazy" 
-            onerror="this.onerror=null; this.src='${originalMainUrl}';"
-          >
-        </div>
-        <div class="card-content-wrapper">
-          <h4 class="card-landmark-name">${name}</h4>
-          <p class="card-landmark-location">
-            <i class="fas fa-map-marker-alt"></i> ${city}
-          </p>
-          ${
-            place.distanceAway && place.distanceAway !== Infinity
-              ? `<p class="card-landmark-distance"><i class="fas fa-location-arrow"></i> ${place.distanceAway.toFixed(1)} km away</p>`
-              : ""
-          }
-        </div>
-      </div>`,
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/places/${placeId}/recommendations`,
     );
-  });
+    const result = await res.json();
+
+    if (result.status === "success") {
+      const { nearest, similar } = result.data;
+      if (nearbyContainer) renderCards(nearest, nearbyContainer, false);
+      if (similarContainer) renderCards(similar, similarContainer, false);
+    }
+  } catch (err) {
+    console.error("Recommendations UI Error:", err);
+  }
 }
 
 async function loadPlaceRecommendations(placeId) {
