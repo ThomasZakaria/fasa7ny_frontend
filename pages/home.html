@@ -210,41 +210,55 @@
     </section>
 
     <<!-- 📱 سيكشن Explore Categories الجديد -->
-    <section
-      id="dynamicCategoriesContainer"
-      class="categories-section"
-      style="padding: 40px 20px"
-    >
-      <div
-        style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        "
-      >
-        <h2 class="section-title">Explore Categories</h2>
+<section class="app-categories-section">
+  <!-- الهيدر اللي فيه العنوان وزرار View All -->
+  <div class="section-header-flex">
+    <h3 class="app-section-title">Explore Categories</h3>
+    <a href="#" class="view-all-btn">View All &rarr;</a>
+  </div>
 
-        <select
-          id="cityFilter"
-          style="padding: 10px; border-radius: 8px; border: 1px solid #ddd"
-        >
-          <option value="all">All Egypt</option>
-          <option value="cairo">Cairo</option>
-          <option value="giza">Giza</option>
-          <option value="alexandria">Alexandria</option>
-          <option value="luxor">Luxor</option>
-          <option value="aswan">Aswan</option>
-        </select>
+  <!-- حاوية الكروت اللي بتتسحب بالعرض -->
+  <div class="app-horizontal-scroll">
+    
+    <!-- كارت 1 -->
+    <div class="app-category-card">
+      <img src="../images/hero.jpg" alt="Art & History"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-university"></i> Art & History</h4>
+        <p>12 Places</p>
       </div>
+    </div>
 
-      <div id="categoriesLoading" class="hidden loading-container">
-        <div class="spinner"></div>
-        <p>Loading categories...</p>
+    <!-- كارت 2 -->
+    <div class="app-category-card">
+      <img src="../images/pyramids.jpg" alt="Culture"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-monument"></i> Culture</h4>
+        <p>18 Places</p>
       </div>
+    </div>
 
-      <div id="categoriesContentWrapper"></div>
-    </section>
+    <!-- كارت 3 -->
+    <div class="app-category-card">
+      <img src="../images/hero.jpg" alt="Spiritual"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-mosque"></i> Spiritual</h4>
+        <p>10 Places</p>
+      </div>
+    </div>
+
+    <!-- كارت 4 -->
+    <div class="app-category-card">
+      <img src="../images/pyramids.jpg" alt="Top Sights"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-star"></i> Top Sights</h4>
+        <p>15 Places</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
     <div id="placeModal" class="modal-overlay">
       <div class="modal-content">
         <span class="close-modal" id="closeModalBtn">×</span>
@@ -313,7 +327,7 @@
               <span id="modalSaveText">Save Place</span>
             </button>
             <button
-              id="addToTripBtn"
+              id="open-calc-btn"
               class="modal-map-btn"
               style="
                 background: #27ae60;
@@ -322,7 +336,7 @@
                 color: white;
               "
             >
-              <i class="fas fa-plus"></i> Add to My Trip
+              <i class="fas fa-calculator"></i> Calculate your trip
             </button>
           </div>
 
@@ -402,6 +416,161 @@
             <div id="reviewsList" class="reviews-list"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="calc-modal" class="modal-overlay" style="z-index: 9999">
+      <div class="modal-content calc-modal-content" style="direction: rtl">
+        <span
+          class="close-modal"
+          id="close-calc-modal"
+          style="left: 15px; right: auto"
+          >&times;</span
+        >
+        <div class="calc-header">
+          <h3 class="modal-title" style="color: #0b4a6f; margin: 0">
+            <i class="fas fa-wallet"></i> ميزانية الرحلة
+          </h3>
+          <select id="currency-switcher" class="currency-select">
+            <option value="EGP">EGP (ج.م)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+        </div>
+
+        <button
+          id="ai-budget-btn"
+          style="
+            width: 100%;
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <i class="fas fa-magic"></i> اقترح ميزانية بالذكاء الاصطناعي
+        </button>
+
+        <div class="calc-grid-2-col">
+          <div class="input-group">
+            <label><i class="far fa-calendar-alt"></i> الأيام:</label>
+            <div class="stepper-wrapper">
+              <button
+                type="button"
+                class="stepper-btn"
+                onclick="updateStepper('calc-days', -1)"
+              >
+                -
+              </button>
+              <input type="number" id="calc-days" value="1" min="1" readonly />
+              <button
+                type="button"
+                class="stepper-btn"
+                onclick="updateStepper('calc-days', 1)"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label><i class="fas fa-users"></i> المسافرين:</label>
+            <div class="stepper-wrapper">
+              <button
+                type="button"
+                class="stepper-btn"
+                onclick="updateStepper('calc-travelers', -1)"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                id="calc-travelers"
+                value="1"
+                min="1"
+                readonly
+              />
+              <button
+                type="button"
+                class="stepper-btn"
+                onclick="updateStepper('calc-travelers', 1)"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label><i class="fas fa-bus"></i> المواصلات (إجمالي):</label>
+          <input
+            type="number"
+            id="calc-transport"
+            class="cost-input"
+            value="0"
+            min="0"
+            placeholder="مثال: 450"
+          />
+        </div>
+
+        <div class="input-group">
+          <label><i class="fas fa-bed"></i> الإقامة (في الليلة):</label>
+          <input
+            type="number"
+            id="calc-accommodation"
+            class="cost-input"
+            value="0"
+            min="0"
+            placeholder="مثال: 800"
+          />
+        </div>
+
+        <div class="input-group">
+          <label
+            ><i class="fas fa-utensils"></i> الأكل والأنشطة
+            (للفرد/يومياً):</label
+          >
+          <input
+            type="number"
+            id="calc-food"
+            class="cost-input"
+            value="0"
+            min="0"
+            placeholder="مثال: 300"
+          />
+        </div>
+
+        <div class="results-box">
+          <div class="result-row">
+            <span class="result-label">تكلفة الفرد:</span>
+            <span class="result-value secondary-val"
+              ><span id="cost-per-person">0</span>
+              <span class="curr-symbol">ج.م</span></span
+            >
+          </div>
+          <div class="result-row hero-row">
+            <span class="result-label">الإجمالي:</span>
+            <span class="result-value primary-val"
+              ><span id="total-cost">0</span>
+              <span class="curr-symbol">ج.م</span></span
+            >
+          </div>
+        </div>
+
+        <button id="save-budget-btn" class="primary-action-btn">
+          <i class="fas fa-bookmark"></i> احفظ هذه الميزانية
+        </button>
       </div>
     </div>
 
@@ -560,15 +729,11 @@
     <script src="../scripts/reviews.js"></script>
     <script src="../scripts/search.js"></script>
     <nav class="bottom-nav">
-      <a href="home.html" class="active"
-        ><i class="fas fa-home"></i><span>Home</span></a
-      >
-      <a href="#searchSection"
-        ><i class="fas fa-search"></i><span>Search</span></a
-      >
-      <a href="#"><i class="fas fa-suitcase"></i><span>Trips</span></a>
-      <a href="#"><i class="far fa-heart"></i><span>Favorites</span></a>
-      <a href="profile.html"><i class="far fa-user"></i><span>Profile</span></a>
-    </nav>
+  <a href="home.html" class="active"><i class="fas fa-home"></i><span>Home</span></a>
+  <a href="#searchSection"><i class="fas fa-search"></i><span>Search</span></a>
+  <a href="#"><i class="fas fa-suitcase"></i><span>Trips</span></a>
+  <a href="#"><i class="far fa-heart"></i><span>Favorites</span></a>
+  <a href="profile.html"><i class="far fa-user"></i><span>Profile</span></a>
+</nav>
   </body>
 </html>
