@@ -911,6 +911,7 @@ if (generateBtn) {
             }
             dayEstimatedCost += entryFee;
 
+            // 🔺 خطوة الصورة الموحدة: اختيار الصورة الفاخرة بناءً على الفئة لمنع انبعاج الأشكال
             let curatedThumbnail =
               "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=350&q=70";
             const textQuery = (place.name || "").toLowerCase();
@@ -927,6 +928,29 @@ if (generateBtn) {
             ) {
               curatedThumbnail =
                 "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Exhibition Gallery";
+            } else if (
+              textQuery.includes("temple") ||
+              textQuery.includes("luxor") ||
+              textQuery.includes("karnak")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Pharaonic Sanctuary";
+            } else if (
+              textQuery.includes("mosque") ||
+              textQuery.includes("citadel")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Islamic Architecture";
+            } else if (
+              textQuery.includes("church") ||
+              textQuery.includes("coptic")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Coptic Heritage";
             }
 
             const timeString = (place.time || "").toUpperCase();
@@ -1016,7 +1040,7 @@ if (generateBtn) {
                   userId,
                   itinerary,
                   cities: selectedCities,
-                  days: tripDaysInput.value,
+                  days: tripDaysInput ? tripDaysInput.value : 3,
                 }),
               });
               alert(
