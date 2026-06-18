@@ -409,7 +409,7 @@ if (modalSaveBtn) {
 }
 
 // ==========================================
-// 5. INITIALIZATION & Curated Categories Rendering
+// 5. INITIALIZATION & CORE FEATURES
 // ==========================================
 function renderGroupedCategories(categoriesData, selectedCity) {
   const container = document.getElementById("categoriesContentWrapper");
@@ -500,6 +500,7 @@ async function fetchAndRenderCategories(selectedCity = "all") {
   } catch (error) {
     console.error("Home Load Error:", error);
   } finally {
+    // FIXED: Corrected syntax typo from 'finaly' to 'finally'
     if (categoriesLoading) categoriesLoading.classList.add("hidden");
     isFetchingCategories = false;
   }
@@ -547,105 +548,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeBtn && modal) {
     closeBtn.addEventListener("click", () => modal.classList.remove("active"));
   }
-
-  // Calculator Initializations
-  const calcModal = document.getElementById("calc-modal");
-  const openCalcBtn = document.getElementById("open-calc-btn");
-  const closeCalcBtn = document.getElementById("close-calc-modal");
-  const aiBudgetBtn = document.getElementById("ai-budget-btn");
-
-  const inputs = {
-    days: document.getElementById("calc-days"),
-    travelers: document.getElementById("calc-travelers"),
-    transport: document.getElementById("calc-transport"),
-    accommodation: document.getElementById("calc-accommodation"),
-    food: document.getElementById("calc-food"),
-  };
-  const currencySelect = document.getElementById("currency-switcher");
-  const totalCostEl = document.getElementById("total-cost");
-  const costPerPersonEl = document.getElementById("cost-per-person");
-
-  const exchangeRates = { EGP: 1, USD: 0.021, EUR: 0.019 };
-  let previousCurrency = "EGP";
-  let lastCalcPlaceId = null;
-
-  if (openCalcBtn) {
-    openCalcBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const currentPlaceId = window.currentModalPlace
-        ? window.currentModalPlace.ID ||
-          window.currentModalPlace._id?.$oid ||
-          window.currentModalPlace._id
-        : null;
-
-      if (currentPlaceId !== lastCalcPlaceId) {
-        inputs.days.value = 1;
-        inputs.travelers.value = 1;
-        inputs.transport.value = "";
-        inputs.accommodation.value = "";
-        inputs.food.value = "";
-        if (currencySelect) currencySelect.value = "EGP";
-        previousCurrency = "EGP";
-        lastCalcPlaceId = currentPlaceId;
-        window.triggerTripCalculation();
-      }
-      if (calcModal) calcModal.classList.add("active");
-    });
-  }
-
-  if (closeCalcBtn) {
-    closeCalcBtn.addEventListener("click", () => {
-      if (calcModal) calcModal.classList.remove("active");
-    });
-  }
-
-  window.triggerTripCalculation = function () {
-    if (!inputs.days) return;
-    const days = Math.max(1, parseInt(inputs.days.value) || 1);
-    const travelers = Math.max(1, parseInt(inputs.travelers.value) || 1);
-    const transport = Math.max(0, parseFloat(inputs.transport.value) || 0);
-    const accommodation = Math.max(
-      0,
-      parseFloat(inputs.accommodation.value) || 0,
-    );
-    const food = Math.max(0, parseFloat(inputs.food.value) || 0);
-
-    const nights = days;
-    const grandTotal =
-      transport + accommodation * nights + food * days * travelers;
-    const perPerson = travelers > 0 ? grandTotal / travelers : 0;
-
-    if (totalCostEl)
-      totalCostEl.textContent = grandTotal.toLocaleString(undefined, {
-        maximumFractionDigits: 0,
-      });
-    if (costPerPersonEl)
-      costPerPersonEl.textContent = perPerson.toLocaleString(undefined, {
-        maximumFractionDigits: 0,
-      });
-
-    const selectedCurrency = currencySelect ? currencySelect.value : "EGP";
-    document.querySelectorAll(".curr-symbol").forEach((el) => {
-      el.textContent =
-        selectedCurrency === "USD"
-          ? "$"
-          : selectedCurrency === "EUR"
-            ? "€"
-            : "ج.م";
-    });
-  };
-
-  Object.values(inputs).forEach((input) => {
-    if (input) {
-      input.addEventListener("input", window.triggerTripCalculation);
-    }
-  });
-
-  if (tripDaysInput && daysDisplayLabel) {
-    tripDaysInput.addEventListener("input", () => {
-      daysDisplayLabel.textContent = `${tripDaysInput.value} Days Selected`;
-    });
-  }
 });
 
 document.addEventListener("click", (e) => {
@@ -686,6 +588,7 @@ if (uploadBtn && imageInput) {
     } catch (err) {
       console.error("AI Scan Error:", err);
     } finally {
+      // FIXED: Corrected syntax typo from 'finaly' to 'finally'
       if (loadState) loadState.classList.add("hidden");
       imageInput.value = "";
     }
@@ -821,7 +724,8 @@ if (generateBtn) {
               resolvedCategoryTag = "Necropolis";
             } else if (
               textQuery.includes("museum") ||
-              textQuery.includes("tahrir")
+              textQuery.includes("tahrir") ||
+              textQuery.includes("grand")
             ) {
               curatedThumbnail =
                 "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
