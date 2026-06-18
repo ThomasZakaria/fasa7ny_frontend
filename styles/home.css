@@ -2473,3 +2473,220 @@ html {
     justify-content: center;
   }
 }
+/* =========================================================================
+   COMPACT SIDEBAR & GENERATION EXTENSION STYLING (Airbnb Design Language)
+   ========================================================================= */
+
+/* Compact Sidebar Layout Widget Module */
+.compact-summary-panel-widget {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid var(--airbnb-light-gray);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+.summary-widget-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--airbnb-black);
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.summary-meta-line-item {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+}
+.summary-meta-line-item:last-of-type {
+  margin-bottom: 4px;
+}
+.summary-meta-icon {
+  font-size: 1.25rem;
+  background: #f3f4f6;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.summary-meta-data-content label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--airbnb-gray);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.summary-meta-data-content p {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--airbnb-black);
+  margin: 0;
+  line-height: 1.3;
+}
+.secondary-summary-revert-cta {
+  width: 100%;
+  margin-top: 14px;
+  justify-content: center;
+  background: #f9fafb !important;
+  color: var(--airbnb-black) !important;
+  border-color: var(--airbnb-light-gray) !important;
+}
+.secondary-summary-revert-cta:hover {
+  background: #f3f4f6 !important;
+  border-color: var(--airbnb-black) !important;
+}
+
+/* Micro Category Badge Pill Element styling rules */
+.category-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(11, 74, 111, 0.06);
+  color: var(--egyptian-indigo);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Save Trip CTA Button Geometry Custom Extension Spec */
+.full-width-save-btn {
+  min-height: 48px;
+  height: 52px;
+  border-radius: 14px !important;
+  font-size: 1.1rem !important;
+  box-shadow: 0 4px 16px rgba(11, 74, 111, 0.25);
+}
+
+/* Prevent layout breaking loops for generation card wrappers */
+.generation-mode-card {
+  border-left: 3px solid var(--egyptian-indigo);
+}
+
+/* =========================================================================
+   MOBILE-FIRST LAYOUT ADAPTATIONS & TOUCH SAFETY OVERLAY (< 768px Widths)
+   ========================================================================= */
+@media (max-width: 768px) {
+  /* Convert Horizontal Row Structure Into High Scannability Column Cards */
+  .premium-attraction-item-card {
+    flex-direction: column !important;
+    margin-left: 0 !important;
+    padding: 14px !important;
+    gap: 14px !important;
+    background: #ffffff;
+    border-radius: 16px !important;
+  }
+
+  /* Reposition Thumbnail Asset Canvas Elements To Complete Top Layout Block Header */
+  .attraction-thumbnail-frame {
+    width: 100% !important;
+    height: 165px !important;
+    border-radius: 12px !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+  .attraction-thumbnail-frame img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  /* Internal Meta Column Structure Safety Boundaries alignment */
+  .attraction-details-frame {
+    width: 100% !important;
+    padding: 0 2px !important;
+  }
+  .attraction-details-frame h5 {
+    font-size: 1.15rem !important;
+    line-height: 1.4 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+  .attraction-short-narrative {
+    font-size: 0.88rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Push Operation Button Actions Safely Below Text Block Track Lanes */
+  .attraction-action-rail-buttons {
+    flex-direction: row !important;
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid #eaeaea !important;
+    padding-left: 0 !important;
+    padding-top: 14px !important;
+    gap: 10px !important;
+  }
+
+  /* Enforce Absolute 44px Minimum Touch Targets and Spacing to Prevent Misclicks */
+  .action-icon-pill-btn {
+    flex: 1 !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    font-size: 0.9rem !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Sticky Footer Dock System Implementation on Mobile Viewports */
+  .sticky-mobile-save-container {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    padding: 12px 16px 28px 16px !important; /* Extra bottom pad protection layout factor */
+    z-index: 2100 !important;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Apply internal scroll padding tracks to counter footer docks masking data */
+  .itinerary-display-column {
+    padding-bottom: 95px !important;
+  }
+
+  /* Correct inner timeline rail offsets on tight screen profiles */
+  .day-accordion-content-inner::before {
+    left: 12px !important;
+    display: none; /* Hide vertical vector graphics tracks to flatten layout */
+  }
+  .timeline-slot-anchor-title {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* Ensure flawless aspect handling inside narrow target sizes (e.g., iPhone SE, 360px widths) */
+@media (max-width: 390px) {
+  .modal-body-premium {
+    padding: 16px !important;
+  }
+  .day-accordion-header {
+    padding: 16px 14px !important;
+  }
+  .day-accordion-content-inner {
+    padding: 12px !important;
+  }
+  .attraction-details-frame h5 {
+    font-size: 1.05rem !important;
+  }
+  .category-badge-pill {
+    padding: 2px 6px !important;
+    font-size: 0.65rem !important;
+  }
+}

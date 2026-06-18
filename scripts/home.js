@@ -853,11 +853,13 @@ const loadingMessages = [
   "Building itinerary...",
   "Finalizing your trip...",
 ];
-
+// =========================================================================
+// RETAINED/RE-ENGINERED GENERATION LOGIC LOOP (High Fidelity Componentization)
+// =========================================================================
 if (generateBtn) {
   generateBtn.addEventListener("click", () => {
     if (selectedCities.length === 0) {
-      alert("Please select at least one city");
+      alert("Please select at least one city to initialize layout paths.");
       return;
     }
 
@@ -867,8 +869,7 @@ if (generateBtn) {
     let index = 0;
     const interval = setInterval(() => {
       loadingMessage.textContent = loadingMessages[index];
-      index++;
-      if (index >= loadingMessages.length) index = 0;
+      index = (index + 1) % loadingMessages.length;
     }, 1000);
 
     setTimeout(async () => {
@@ -892,54 +893,257 @@ if (generateBtn) {
         const itinerary = data?.data?.itinerary;
         if (!itinerary || !itinerary.days) {
           document.getElementById("tripResult").innerHTML =
-            `<div class="trip-card error-card">⚠️ Could not generate itinerary.</div>`;
+            `<div class="premium-attraction-item-card" style="padding:24px; color:var(--airbnb-gray); text-align:center;">⚠️ Could not validate itinerary parameters.</div>`;
           return;
         }
 
-        let html = `<div class="generated-trip-list-wrap"><h3>✨ Your Egypt Adventure</h3>`;
-        itinerary.days.forEach((dayObj) => {
-          html += `<div class="day-card"><h4>Day ${dayObj.day} - ${dayObj.city}</h4><ul>`;
-          dayObj.places.forEach((place) => {
-            html += `
-              <li style="margin-bottom:12px;">
-                <strong>${place.name}</strong><br>
-                ${place.time ? `<small>🕒 ${place.time}</small><br>` : ""}
-                ${place.reason ? `<small>${place.reason}</small><br>` : ""}
-                ${place.price_range ? `<span style="color:#e67e22;font-weight:bold;">💰 ${place.price_range}</span>` : ""}
-              </li>`;
+        // --- TRANSITION FROM PREFERENCE CONTROL TO COMPACT STATE SUMMARY VIEW ---
+        document.getElementById("plannerInputsForm").style.display = "none";
+
+        document.getElementById("summaryLabelDestinations").textContent =
+          selectedCities.join(", ");
+        document.getElementById("summaryLabelDuration").textContent =
+          `${tripDays ? tripDays.value : 3} Days Scheduled`;
+        document.getElementById("summaryLabelInterests").textContent =
+          selectedInterests.length > 0
+            ? selectedInterests.join(", ")
+            : "General Historical Exploration Focus";
+
+        const summaryWidgetElement = document.getElementById(
+          "compactTripSummaryWidget",
+        );
+        summaryWidgetElement.style.display = "flex";
+
+        // Bind interactive reversion event hook handler controls
+        document.getElementById("editPreferencesBtn").onclick = function () {
+          summaryWidgetElement.style.display = "none";
+          document.getElementById("plannerInputsForm").style.display = "block";
+          document.getElementById("tripResult").innerHTML = "";
+        };
+
+        // --- ITERATE DATA STACKS VIA ACCORDION PAIRS COMPONENT ARCHITECTURE ---
+        let accordionDaysHtml = "";
+
+        itinerary.days.forEach((dayObj, dayIndex) => {
+          let dayEstimatedCost = 0;
+          let dayActivitiesCount = dayObj.places.length;
+          let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
+
+          dayObj.places.forEach((place, placeIndex) => {
+            // Numeric Cost Extraction Regular Expression Parser Pipeline Vector
+            let entryFee = 0;
+            if (place.price_range) {
+              const numericMatch = place.price_range.match(/\d+/);
+              if (numericMatch) entryFee = parseInt(numericMatch[0]);
+            }
+            dayEstimatedCost += entryFee;
+
+            // Universal Image Asset Reference Mapping Cache Layer
+            let curatedThumbnail =
+              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=350&q=70";
+            const textQuery = (place.name || "").toLowerCase();
+            let resolvedCategoryTag = "Historic Landmark"; // Baseline Default Pill Tag Descriptor Label Value
+
+            if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Necropolis";
+            } else if (
+              textQuery.includes("museum") ||
+              textQuery.includes("tahrir") ||
+              textQuery.includes("grand")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Exhibition Gallery";
+            } else if (
+              textQuery.includes("temple") ||
+              textQuery.includes("luxor") ||
+              textQuery.includes("karnak")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Pharaonic Sanctuary";
+            } else if (
+              textQuery.includes("mosque") ||
+              textQuery.includes("citadel")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Islamic Architecture";
+            } else if (
+              textQuery.includes("church") ||
+              textQuery.includes("coptic")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=350&q=70";
+              resolvedCategoryTag = "Coptic Heritage";
+            }
+
+            // Route execution times into chronological slots
+            const timeString = (place.time || "").toUpperCase();
+            let assignedPeriod = "afternoon";
+
+            if (timeString.includes("AM") || placeIndex === 0) {
+              assignedPeriod = "morning";
+            } else if (
+              timeString.includes("PM") &&
+              (timeString.includes("5:") ||
+                timeString.includes("6:") ||
+                timeString.includes("7:") ||
+                timeString.includes("8:") ||
+                placeIndex === dayActivitiesCount - 1)
+            ) {
+              assignedPeriod = "evening";
+            } else if (placeIndex === 1 && dayActivitiesCount > 2) {
+              assignedPeriod = "afternoon";
+            }
+
+            const cleanNarrative = place.reason
+              ? place.reason.replace(/^"|焦点|"/g, "")
+              : "Visual AI recommendation optimized for historical context mapping.";
+
+            // Standard Component Attraction Matrix Card Frame Construction
+            const singleCardMarkup = `
+              <div class="premium-attraction-item-card generation-mode-card">
+                <div class="attraction-thumbnail-frame">
+                  <img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy">
+                </div>
+
+                <div class="attraction-details-frame">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">
+                    <h5>${place.name || "Historical Destination Landmark"}</h5>
+                    <span class="category-badge-pill">${resolvedCategoryTag}</span>
+                  </div>
+                  <p class="attraction-short-narrative">${cleanNarrative}</p>
+                  
+                  <div class="attraction-meta-row-tags">
+                    <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
+                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
+                  </div>
+                </div>
+
+                <div class="attraction-action-rail-buttons">
+                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')">
+                    <i class="fas fa-exchange-alt"></i> Swap
+                  </button>
+                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')">
+                    <i class="far fa-edit"></i> Edit
+                  </button>
+                </div>
+              </div>`;
+
+            chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
-          html += `</ul></div>`;
+
+          // Compound chronological slots into sequential timeline modules
+          let timelineBlocksContent = "";
+          if (chronologicalSlots.morning.length > 0) {
+            timelineBlocksContent += `
+              <div class="chronological-timeline-slot">
+                <div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div>
+              </div>`;
+          }
+          if (chronologicalSlots.afternoon.length > 0) {
+            timelineBlocksContent += `
+              <div class="chronological-timeline-slot">
+                <div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div>
+              </div>`;
+          }
+          if (chronologicalSlots.evening.length > 0) {
+            timelineBlocksContent += `
+              <div class="chronological-timeline-slot">
+                <div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div>
+              </div>`;
+          }
+
+          const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
+          const uniqueAccordionIdentifier = `generationAccordionDay_d${dayObj.day}`;
+
+          accordionDaysHtml += `
+            <div class="day-accordion-card ${isFirstDayDefaultOpen}" id="${uniqueAccordionIdentifier}">
+              <div class="day-accordion-header" onclick="window.togglePremiumAccordion('${uniqueAccordionIdentifier}')">
+                <div class="day-header-left-pane">
+                  <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
+                  <div class="day-subtitle-tags">
+                    <span class="tag-lbl-item"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
+                    <span class="tag-divider-dot"></span>
+                    <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
+                  </div>
+                </div>
+                <div class="accordion-toggle-chevron">
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+              </div>
+              
+              <div class="day-accordion-body-wrapper">
+                <div class="day-accordion-content-inner">
+                  ${timelineBlocksContent}
+                </div>
+              </div>
+            </div>`;
         });
 
-        html += `<button id="saveAiTripBtn" class="primary-btn" style="margin-top:20px;width:100%;">💾 Save Trip</button></div>`;
-        document.getElementById("tripResult").innerHTML = html;
+        // Construct high-fidelity output container, removing bullet lists completely
+        let finalOutputStructureTemplate = `
+          <div class="generated-premium-itinerary-wrapper">
+            <div class="itinerary-display-column" style="margin-bottom: 24px;">
+              ${accordionDaysHtml}
+            </div>
+            
+            <div class="sticky-mobile-save-container">
+              <button id="saveAiTripBtn" class="primary-action-cta full-width-save-btn">
+                <i class="fas fa-cloud-download-alt"></i> Commit & Save Plan to Dashboard
+              </button>
+            </div>
+          </div>`;
 
+        document.getElementById("tripResult").innerHTML =
+          finalOutputStructureTemplate;
+
+        // --- ATTACH SAVE DATA HANDLER FUNCTION EVENT HOOKS ---
         const saveBtn = document.getElementById("saveAiTripBtn");
         if (saveBtn) {
           saveBtn.addEventListener("click", async () => {
             const userId = localStorage.getItem("userId");
             if (!userId) {
-              alert("Please login first");
+              alert(
+                "Please authenticate into user profile directories first to commit tracks.",
+              );
               return;
             }
 
             try {
-              const response = await fetch(`${API_BASE_URL}/user/save-trip`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  userId,
-                  itinerary,
-                  cities: selectedCities,
-                  days: tripDays.value,
-                }),
-              });
-              const result = await response.json();
-              if (result.status === "success")
-                alert("Trip saved successfully!");
+              const saveResponse = await fetch(
+                `${API_BASE_URL}/user/save-trip`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    userId,
+                    itinerary,
+                    cities: selectedCities,
+                    days: tripDays.value,
+                  }),
+                },
+              );
+              const result = await saveResponse.json();
+              if (result.status === "success") {
+                alert(
+                  "✨ Expedition path successfully synced to Live Dashboard records!",
+                );
+                if (typeof loadMyTripsTracker === "function") {
+                  document.getElementById("tabMyTrips").click(); // Pivot layout focus directly onto dashboard track cards
+                }
+              }
             } catch (err) {
               console.error(err);
-              alert("Failed to save trip");
+              alert(
+                "Transmission interface failure executing backend synchronizations.",
+              );
             }
           });
         }
@@ -947,13 +1151,12 @@ if (generateBtn) {
         clearInterval(interval);
         tripLoading.style.display = "none";
         document.getElementById("tripResult").innerHTML =
-          `<div class="trip-card error-card">⚠️ Failed to connect to AI.</div>`;
+          `<div class="premium-attraction-item-card" style="padding:24px; color:#E74C3C; background:#FDF0ED; border:1px solid #FADBD8;">⚠️ Connection Fault: AI matrix pipelines are currently unreachable.</div>`;
         console.error(error);
       }
     }, 2000);
   });
 }
-
 const tripDays = document.getElementById("tripDays");
 const daysDisplay = document.querySelector(".days-display");
 if (tripDays && daysDisplay) {

@@ -584,80 +584,123 @@
 
           <div id="plannerContainer" class="planner-view-grid">
             <div class="configuration-sidebar-card">
-              <div class="planner-step-card">
-                <span class="step-lbl">📍 Target Destinations</span>
-                <div class="city-chips-premium">
-                  <button class="city-chip-v2" data-city="Cairo">Cairo</button>
-                  <button class="city-chip-v2" data-city="Giza">Giza</button>
-                  <button class="city-chip-v2" data-city="Luxor">Luxor</button>
-                  <button class="city-chip-v2" data-city="Aswan">Aswan</button>
-                  <button class="city-chip-v2" data-city="Alexandria">
-                    Alexandria
-                  </button>
+              <div id="plannerInputsForm">
+                <div class="planner-step-card">
+                  <span class="step-lbl">📍 Target Destinations</span>
+                  <div class="city-chips-premium">
+                    <button class="city-chip-v2" data-city="Cairo">
+                      Cairo
+                    </button>
+                    <button class="city-chip-v2" data-city="Giza">Giza</button>
+                    <button class="city-chip-v2" data-city="Luxor">
+                      Luxor
+                    </button>
+                    <button class="city-chip-v2" data-city="Aswan">
+                      Aswan
+                    </button>
+                    <button class="city-chip-v2" data-city="Alexandria">
+                      Alexandria
+                    </button>
+                  </div>
                 </div>
+
+                <div class="planner-step-card">
+                  <span class="step-lbl">📅 Journey Duration</span>
+                  <div class="range-slider-wrapper">
+                    <input
+                      type="range"
+                      id="tripDays"
+                      min="1"
+                      max="14"
+                      value="3"
+                      class="modern-slider"
+                    />
+                    <div class="days-display-v2">3 Days Selected</div>
+                  </div>
+                </div>
+
+                <div class="planner-step-card">
+                  <span class="step-lbl">💡 Curated Exploration Interests</span>
+                  <div class="city-chips-premium" id="interest-chips-container">
+                    <button
+                      class="city-chip-v2 interest-chip-v2"
+                      data-interest="Pyramids"
+                    >
+                      🔺 Pyramids
+                    </button>
+                    <button
+                      class="city-chip-v2 interest-chip-v2"
+                      data-interest="Ancient Temples"
+                    >
+                      🏛️ Temples
+                    </button>
+                    <button
+                      class="city-chip-v2 interest-chip-v2"
+                      data-interest="Museum"
+                    >
+                      🖼️ Museums
+                    </button>
+                    <button
+                      class="city-chip-v2 interest-chip-v2"
+                      data-interest="Mosque"
+                    >
+                      🕌 Islamic
+                    </button>
+                    <button
+                      class="city-chip-v2 interest-chip-v2"
+                      data-interest="Church & Monastery"
+                    >
+                      ⛪ Coptic
+                    </button>
+                    <button
+                      class="city-chip-v2 interest-chip-v2"
+                      data-interest="Nature & Islands"
+                    >
+                      🌿 Nature
+                    </button>
+                  </div>
+                </div>
+
+                <button id="generateTripBtn" class="primary-action-cta">
+                  <span>Generate Visual Itinerary</span>
+                  <i class="fas fa-magic"></i>
+                </button>
               </div>
 
-              <div class="planner-step-card">
-                <span class="step-lbl">📅 Journey Duration</span>
-                <div class="range-slider-wrapper">
-                  <input
-                    type="range"
-                    id="tripDays"
-                    min="1"
-                    max="14"
-                    value="3"
-                    class="modern-slider"
-                  />
-                  <div class="days-display-v2">3 Days Selected</div>
+              <div
+                id="compactTripSummaryWidget"
+                class="compact-summary-panel-widget"
+                style="display: none"
+              >
+                <h4 class="summary-widget-title">Selected Parameters</h4>
+                <div class="summary-meta-line-item">
+                  <span class="summary-meta-icon">📍</span>
+                  <div class="summary-meta-data-content">
+                    <label>Destinations</label>
+                    <p id="summaryLabelDestinations">—</p>
+                  </div>
                 </div>
-              </div>
-
-              <div class="planner-step-card">
-                <span class="step-lbl">💡 Curated Exploration Interests</span>
-                <div class="city-chips-premium" id="interest-chips-container">
-                  <button
-                    class="city-chip-v2 interest-chip-v2"
-                    data-interest="Pyramids"
-                  >
-                    🔺 Pyramids
-                  </button>
-                  <button
-                    class="city-chip-v2 interest-chip-v2"
-                    data-interest="Ancient Temples"
-                  >
-                    🏛️ Temples
-                  </button>
-                  <button
-                    class="city-chip-v2 interest-chip-v2"
-                    data-interest="Museum"
-                  >
-                    🖼️ Museums
-                  </button>
-                  <button
-                    class="city-chip-v2 interest-chip-v2"
-                    data-interest="Mosque"
-                  >
-                    🕌 Islamic
-                  </button>
-                  <button
-                    class="city-chip-v2 interest-chip-v2"
-                    data-interest="Church & Monastery"
-                  >
-                    ⛪ Coptic
-                  </button>
-                  <button
-                    class="city-chip-v2 interest-chip-v2"
-                    data-interest="Nature & Islands"
-                  >
-                    🌿 Nature
-                  </button>
+                <div class="summary-meta-line-item">
+                  <span class="summary-meta-icon">🗓️</span>
+                  <div class="summary-meta-data-content">
+                    <label>Duration Vector</label>
+                    <p id="summaryLabelDuration">—</p>
+                  </div>
                 </div>
+                <div class="summary-meta-line-item">
+                  <span class="summary-meta-icon">🎯</span>
+                  <div class="summary-meta-data-content">
+                    <label>Exploration Scope</label>
+                    <p id="summaryLabelInterests">—</p>
+                  </div>
+                </div>
+                <button
+                  id="editPreferencesBtn"
+                  class="action-icon-pill-btn secondary-summary-revert-cta"
+                >
+                  <i class="fas fa-sliders-h"></i> Edit Preferences
+                </button>
               </div>
-
-              <button id="generateTripBtn" class="primary-action-cta">
-                <span>Generate Visual Itinerary</span>
-                <i class="fas fa-magic"></i>
-              </button>
 
               <div
                 id="tripLoading"
