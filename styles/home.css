@@ -1274,3 +1274,78 @@ html {
 .task-actions button:hover {
   background: #bae6fd;
 }
+/* ======================================================= */
+/* 📱 حلال المشاكل العالمي لكل صفحات الموقع (Global Mobile Fix) */
+/* ======================================================= */
+
+@media (max-width: 768px) {
+    /* 1. تظبيط كل السكاشن (Sections) عشان متدخلش في بعض */
+    section {
+        padding: 40px 15px !important; /* تقليل المسافات الفاضية المبالغ فيها */
+        height: auto !important;
+        min-height: auto !important;
+    }
+
+    /* 2. أي عناصر جنب بعض (Flex) هنخليها تنزل تحت بعض (Column) */
+    .hero-content, 
+    .ai-card, 
+    .modal-content, 
+    .calc-grid-2-col,
+    .profile-header {
+        display: flex !important;
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 15px !important;
+    }
+
+    /* 3. الكروت (Cards) زي المعالم والأماكن، بدل ما تتزنق، هتاخد الشاشة كلها */
+    .cards, 
+    .profile-cards, 
+    #exploreGrid {
+        display: grid !important;
+        grid-template-columns: 1fr !important; /* عمود واحد بس في الموبايل */
+        gap: 15px !important;
+    }
+
+    /* 4. النافبار (شريط التنقل اللي فوق) */
+    .navbar {
+        padding: 15px !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+    }
+    .nav-links {
+        display: none !important; /* بنخفي اللينكات في الموبايل عشان متعملش زحمة وتضرب اللوجو */
+    }
+    .login-btn, .scanner-btn {
+        font-size: 0.9rem !important;
+        padding: 8px 15px !important;
+    }
+
+    /* 5. المودال (الـ Popups زي بتاع الحسابات أو تفاصيل المعلم) */
+    .modal-content {
+        width: 95% !important; /* ياخد الشاشة كلها بدل ما يخرج براها */
+        margin: 20px auto !important;
+        padding: 15px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important; /* عشان لو المحتوى طويل تعمل سكرول جوه البوب آب */
+    }
+
+    /* 6. تصغير الخطوط العنيفة */
+    h1 { font-size: 1.8rem !important; }
+    h2 { font-size: 1.4rem !important; }
+    p { font-size: 0.95rem !important; }
+
+    /* 7. أي صور في الموقع تتلم جوه الشاشة */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* 8. فلاتر البحث (Smart Search) */
+    .smart-filters-container {
+        flex-direction: column !important;
+    }
+    .smart-filter-select {
+        width: 100% !important;
+    }
+}
