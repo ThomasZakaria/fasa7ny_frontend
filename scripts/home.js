@@ -89,12 +89,11 @@ async function updateAuthUI() {
     loginBtn.style.border = "none";
   }
 }
-// ==========================================
-// 2. GLOBAL RENDER LOGIC (Resilient Scoping)
-// ==========================================
 
-// الدالة الأساسية: مربوطة بـ window لضمان وصول البحث، الـ Near Me، والتوصيات إليها من أي مكان
-window.renderCards = function (places, container, limit = false) {
+// ==========================================
+// 2. RENDER LOGIC
+// ==========================================
+function renderCards(places, container, limit = false) {
   if (!container) return;
   container.innerHTML = "";
 
@@ -129,76 +128,6 @@ window.renderCards = function (places, container, limit = false) {
       </div>`,
     );
   });
-};
-
-// الدالة الفاخرة: تخدم السكاشن الرأسية المودرن ومؤمنة تماماً بـ window
-window.renderPremiumCards = function (places, container) {
-  if (!container) return;
-  container.innerHTML = "";
-
-  places.forEach((place) => {
-    if (!place || (!place["Landmark Name (English)"] && !place.name)) return;
-
-    const currentPlaceId = "place_" + globalPlaceIdCounter++;
-    window.globalPlacesMap[currentPlaceId] = place;
-
-    const name = place["Landmark Name (English)"] || place.name;
-    const city = place.Location || "Egypt";
-
-    const originalMainUrl = getValidImageUrl(place);
-    const optimizedMainUrl = optimizeImage(originalMainUrl, 500);
-
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-      <div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
-        <div class="card-image-wrapper">
-          <img 
-            src="${optimizedMainUrl}" 
-            alt="${name}" 
-            loading="lazy" 
-            onerror="this.onerror=null; this.src='${originalMainUrl}';"
-          >
-        </div>
-        <div class="card-content-wrapper">
-          <h4 class="card-landmark-name">${name}</h4>
-          <p class="card-landmark-location">
-            <i class="fas fa-map-marker-alt"></i> ${city}
-          </p>
-          ${
-            place.distanceAway && place.distanceAway !== Infinity
-              ? `<p class="card-landmark-distance"><i class="fas fa-location-arrow"></i> ${place.distanceAway.toFixed(1)} km away</p>`
-              : ""
-          }
-        </div>
-      </div>`,
-    );
-  });
-};
-
-// دالة جلب التوصيات للمودال: تم تحديثها لتستدعي الدالة عبر window لكسر الـ ReferenceError
-async function loadPlaceRecommendations(placeId) {
-  const nearbyContainer = document.getElementById("modalNearbyCards");
-  const similarContainer = document.getElementById("modalSimilarCards");
-
-  if (nearbyContainer) nearbyContainer.innerHTML = "Loading...";
-  if (similarContainer) similarContainer.innerHTML = "Loading...";
-
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/places/${placeId}/recommendations`,
-    );
-    const result = await res.json();
-
-    if (result.status === "success") {
-      const { nearest, similar } = result.data;
-      if (nearbyContainer) window.renderCards(nearest, nearbyContainer, false);
-      if (similarContainer)
-        window.renderCards(similar, similarContainer, false);
-    }
-  } catch (err) {
-    console.error("Recommendations UI Error:", err);
-  }
 }
 
 async function loadPlaceRecommendations(placeId) {
@@ -671,97 +600,74 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 // 5. INITIALIZATION & CORE FEATURES
 // ==========================================
-/**
- * Renders category sections dynamically based on the backend API payload.
- * Reuses window.renderPremiumCards to maintain design consistency.
- * * @param {Array|Object} categoriesData - The array or object of category blocks from the server
- * @param {String} selectedCity - The current active city filter string
- */
-function renderGroupedCategories(categoriesData, selectedCity) {
-  const container = document.getElementById("categoriesContentWrapper");
-  if (!container) return;
+async function fetchAndRenderCategories(selectedCity = "all") {
+  if (isFetchingCategories || !categoriesContentWrapper) return;
+  isFetchingCategories = true;
+  if (categoriesLoading) categoriesLoading.classList.remove("hidden");
 
-  // Clear previous content completely
-  container.innerHTML = "";
-
-  // Normalize data format (handles both array layouts and raw object mappings)
-  const categoriesArray = Array.isArray(categoriesData)
-    ? categoriesData
-    : Object.entries(categoriesData).map(([key, value]) => ({
-        name: key,
-        ...value,
-      }));
-
-  if (categoriesArray.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; padding:40px; color:var(--airbnb-gray);">
-        <i class="fas fa-compass" style="font-size:2.5rem; margin-bottom:12px; opacity:0.5;"></i>
-        <p style="font-weight:500; margin:0;">No matching curated categories found for this region.</p>
-      </div>`;
-    return;
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/categories?city=${selectedCity}`,
+    );
+    const data = await response.json();
+    if (data.status === "success")
+      renderGroupedCategories(data.data, selectedCity);
+  } catch (error) {
+    console.error("Home Load Error:", error);
+  } finally {
+    if (categoriesLoading) categoriesLoading.classList.add("hidden");
+    isFetchingCategories = false;
   }
+}
 
-  // Loop through each category group to generate its layout scaffolding
-  categoriesArray.forEach((category, index) => {
-    // Prevent rendering empty slots or categories with missing data fields
-    const places = category.places || category.landmarks || [];
-    if (places.length === 0) return;
+function renderGroupedCategories(groupedData, selectedCity) {
+  if (!categoriesContentWrapper) return;
+  categoriesContentWrapper.innerHTML = "";
 
-    const categoryName = category.name || "Curated Wonders";
-    const categoryDesc =
-      category.description || "Handpicked local experiences optimized by AI.";
+  // بنغير الـ class هنا عشان نلغي تأثير الفليكس القديم اللي كان بيلغبط العناصر في الموبايل
+  categoriesContentWrapper.className = "categories-main-block";
 
-    // Dynamically assign contextual icons to match your specific category filters
-    let iconClass = "fa-monument";
-    const lowerName = categoryName.toLowerCase();
-    if (lowerName.includes("temple")) iconClass = "fa-gopuram";
-    if (lowerName.includes("pyramid")) iconClass = "fa-triangle-exclamation"; // Pyramid stand-in icon
-    if (lowerName.includes("mosque")) iconClass = "fa-mosque";
-    if (lowerName.includes("church") || lowerName.includes("coptic"))
-      iconClass = "fa-church";
-    if (lowerName.includes("museum")) iconClass = "fa-gallery";
-    if (lowerName.includes("nature") || lowerName.includes("island"))
-      iconClass = "fa-tree";
+  for (const [categoryName, places] of Object.entries(groupedData)) {
+    if (!places || places.length === 0) continue;
 
-    // Alternate background coloring rows matching your home.css specs (.bg-white vs .bg-gray)
-    const bgRowClass = index % 2 === 0 ? "bg-white" : "bg-gray";
-    const uniqueGridId = `grid_cat_${index}_${Date.now()}`;
+    const section = document.createElement("div");
+    section.className = "category-block";
 
-    // Build the structural outer section block
-    const sectionHtml = `
-      <section class="premium-category-section ${bgRowClass}">
-        <div class="premium-section-container">
-          <div class="premium-section-header">
-            <div class="header-left">
-              <div class="category-icon-box">
-                <i class="fas ${iconClass}"></i>
-              </div>
-              <div>
-                <h4 class="category-title">${categoryName}</h4>
-                <p class="category-desc">${categoryDesc}</p>
-              </div>
-            </div>
-            <a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="premium-view-all-btn">
-              View All <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-          
-          <div id="${uniqueGridId}" class="premium-cards-grid"></div>
+    // توليد ID فريد لكل كاروسيل عشان الأزرار تتحكم فيه لوحده
+    const carouselId = "carousel_" + categoryName.replace(/\s+/g, "_");
+
+    section.innerHTML = `
+      <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
+        <h3 class="app-section-title" style="font-size: 1.25rem; color: #0b4a6f; margin: 0; font-weight: 700;">
+          <i class="fas fa-landmark"></i> ${categoryName}
+        </h3>
+        ${
+          places.length > 4
+            ? `<a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="view-all-btn" style="font-size: 0.8rem; color: #0b4a6f; text-decoration: none; border: 1.5px solid #0b4a6f; padding: 4px 14px; border-radius: 20px; font-weight: 600;">View All</a>`
+            : ""
+        }
+      </div>
+      
+      <div class="carousel-wrapper">
+        <button class="carousel-nav-btn prev" onclick="document.getElementById('${carouselId}').scrollBy({left: -320, behavior: 'smooth'})" aria-label="Scroll Left">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="carousel-track-container" id="${carouselId}">
+          <div class="cards"></div>
         </div>
-      </section>
+        
+        <button class="carousel-nav-btn next" onclick="document.getElementById('${carouselId}').scrollBy({left: 320, behavior: 'smooth'})" aria-label="Scroll Right">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
     `;
 
-    // Inject the section container into the root layout wrapper
-    container.insertAdjacentHTML("beforeend", sectionHtml);
+    categoriesContentWrapper.appendChild(section);
 
-    // Target the inner cards grid area we just created
-    const subGridTarget = document.getElementById(uniqueGridId);
-
-    // Leverage your existing global card-renderer to populate the grid flawlessly
-    if (subGridTarget && typeof window.renderPremiumCards === "function") {
-      window.renderPremiumCards(places, subGridTarget);
-    }
-  });
+    // بنمرر false للـ limit عشان الكاروسيل يشيل كل الداتا المترتبة بالتوب بيكس والتنقل يتحكم في الرؤية
+    renderCards(places, section.querySelector(".cards"), false);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -926,13 +832,11 @@ const loadingMessages = [
   "Building itinerary...",
   "Finalizing your trip...",
 ];
-// =========================================================================
-// RETAINED/RE-ENGINERED GENERATION LOGIC LOOP (High Fidelity Componentization)
-// =========================================================================
+
 if (generateBtn) {
   generateBtn.addEventListener("click", () => {
     if (selectedCities.length === 0) {
-      alert("Please select at least one city to initialize layout paths.");
+      alert("Please select at least one city");
       return;
     }
 
@@ -942,7 +846,8 @@ if (generateBtn) {
     let index = 0;
     const interval = setInterval(() => {
       loadingMessage.textContent = loadingMessages[index];
-      index = (index + 1) % loadingMessages.length;
+      index++;
+      if (index >= loadingMessages.length) index = 0;
     }, 1000);
 
     setTimeout(async () => {
@@ -966,257 +871,54 @@ if (generateBtn) {
         const itinerary = data?.data?.itinerary;
         if (!itinerary || !itinerary.days) {
           document.getElementById("tripResult").innerHTML =
-            `<div class="premium-attraction-item-card" style="padding:24px; color:var(--airbnb-gray); text-align:center;">⚠️ Could not validate itinerary parameters.</div>`;
+            `<div class="trip-card error-card">⚠️ Could not generate itinerary.</div>`;
           return;
         }
 
-        // --- TRANSITION FROM PREFERENCE CONTROL TO COMPACT STATE SUMMARY VIEW ---
-        document.getElementById("plannerInputsForm").style.display = "none";
-
-        document.getElementById("summaryLabelDestinations").textContent =
-          selectedCities.join(", ");
-        document.getElementById("summaryLabelDuration").textContent =
-          `${tripDays ? tripDays.value : 3} Days Scheduled`;
-        document.getElementById("summaryLabelInterests").textContent =
-          selectedInterests.length > 0
-            ? selectedInterests.join(", ")
-            : "General Historical Exploration Focus";
-
-        const summaryWidgetElement = document.getElementById(
-          "compactTripSummaryWidget",
-        );
-        summaryWidgetElement.style.display = "flex";
-
-        // Bind interactive reversion event hook handler controls
-        document.getElementById("editPreferencesBtn").onclick = function () {
-          summaryWidgetElement.style.display = "none";
-          document.getElementById("plannerInputsForm").style.display = "block";
-          document.getElementById("tripResult").innerHTML = "";
-        };
-
-        // --- ITERATE DATA STACKS VIA ACCORDION PAIRS COMPONENT ARCHITECTURE ---
-        let accordionDaysHtml = "";
-
-        itinerary.days.forEach((dayObj, dayIndex) => {
-          let dayEstimatedCost = 0;
-          let dayActivitiesCount = dayObj.places.length;
-          let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
-
-          dayObj.places.forEach((place, placeIndex) => {
-            // Numeric Cost Extraction Regular Expression Parser Pipeline Vector
-            let entryFee = 0;
-            if (place.price_range) {
-              const numericMatch = place.price_range.match(/\d+/);
-              if (numericMatch) entryFee = parseInt(numericMatch[0]);
-            }
-            dayEstimatedCost += entryFee;
-
-            // Universal Image Asset Reference Mapping Cache Layer
-            let curatedThumbnail =
-              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=350&q=70";
-            const textQuery = (place.name || "").toLowerCase();
-            let resolvedCategoryTag = "Historic Landmark"; // Baseline Default Pill Tag Descriptor Label Value
-
-            if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Necropolis";
-            } else if (
-              textQuery.includes("museum") ||
-              textQuery.includes("tahrir") ||
-              textQuery.includes("grand")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Exhibition Gallery";
-            } else if (
-              textQuery.includes("temple") ||
-              textQuery.includes("luxor") ||
-              textQuery.includes("karnak")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Pharaonic Sanctuary";
-            } else if (
-              textQuery.includes("mosque") ||
-              textQuery.includes("citadel")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Islamic Architecture";
-            } else if (
-              textQuery.includes("church") ||
-              textQuery.includes("coptic")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Coptic Heritage";
-            }
-
-            // Route execution times into chronological slots
-            const timeString = (place.time || "").toUpperCase();
-            let assignedPeriod = "afternoon";
-
-            if (timeString.includes("AM") || placeIndex === 0) {
-              assignedPeriod = "morning";
-            } else if (
-              timeString.includes("PM") &&
-              (timeString.includes("5:") ||
-                timeString.includes("6:") ||
-                timeString.includes("7:") ||
-                timeString.includes("8:") ||
-                placeIndex === dayActivitiesCount - 1)
-            ) {
-              assignedPeriod = "evening";
-            } else if (placeIndex === 1 && dayActivitiesCount > 2) {
-              assignedPeriod = "afternoon";
-            }
-
-            const cleanNarrative = place.reason
-              ? place.reason.replace(/^"|焦点|"/g, "")
-              : "Visual AI recommendation optimized for historical context mapping.";
-
-            // Standard Component Attraction Matrix Card Frame Construction
-            const singleCardMarkup = `
-              <div class="premium-attraction-item-card generation-mode-card">
-                <div class="attraction-thumbnail-frame">
-                  <img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy">
-                </div>
-
-                <div class="attraction-details-frame">
-                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">
-                    <h5>${place.name || "Historical Destination Landmark"}</h5>
-                    <span class="category-badge-pill">${resolvedCategoryTag}</span>
-                  </div>
-                  <p class="attraction-short-narrative">${cleanNarrative}</p>
-                  
-                  <div class="attraction-meta-row-tags">
-                    <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
-                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
-                  </div>
-                </div>
-
-                <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')">
-                    <i class="fas fa-exchange-alt"></i> Swap
-                  </button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')">
-                    <i class="far fa-edit"></i> Edit
-                  </button>
-                </div>
-              </div>`;
-
-            chronologicalSlots[assignedPeriod].push(singleCardMarkup);
+        let html = `<div class="generated-trip-list-wrap"><h3>✨ Your Egypt Adventure</h3>`;
+        itinerary.days.forEach((dayObj) => {
+          html += `<div class="day-card"><h4>Day ${dayObj.day} - ${dayObj.city}</h4><ul>`;
+          dayObj.places.forEach((place) => {
+            html += `
+              <li style="margin-bottom:12px;">
+                <strong>${place.name}</strong><br>
+                ${place.time ? `<small>🕒 ${place.time}</small><br>` : ""}
+                ${place.reason ? `<small>${place.reason}</small><br>` : ""}
+                ${place.price_range ? `<span style="color:#e67e22;font-weight:bold;">💰 ${place.price_range}</span>` : ""}
+              </li>`;
           });
-
-          // Compound chronological slots into sequential timeline modules
-          let timelineBlocksContent = "";
-          if (chronologicalSlots.morning.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.afternoon.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.evening.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div>
-              </div>`;
-          }
-
-          const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
-          const uniqueAccordionIdentifier = `generationAccordionDay_d${dayObj.day}`;
-
-          accordionDaysHtml += `
-            <div class="day-accordion-card ${isFirstDayDefaultOpen}" id="${uniqueAccordionIdentifier}">
-              <div class="day-accordion-header" onclick="window.togglePremiumAccordion('${uniqueAccordionIdentifier}')">
-                <div class="day-header-left-pane">
-                  <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
-                  <div class="day-subtitle-tags">
-                    <span class="tag-lbl-item"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
-                    <span class="tag-divider-dot"></span>
-                    <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
-                  </div>
-                </div>
-                <div class="accordion-toggle-chevron">
-                  <i class="fas fa-chevron-down"></i>
-                </div>
-              </div>
-              
-              <div class="day-accordion-body-wrapper">
-                <div class="day-accordion-content-inner">
-                  ${timelineBlocksContent}
-                </div>
-              </div>
-            </div>`;
+          html += `</ul></div>`;
         });
 
-        // Construct high-fidelity output container, removing bullet lists completely
-        let finalOutputStructureTemplate = `
-          <div class="generated-premium-itinerary-wrapper">
-            <div class="itinerary-display-column" style="margin-bottom: 24px;">
-              ${accordionDaysHtml}
-            </div>
-            
-            <div class="sticky-mobile-save-container">
-              <button id="saveAiTripBtn" class="primary-action-cta full-width-save-btn">
-                <i class="fas fa-cloud-download-alt"></i> Commit & Save Plan to Dashboard
-              </button>
-            </div>
-          </div>`;
+        html += `<button id="saveAiTripBtn" class="primary-btn" style="margin-top:20px;width:100%;">💾 Save Trip</button></div>`;
+        document.getElementById("tripResult").innerHTML = html;
 
-        document.getElementById("tripResult").innerHTML =
-          finalOutputStructureTemplate;
-
-        // --- ATTACH SAVE DATA HANDLER FUNCTION EVENT HOOKS ---
         const saveBtn = document.getElementById("saveAiTripBtn");
         if (saveBtn) {
           saveBtn.addEventListener("click", async () => {
             const userId = localStorage.getItem("userId");
             if (!userId) {
-              alert(
-                "Please authenticate into user profile directories first to commit tracks.",
-              );
+              alert("Please login first");
               return;
             }
 
             try {
-              const saveResponse = await fetch(
-                `${API_BASE_URL}/user/save-trip`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    userId,
-                    itinerary,
-                    cities: selectedCities,
-                    days: tripDays.value,
-                  }),
-                },
-              );
-              const result = await saveResponse.json();
-              if (result.status === "success") {
-                alert(
-                  "✨ Expedition path successfully synced to Live Dashboard records!",
-                );
-                if (typeof loadMyTripsTracker === "function") {
-                  document.getElementById("tabMyTrips").click(); // Pivot layout focus directly onto dashboard track cards
-                }
-              }
+              const response = await fetch(`${API_BASE_URL}/user/save-trip`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId,
+                  itinerary,
+                  cities: selectedCities,
+                  days: tripDays.value,
+                }),
+              });
+              const result = await response.json();
+              if (result.status === "success")
+                alert("Trip saved successfully!");
             } catch (err) {
               console.error(err);
-              alert(
-                "Transmission interface failure executing backend synchronizations.",
-              );
+              alert("Failed to save trip");
             }
           });
         }
@@ -1224,12 +926,13 @@ if (generateBtn) {
         clearInterval(interval);
         tripLoading.style.display = "none";
         document.getElementById("tripResult").innerHTML =
-          `<div class="premium-attraction-item-card" style="padding:24px; color:#E74C3C; background:#FDF0ED; border:1px solid #FADBD8;">⚠️ Connection Fault: AI matrix pipelines are currently unreachable.</div>`;
+          `<div class="trip-card error-card">⚠️ Failed to connect to AI.</div>`;
         console.error(error);
       }
     }, 2000);
   });
 }
+
 const tripDays = document.getElementById("tripDays");
 const daysDisplay = document.querySelector(".days-display");
 if (tripDays && daysDisplay) {
@@ -1278,10 +981,6 @@ if (tabCreate && tabTrips) {
   });
 }
 
-/**
- * Fully Componentized Visual Itinerary Tracker Engine
- * Re-architected for High-Scannability, Image Injection, and Progressive Disclosure
- */
 async function loadMyTripsTracker() {
   const userId = localStorage.getItem("userId");
   const container = document.getElementById("myTripsList");
@@ -1289,20 +988,11 @@ async function loadMyTripsTracker() {
   if (!container) return;
 
   if (!userId) {
-    container.innerHTML = `
-      <div class="error-card" style="text-align:center; padding:32px; color:#E74C3C; background:#FDF0ED; border-radius:16px; border:1px solid #FADBD8;">
-        <i class="fas fa-user-lock" style="font-size:2.5rem; margin-bottom:12px;"></i>
-        <p style="margin:0; font-weight:600; font-size:1.1rem;">Authentication Required</p>
-        <p style="margin:6px 0 0 0; color:#666; font-size:0.95rem;">Please sign in to view and interact with your personal visual itineraries.</p>
-      </div>`;
+    container.innerHTML = `<div class="error-card" style="text-align:center; padding:20px; color:#e74c3c; background:#fdf0ed; border-radius:12px;">Please sign in to track your trips.</div>`;
     return;
   }
 
-  container.innerHTML = `
-    <div class="premium-loader-box">
-      <div class="pulse-spinner"></div>
-      <p style="color: #717171; font-weight: 500;">Synchronizing your Egyptian Expeditions...</p>
-    </div>`;
+  container.innerHTML = `<div class="spinner"></div><p style="text-align:center; margin-top:10px; color:#666;">Syncing your adventures...</p>`;
 
   try {
     const res = await fetch(`${API_BASE_URL}/users/${userId}`);
@@ -1310,346 +1000,105 @@ async function loadMyTripsTracker() {
     const trips = data.data.user.saved_trips || [];
 
     if (trips.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center; padding:48px 24px; color:var(--airbnb-gray); border: 2px dashed #EAEAEA; border-radius:16px;">
-          <i class="fas fa-suitcase-rolling" style="font-size:3.5rem; margin-bottom:16px; color:#CCCCCC;"></i>
-          <h4 style="margin:0; color:var(--airbnb-black); font-size:1.25rem;">No Expeditions Found</h4>
-          <p style="margin:8px 0 0 0; font-size:1rem;">Generate a fresh AI Plan on the configuration panel to begin tracking.</p>
-        </div>`;
+      container.innerHTML = `<div style="text-align:center; padding: 30px; color:#666;"><i class="fas fa-suitcase-rolling" style="font-size:3rem; margin-bottom:15px; color:#ddd;"></i><br>You haven't saved any trips yet.<br>Go to "Plan New Trip" to create one!</div>`;
       return;
     }
 
-    let finalHtml = "";
-    // Display recent generation models first
-    const activeTripsStack = [...trips].reverse();
+    let html = "";
+    const reversedTrips = [...trips].reverse();
 
-    activeTripsStack.forEach((trip) => {
-      let totalActivitiesCount = 0;
-      let completedActivitiesCount = 0;
-      let accordionDaysHtml = "";
+    reversedTrips.forEach((trip) => {
+      let totalPlaces = 0;
+      let completedPlaces = 0;
+      let tasksHtml = "";
 
       if (trip.itinerary && trip.itinerary.days) {
-        trip.itinerary.days.forEach((dayObj, dayIndex) => {
-          let dayEstimatedCost = 0;
-          let dayActivitiesCount = dayObj.places.length;
-          totalActivitiesCount += dayActivitiesCount;
+        trip.itinerary.days.forEach((day) => {
+          tasksHtml += `<h5 style="margin: 15px 0 8px 0; color:#0b4a6f; border-bottom: 2px dashed #eee; padding-bottom: 5px; font-size:1.1rem;">📅 Day ${day.day} - ${day.city}</h5>`;
 
-          let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
+          day.places.forEach((place, pIndex) => {
+            totalPlaces++;
+            const placeName =
+              typeof place === "string" ? place : place.name || "Attraction";
+            const uniqueId = `chk_${trip.tripId}_d${day.day}_p${pIndex}`;
 
-          // Build item structures and map to chronological slots
-          dayObj.places.forEach((place, placeIndex) => {
-            const uniqueActivityId = `chk_${trip.tripId}_d${dayObj.day}_p${placeIndex}`;
-            const isCompleted =
-              localStorage.getItem(uniqueActivityId) === "true";
-            if (isCompleted) completedActivitiesCount++;
+            const isChecked = localStorage.getItem(uniqueId) === "true";
+            if (isChecked) completedPlaces++;
 
-            // Smart Cost Parser
-            let entryFee = 0;
-            if (place.price_range) {
-              const numericMatch = place.price_range.match(/\d+/);
-              if (numericMatch) entryFee = parseInt(numericMatch[0]);
-            }
-            dayEstimatedCost += entryFee;
-
-            // Image Lookup Engine Pipeline
-            let curatedThumbnail =
-              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=250&q=70"; // Fallback Architecture Standard
-            const textQuery = (place.name || "").toLowerCase();
-            if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("museum") ||
-              textQuery.includes("tahrir")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("temple") ||
-              textQuery.includes("luxor") ||
-              textQuery.includes("karnak")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("mosque") ||
-              textQuery.includes("citadel")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("church") ||
-              textQuery.includes("coptic")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=250&q=70";
-            }
-
-            // Route execution times into chronological slots
-            const timeString = (place.time || "").toUpperCase();
-            let assignedPeriod = "afternoon"; // Engine Baseline Default Slot Group
-
-            if (timeString.includes("AM") || placeIndex === 0) {
-              assignedPeriod = "morning";
-            } else if (
-              timeString.includes("PM") &&
-              (timeString.includes("5:") ||
-                timeString.includes("6:") ||
-                timeString.includes("7:") ||
-                timeString.includes("8:") ||
-                placeIndex === dayActivitiesCount - 1)
-            ) {
-              assignedPeriod = "evening";
-            } else if (placeIndex === 1 && dayActivitiesCount > 2) {
-              assignedPeriod = "afternoon";
-            }
-
-            const cleanNarrative = place.reason
-              ? place.reason.replace(/^"|焦点|"/g, "")
-              : "Visual AI recommendation optimized for historical context mapping.";
-
-            const singleCardMarkup = `
-              <div class="premium-attraction-item-card ${isCompleted ? "task-completed" : ""}" id="cardWrapper_${uniqueActivityId}">
-                <div class="task-checkbox-wrapper-premium">
-                  <input type="checkbox" 
-                         class="modern-circular-checkbox tracker-checkbox-engine" 
-                         data-id="${uniqueActivityId}" 
-                         data-tripid="${trip.tripId}"
-                         ${isCompleted ? "checked" : ""} 
-                         aria-label="Complete activity">
-                </div>
-                
-                <div class="attraction-thumbnail-frame">
-                  <img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy">
-                </div>
-
-                <div class="attraction-details-frame">
-                  <h5>${place.name || "Historical Destination Landmark"}</h5>
-                  <p class="attraction-short-narrative">${cleanNarrative}</p>
-                  
-                  <div class="attraction-meta-row-tags">
-                    <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
-                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
-                  </div>
-                </div>
-
-                <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')">
-                    <i class="fas fa-exchange-alt"></i> Swap
-                  </button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')">
-                    <i class="far fa-edit"></i> Edit
-                  </button>
+            tasksHtml += `
+              <div class="place-task ${isChecked ? "completed" : ""}" id="taskDiv_${uniqueId}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${isChecked ? "#f0fdf4" : "#f9f9f9"}; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${isChecked ? "#27ae60" : "#ccc"}; transition: all 0.3s ease; flex-wrap: wrap; gap: 10px;">
+                <label style="display:flex; align-items:center; gap:12px; cursor:pointer; flex:1; min-width: 200px;">
+                  <input type="checkbox" class="trip-checkbox" data-id="${uniqueId}" ${isChecked ? "checked" : ""} style="width:20px; height:20px; accent-color:#27ae60; cursor:pointer;">
+                  <span class="task-text" style="font-weight:bold; font-size:1rem; color:${isChecked ? "#888" : "#2c3e50"}; text-decoration:${isChecked ? "line-through" : "none"}; transition: 0.3s;">${placeName}</span>
+                </label>
+                <div class="task-actions" style="display:flex; gap:8px;">
+                  <button onclick="alert('🔄 AI Swap feature is planned for V2!')" style="border:none; background:#e0f2fe; color:#0284c7; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem;"><i class="fas fa-exchange-alt"></i> Swap</button>
+                  <button onclick="alert('✏️ Manual Edit coming soon!')" style="border:none; background:#fef08a; color:#c2410c; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem;"><i class="fas fa-edit"></i> Edit</button>
                 </div>
               </div>`;
-
-            chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
-
-          // Compound chronological slots into sequential timeline modules
-          let timelineBlocksContent = "";
-
-          if (chronologicalSlots.morning.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.afternoon.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.evening.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div>
-              </div>`;
-          }
-
-          // Build individual collapsible day panels
-          const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
-          accordionDaysHtml += `
-            <div class="day-accordion-card ${isFirstDayDefaultOpen}" id="accordionDay_${trip.tripId}_d${dayObj.day}">
-              <div class="day-accordion-header" onclick="window.togglePremiumAccordion('accordionDay_${trip.tripId}_d${dayObj.day}')">
-                <div class="day-header-left-pane">
-                  <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
-                  <div class="day-subtitle-tags">
-                    <span class="tag-lbl-item"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
-                    <span class="tag-divider-dot"></span>
-                    <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
-                  </div>
-                </div>
-                <div class="accordion-toggle-chevron">
-                  <i class="fas fa-chevron-down"></i>
-                </div>
-              </div>
-              
-              <div class="day-accordion-body-wrapper">
-                <div class="day-accordion-content-inner">
-                  ${timelineBlocksContent}
-                </div>
-              </div>
-            </div>`;
         });
       }
 
-      const activeProgressPercentage =
-        totalActivitiesCount === 0
+      const progressPercent =
+        totalPlaces === 0
           ? 0
-          : Math.round((completedActivitiesCount / totalActivitiesCount) * 100);
+          : Math.round((completedPlaces / totalPlaces) * 100);
 
-      // Radius size = 28, Math Formula Track Circumference calculation = 2 * PI * r
-      const svgRingCircumference = 2 * Math.PI * 28;
-      const initialStrokeDashOffset =
-        svgRingCircumference -
-        (activeProgressPercentage / 100) * svgRingCircumference;
-
-      // Unify UI elements under a single operational card wrapper
-      finalHtml += `
-        <div class="trip-operational-grand-card" style="margin-bottom:40px; border-bottom:1px solid #EAEAEA; padding-bottom:32px;">
-          <div class="sticky-trip-summary-header">
-            <div class="summary-meta-text">
-              <h4>Expedition inside ${trip.cities.join(", ")}</h4>
-              <p>Duration Vector Tracker: ${trip.days || dayObj.day} Active Days Plan Matrix</p>
-            </div>
-            
-            <div class="circular-progress-component">
-              <div class="summary-meta-text" style="text-align: right;">
-                <p style="font-weight:700; color:var(--airbnb-black);" id="counterText_${trip.tripId}">${completedActivitiesCount} of ${totalActivitiesCount} Visited</p>
-                <p style="font-size:0.85rem;">Live Completion Metrics</p>
-              </div>
-              <div class="progress-svg-frame">
-                <svg>
-                  <circle class="circle-track-bg" cx="32" cy="32" r="28"></circle>
-                  <circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" 
-                          stroke-dasharray="${svgRingCircumference}" 
-                          stroke-dashoffset="${initialStrokeDashOffset}"></circle>
-                </svg>
-                <div class="progress-percentage-label" id="badgePercentage_${trip.tripId}">${activeProgressPercentage}%</div>
-              </div>
-            </div>
+      html += `
+        <div class="day-card" style="margin-bottom:25px; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background:#fff;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h4 style="margin:0; color:#e67e22; font-size:1.2rem;">🌍 Trip to ${trip.cities.join(", ")}</h4>
+            <span class="day-badge" id="badge_${trip.tripId}" style="background:linear-gradient(90deg, #27ae60, #2ecc71); color:white; padding:5px 12px; border-radius:20px; font-weight:bold; font-size:1rem;">${progressPercent}%</span>
           </div>
-
-          <div class="itinerary-display-column">
-            ${accordionDaysHtml}
+          <div class="progress-container" style="width: 100%; height: 12px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden;">
+            <div class="progress-fill" id="progBar_${trip.tripId}" style="height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: ${progressPercent}%; transition: width 0.5s ease;"></div>
+          </div>
+          <div style="margin-top: 20px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
+            ${tasksHtml}
           </div>
         </div>`;
     });
 
-    container.innerHTML = finalHtml;
+    container.innerHTML = html;
 
-    // Attach runtime click hooks to handle state transitions dynamically
-    document
-      .querySelectorAll(".tracker-checkbox-engine")
-      .forEach((checkbox) => {
-        checkbox.addEventListener("change", (event) => {
-          const uniqueActivityId = event.target.dataset.id;
-          const parentTripIdentifier = event.target.dataset.tripid;
-          const targetedCardContainer = document.getElementById(
-            `cardWrapper_${uniqueActivityId}`,
-          );
+    document.querySelectorAll(".trip-checkbox").forEach((chk) => {
+      chk.addEventListener("change", (e) => {
+        const id = e.target.dataset.id;
+        const taskDiv = document.getElementById(`taskDiv_${id}`);
+        const tripId = id.split("_")[1];
+        const taskText = taskDiv.querySelector(".task-text");
 
-          if (event.target.checked) {
-            localStorage.setItem(uniqueActivityId, "true");
-            if (targetedCardContainer)
-              targetedCardContainer.classList.add("task-completed");
-          } else {
-            localStorage.removeItem(uniqueActivityId);
-            if (targetedCardContainer)
-              targetedCardContainer.classList.remove("task-completed");
-          }
+        if (e.target.checked) {
+          localStorage.setItem(id, "true");
+          taskDiv.style.borderLeftColor = "#27ae60";
+          taskDiv.style.background = "#f0fdf4";
+          taskText.style.color = "#888";
+          taskText.style.textDecoration = "line-through";
+        } else {
+          localStorage.removeItem(id);
+          taskDiv.style.borderLeftColor = "#ccc";
+          taskDiv.style.background = "#f9f9f9";
+          taskText.style.color = "#2c3e50";
+          taskText.style.textDecoration = "none";
+        }
 
-          // Recompute execution loop indexes to refresh layout counters dynamically
-          const grandParentCardScope = event.target.closest(
-            ".trip-operational-grand-card",
-          );
-          const aggregateCheckboxesCount =
-            grandParentCardScope.querySelectorAll(
-              ".tracker-checkbox-engine",
-            ).length;
-          const currentCheckedBoxesCount =
-            grandParentCardScope.querySelectorAll(
-              ".tracker-checkbox-engine:checked",
-            ).length;
+        const tripCard = taskDiv.closest(".day-card");
+        const totalCheckboxes =
+          tripCard.querySelectorAll(".trip-checkbox").length;
+        const checkedBoxes = tripCard.querySelectorAll(
+          ".trip-checkbox:checked",
+        ).length;
+        const newPercent = Math.round((checkedBoxes / totalCheckboxes) * 100);
 
-          const runtimeUpdatedPercentage = Math.round(
-            (currentCheckedBoxesCount / aggregateCheckboxesCount) * 100,
-          );
-
-          // Render update vectors to structural labels
-          const localizedPercentageTextNode = document.getElementById(
-            `badgePercentage_${parentTripIdentifier}`,
-          );
-          const localizedCounterTextNode = document.getElementById(
-            `counterText_${parentTripIdentifier}`,
-          );
-          const targetSvgCircleElement = document.getElementById(
-            `svgCircleFill_${parentTripIdentifier}`,
-          );
-
-          if (localizedPercentageTextNode)
-            localizedPercentageTextNode.textContent = `${runtimeUpdatedPercentage}%`;
-          if (localizedCounterTextNode)
-            localizedCounterTextNode.textContent = `${currentCheckedBoxesCount} of ${aggregateCheckboxesCount} Visited`;
-
-          if (targetSvgCircleElement) {
-            const freshOffsetValue =
-              svgRingCircumference -
-              (runtimeUpdatedPercentage / 100) * svgRingCircumference;
-            targetSvgCircleElement.style.strokeDashoffset = freshOffsetValue;
-          }
-        });
+        document.getElementById(`progBar_${tripId}`).style.width =
+          `${newPercent}%`;
+        document.getElementById(`badge_${tripId}`).textContent =
+          `${newPercent}%`;
       });
-  } catch (error) {
-    console.error("Critical Render Pipeline Failure:", error);
-    container.innerHTML = `
-      <div class="error-card" style="text-align:center; padding:24px; color:#E74C3C; background:#FDF0ED; border-radius:12px;">
-        <i class="fas fa-exclamation-triangle" style="font-size:1.5rem; margin-bottom:8px;"></i>
-        <p style="margin:0; font-weight:600;">Synchronization Fault Encountered</p>
-      </div>`;
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `<div class="error-card" style="text-align:center; padding:20px; color:#e74c3c; background:#fdf0ed; border-radius:12px;">Failed to load trips.</div>`;
   }
 }
-
-/**
- * Interface Animation Controller Function
- * Replaces pure toggles with high-performance CSS transition height sizing
- */
-window.togglePremiumAccordion = function (elementId) {
-  const selectedAccordionFrame = document.getElementById(elementId);
-  if (!selectedAccordionFrame) return;
-
-  const contentSliderWrapper = selectedAccordionFrame.querySelector(
-    ".day-accordion-body-wrapper",
-  );
-
-  if (selectedAccordionFrame.classList.contains("expanded")) {
-    // Graceful closure sequencing
-    contentSliderWrapper.style.maxHeight =
-      contentSliderWrapper.scrollHeight + "px";
-    setTimeout(() => {
-      contentSliderWrapper.style.maxHeight = "0";
-      selectedAccordionFrame.classList.remove("expanded");
-    }, 10);
-  } else {
-    // Smooth transition opening
-    selectedAccordionFrame.classList.add("expanded");
-    contentSliderWrapper.style.maxHeight =
-      contentSliderWrapper.scrollHeight + "px";
-
-    // Release bounds once transitions settle completely
-    contentSliderWrapper.addEventListener(
-      "transitionend",
-      function clearBounds(e) {
-        if (selectedAccordionFrame.classList.contains("expanded")) {
-          contentSliderWrapper.style.maxHeight = "none";
-        }
-        contentSliderWrapper.removeEventListener("transitionend", clearBounds);
-      },
-    );
-  }
-};
