@@ -13,7 +13,9 @@ const DEFAULT_THUMB =
 // DOM Elements
 const placeModal = document.getElementById("placeModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
-const categoriesContentWrapper = document.getElementById("categoriesContentWrapper");
+const categoriesContentWrapper = document.getElementById(
+  "categoriesContentWrapper",
+);
 const cityFilter = document.getElementById("cityFilter");
 const categoriesLoading = document.getElementById("categoriesLoading");
 const uploadBtn = document.getElementById("uploadBtn");
@@ -61,7 +63,10 @@ async function updateAuthUI() {
   const userId = localStorage.getItem("userId");
   let username = localStorage.getItem("username");
 
-  if (userId && (!username || username === "undefined" || username.trim() === "")) {
+  if (
+    userId &&
+    (!username || username === "undefined" || username.trim() === "")
+  ) {
     try {
       const res = await fetch(`${API_BASE_URL}/users/${userId}`);
       const result = await res.json();
@@ -133,7 +138,9 @@ async function loadPlaceRecommendations(placeId) {
   if (similarContainer) similarContainer.innerHTML = "Loading...";
 
   try {
-    const res = await fetch(`${API_BASE_URL}/places/${placeId}/recommendations`);
+    const res = await fetch(
+      `${API_BASE_URL}/places/${placeId}/recommendations`,
+    );
     const result = await res.json();
 
     if (result.status === "success") {
@@ -166,7 +173,9 @@ function openPlaceModal(placeData) {
   safeSetText("modalCategory", placeData.category || "General");
 
   const historyEl = document.getElementById("modalHistory");
-  if (historyEl) historyEl.innerText = placeData["Short History Summary"] || "Discover the wonders of Egypt.";
+  if (historyEl)
+    historyEl.innerText =
+      placeData["Short History Summary"] || "Discover the wonders of Egypt.";
 
   const imgEl = document.getElementById("modalImg");
   const galleryEl = document.getElementById("modalGallery");
@@ -177,16 +186,23 @@ function openPlaceModal(placeData) {
 
   if (placeData.images && Array.isArray(placeData.images.gallery)) {
     placeData.images.gallery.forEach((img) => {
-      if (img && !allImages.includes(img) && !img.includes("[URL]")) allImages.push(img);
+      if (img && !allImages.includes(img) && !img.includes("[URL]"))
+        allImages.push(img);
     });
   } else if (placeData.images && Array.isArray(placeData.images)) {
     placeData.images.forEach((img) => {
-      if (img && !allImages.includes(img) && !img.includes("[URL]")) allImages.push(img);
+      if (img && !allImages.includes(img) && !img.includes("[URL]"))
+        allImages.push(img);
     });
   } else if (placeData.images && typeof placeData.images === "string") {
     placeData.images.split(",").forEach((img) => {
       let cleanImg = img.trim();
-      if (cleanImg && !allImages.includes(cleanImg) && !cleanImg.includes("[URL]")) allImages.push(cleanImg);
+      if (
+        cleanImg &&
+        !allImages.includes(cleanImg) &&
+        !cleanImg.includes("[URL]")
+      )
+        allImages.push(cleanImg);
     });
   }
 
@@ -215,7 +231,8 @@ function openPlaceModal(placeData) {
         thumb.style.objectFit = "cover";
         thumb.style.borderRadius = "8px";
         thumb.style.cursor = "pointer";
-        thumb.style.border = index === 0 ? "2px solid #0b4a6f" : "2px solid transparent";
+        thumb.style.border =
+          index === 0 ? "2px solid #0b4a6f" : "2px solid transparent";
         thumb.style.transition = "0.3s";
         thumb.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
 
@@ -227,7 +244,9 @@ function openPlaceModal(placeData) {
               this.src = originalUrl;
             };
           }
-          Array.from(galleryEl.children).forEach((child) => (child.style.border = "2px solid transparent"));
+          Array.from(galleryEl.children).forEach(
+            (child) => (child.style.border = "2px solid transparent"),
+          );
           thumb.style.border = "2px solid #0b4a6f";
         };
         galleryEl.appendChild(thumb);
@@ -240,18 +259,21 @@ function openPlaceModal(placeData) {
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `http://googleusercontent.com/maps.google.com/maps?q=${cleanCoords}`;
+    mapBtn.href = `https://www.google.com/maps?q=${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
   }
 
   updateSaveButtonUI();
-  const placeId = placeData.ID || (placeData._id ? placeData._id.$oid || placeData._id : null);
+  const placeId =
+    placeData.ID ||
+    (placeData._id ? placeData._id.$oid || placeData._id : null);
   if (placeId) {
     const idStr = placeId.toString();
     if (typeof loadReviews === "function") loadReviews(idStr);
-    if (typeof loadPlaceRecommendations === "function") loadPlaceRecommendations(idStr);
+    if (typeof loadPlaceRecommendations === "function")
+      loadPlaceRecommendations(idStr);
   }
 
   placeModal.classList.add("active");
@@ -267,7 +289,9 @@ function updateSaveButtonUI() {
 
   const user = JSON.parse(localStorage.getItem("userProfile") || "{}");
   const placeData = window.currentModalPlace;
-  const placeId = placeData.ID || (placeData._id ? placeData._id.$oid || placeData._id : null);
+  const placeId =
+    placeData.ID ||
+    (placeData._id ? placeData._id.$oid || placeData._id : null);
   const isSaved = user.saved_places?.some((p) => p.id == placeId);
 
   if (isSaved) {
@@ -294,7 +318,10 @@ if (modalSaveBtn) {
       return;
     }
 
-    const extractedId = window.currentModalPlace.ID || (window.currentModalPlace._id?.$oid || window.currentModalPlace._id);
+    const extractedId =
+      window.currentModalPlace.ID ||
+      window.currentModalPlace._id?.$oid ||
+      window.currentModalPlace._id;
 
     try {
       const response = await fetch(`${API_BASE_URL}/user/save-place`, {
@@ -304,7 +331,9 @@ if (modalSaveBtn) {
           userId: userId,
           place: {
             id: extractedId,
-            name: window.currentModalPlace["Landmark Name (English)"] || window.currentModalPlace.name,
+            name:
+              window.currentModalPlace["Landmark Name (English)"] ||
+              window.currentModalPlace.name,
             location: window.currentModalPlace.Location,
             img: getValidImageUrl(window.currentModalPlace),
           },
@@ -334,7 +363,10 @@ async function submitReview() {
   if (!userId) return alert("Please login to post a review!");
   if (!comment || !rating) return alert("Please add a comment and rating!");
 
-  const placeId = window.currentModalPlace.ID || (window.currentModalPlace._id?.$oid || window.currentModalPlace._id);
+  const placeId =
+    window.currentModalPlace.ID ||
+    window.currentModalPlace._id?.$oid ||
+    window.currentModalPlace._id;
 
   try {
     const res = await fetch(`${API_BASE_URL}/places/${placeId}/reviews`, {
@@ -394,17 +426,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchAIRecommendations(placeObj) {
     const costInputs = [inputs.accommodation, inputs.food, inputs.transport];
-    costInputs.forEach((input) => { if (input) input.style.opacity = "0.5"; });
+    costInputs.forEach((input) => {
+      if (input) input.style.opacity = "0.5";
+    });
 
     if (aiBudgetBtn) {
-      aiBudgetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحساب...';
+      aiBudgetBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> جاري الحساب...';
       aiBudgetBtn.style.background = "#e68a00";
       aiBudgetBtn.disabled = true;
     }
 
     try {
       const placeDataToSend = {
-        placeName: placeObj["Landmark Name (English)"] || placeObj.name || "Giza Pyramids",
+        placeName:
+          placeObj["Landmark Name (English)"] ||
+          placeObj.name ||
+          "Giza Pyramids",
         location: placeObj["Location"] || "Egypt",
         category: placeObj["category"] || "Tourist Attraction",
         description: placeObj["Short History Summary"] || "",
@@ -420,16 +458,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (result.status === "success" && result.data) {
         const currentRate = exchangeRates[currencySelect.value] || 1;
-        if (inputs.accommodation) inputs.accommodation.value = Math.round((result.data.accommodation || 1500) * currentRate);
-        if (inputs.food) inputs.food.value = Math.round((result.data.food || 600) * currentRate);
-        if (inputs.transport) inputs.transport.value = Math.round((result.data.transport || 300) * currentRate);
+        if (inputs.accommodation)
+          inputs.accommodation.value = Math.round(
+            (result.data.accommodation || 1500) * currentRate,
+          );
+        if (inputs.food)
+          inputs.food.value = Math.round(
+            (result.data.food || 600) * currentRate,
+          );
+        if (inputs.transport)
+          inputs.transport.value = Math.round(
+            (result.data.transport || 300) * currentRate,
+          );
       }
     } catch (error) {
       console.error("Failed to fetch smart defaults", error);
-    } finaly {
-      costInputs.forEach((input) => { if (input) input.style.opacity = "1"; });
+    } finally {
+      costInputs.forEach((input) => {
+        if (input) input.style.opacity = "1";
+      });
       if (aiBudgetBtn) {
-        aiBudgetBtn.innerHTML = '<i class="fas fa-magic"></i> اقترح ميزانية بالذكاء الاصطناعي';
+        aiBudgetBtn.innerHTML =
+          '<i class="fas fa-magic"></i> اقترح ميزانية بالذكاء الاصطناعي';
         aiBudgetBtn.style.background = "#ff9800";
         aiBudgetBtn.disabled = false;
       }
@@ -446,7 +496,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (openCalcBtn) {
     openCalcBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      const currentPlaceId = window.currentModalPlace ? window.currentModalPlace.ID || (window.currentModalPlace._id?.$oid || window.currentModalPlace._id) : null;
+      const currentPlaceId = window.currentModalPlace
+        ? window.currentModalPlace.ID ||
+          window.currentModalPlace._id?.$oid ||
+          window.currentModalPlace._id
+        : null;
 
       if (currentPlaceId !== lastCalcPlaceId) {
         inputs.days.value = 1;
@@ -478,19 +532,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const days = Math.max(1, parseInt(inputs.days.value) || 1);
     const travelers = Math.max(1, parseInt(inputs.travelers.value) || 1);
     const transport = Math.max(0, parseFloat(inputs.transport.value) || 0);
-    const accommodation = Math.max(0, parseFloat(inputs.accommodation.value) || 0);
+    const accommodation = Math.max(
+      0,
+      parseFloat(inputs.accommodation.value) || 0,
+    );
     const food = Math.max(0, parseFloat(inputs.food.value) || 0);
 
     const nights = days;
-    const grandTotal = transport + accommodation * nights + food * days * travelers;
+    const grandTotal =
+      transport + accommodation * nights + food * days * travelers;
     const perPerson = travelers > 0 ? grandTotal / travelers : 0;
 
-    if (totalCostEl) totalCostEl.textContent = grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 });
-    if (costPerPersonEl) costPerPersonEl.textContent = perPerson.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    if (totalCostEl)
+      totalCostEl.textContent = grandTotal.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      });
+    if (costPerPersonEl)
+      costPerPersonEl.textContent = perPerson.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      });
 
     const selectedCurrency = currencySelect ? currencySelect.value : "EGP";
     document.querySelectorAll(".curr-symbol").forEach((el) => {
-      el.textContent = selectedCurrency === "USD" ? "$" : selectedCurrency === "EUR" ? "€" : "ج.م";
+      el.textContent =
+        selectedCurrency === "USD"
+          ? "$"
+          : selectedCurrency === "EUR"
+            ? "€"
+            : "ج.م";
     });
   };
 
@@ -537,9 +606,12 @@ async function fetchAndRenderCategories(selectedCity = "all") {
   if (categoriesLoading) categoriesLoading.classList.remove("hidden");
 
   try {
-    const response = await fetch(`${API_BASE_URL}/categories?city=${selectedCity}`);
+    const response = await fetch(
+      `${API_BASE_URL}/categories?city=${selectedCity}`,
+    );
     const data = await response.json();
-    if (data.status === "success") renderGroupedCategories(data.data, selectedCity);
+    if (data.status === "success")
+      renderGroupedCategories(data.data, selectedCity);
   } catch (error) {
     console.error("Home Load Error:", error);
   } finally {
@@ -558,12 +630,16 @@ function renderGroupedCategories(groupedData, selectedCity) {
     section.innerHTML = `
       <h3 class="category-title"><i class="fas fa-landmark"></i> ${categoryName}</h3>
       <div class="cards"></div>
-      ${places.length > 4 ? `
+      ${
+        places.length > 4
+          ? `
         <div style="text-align: center; margin-top: 20px;">
           <button class="show-more-global-btn cat-specific-btn">
             View All ${categoryName} <i class="fas fa-arrow-right"></i>
           </button>
-        </div>` : ""}
+        </div>`
+          : ""
+      }
     `;
 
     categoriesContentWrapper.appendChild(section);
@@ -571,7 +647,8 @@ function renderGroupedCategories(groupedData, selectedCity) {
 
     const btn = section.querySelector(".cat-specific-btn");
     if (btn) {
-      btn.onclick = () => (window.location.href = `explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}`);
+      btn.onclick = () =>
+        (window.location.href = `explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}`);
     }
   }
 }
@@ -581,7 +658,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialCity = cityFilter ? cityFilter.value : "all";
   fetchAndRenderCategories(initialCity);
 
-  if (cityFilter) cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
+  if (cityFilter)
+    cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
 
   if (closeModalBtn) {
     closeModalBtn.onclick = () => {
@@ -615,16 +693,23 @@ if (uploadBtn && imageInput) {
     formData.append("image", file);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/detect`, { method: "POST", body: formData });
+      const res = await fetch(`${API_BASE_URL}/detect`, {
+        method: "POST",
+        body: formData,
+      });
       const data = await res.json();
 
       if (data.status === "success") {
         if (data.data.details) {
           openPlaceModal(data.data.details);
         } else if (data.data.prediction) {
-          alert(`AI identified this as: ${data.data.prediction}\nBut full details are not in our database yet.`);
+          alert(
+            `AI identified this as: ${data.data.prediction}\nBut full details are not in our database yet.`,
+          );
         } else {
-          alert("AI couldn't identify this landmark clearly. Try another angle!");
+          alert(
+            "AI couldn't identify this landmark clearly. Try another angle!",
+          );
         }
       } else {
         alert("Error analyzing image: " + (data.message || "Unknown error"));
@@ -650,7 +735,9 @@ if (getLocationBtn) {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         try {
-          const res = await fetch(`${API_BASE_URL}/places/near-me?lat=${lat}&lng=${lng}`);
+          const res = await fetch(
+            `${API_BASE_URL}/places/near-me?lat=${lat}&lng=${lng}`,
+          );
           const d = await res.json();
           if (loader) loader.classList.add("hidden");
           renderCards(d.data.places, container, true);
@@ -658,7 +745,9 @@ if (getLocationBtn) {
           const showBtn = document.getElementById("showMoreNearMeBtn");
           if (showBtn && d.data.places.length > 0) {
             showBtn.classList.remove("hidden");
-            showBtn.onclick = () => { window.location.href = `explore.html?type=near-me&lat=${lat}&lng=${lng}`; };
+            showBtn.onclick = () => {
+              window.location.href = `explore.html?type=near-me&lat=${lat}&lng=${lng}`;
+            };
           }
         } catch (err) {
           if (loader) loader.classList.add("hidden");
@@ -668,7 +757,7 @@ if (getLocationBtn) {
       (err) => {
         if (loader) loader.classList.add("hidden");
         alert("Please enable location services in your browser.");
-      }
+      },
     );
   };
 }
@@ -678,8 +767,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("tripPlannerModal");
   const closeBtn = document.getElementById("closeTripPlannerBtn");
 
-  if (openBtn) openBtn.addEventListener("click", () => { modal.classList.add("active"); });
-  if (closeBtn) closeBtn.addEventListener("click", () => { modal.classList.remove("active"); });
+  if (openBtn)
+    openBtn.addEventListener("click", () => {
+      modal.classList.add("active");
+    });
+  if (closeBtn)
+    closeBtn.addEventListener("click", () => {
+      modal.classList.remove("active");
+    });
 });
 
 let selectedCities = [];
@@ -758,11 +853,11 @@ if (generateBtn) {
 
         const itinerary = data?.data?.itinerary;
         if (!itinerary || !itinerary.days) {
-          document.getElementById("tripResult").innerHTML = `<div class="trip-card error-card">⚠️ Could not generate itinerary.</div>`;
+          document.getElementById("tripResult").innerHTML =
+            `<div class="trip-card error-card">⚠️ Could not generate itinerary.</div>`;
           return;
         }
 
-        // تم التغيير لـ class هنا منعاً لتكرار الـ ID مع صفحة التراكر
         let html = `<div class="generated-trip-list-wrap"><h3>✨ Your Egypt Adventure</h3>`;
         itinerary.days.forEach((dayObj) => {
           html += `<div class="day-card"><h4>Day ${dayObj.day} - ${dayObj.city}</h4><ul>`;
@@ -785,7 +880,10 @@ if (generateBtn) {
         if (saveBtn) {
           saveBtn.addEventListener("click", async () => {
             const userId = localStorage.getItem("userId");
-            if (!userId) { alert("Please login first"); return; }
+            if (!userId) {
+              alert("Please login first");
+              return;
+            }
 
             try {
               const response = await fetch(`${API_BASE_URL}/user/save-trip`, {
@@ -799,7 +897,8 @@ if (generateBtn) {
                 }),
               });
               const result = await response.json();
-              if (result.status === "success") alert("Trip saved successfully!");
+              if (result.status === "success")
+                alert("Trip saved successfully!");
             } catch (err) {
               console.error(err);
               alert("Failed to save trip");
@@ -809,7 +908,8 @@ if (generateBtn) {
       } catch (error) {
         clearInterval(interval);
         tripLoading.style.display = "none";
-        document.getElementById("tripResult").innerHTML = `<div class="trip-card error-card">⚠️ Failed to connect to AI.</div>`;
+        document.getElementById("tripResult").innerHTML =
+          `<div class="trip-card error-card">⚠️ Failed to connect to AI.</div>`;
         console.error(error);
       }
     }, 2000);
@@ -819,7 +919,9 @@ if (generateBtn) {
 const tripDays = document.getElementById("tripDays");
 const daysDisplay = document.querySelector(".days-display");
 if (tripDays && daysDisplay) {
-  tripDays.addEventListener("input", () => { daysDisplay.textContent = `${tripDays.value} Days`; });
+  tripDays.addEventListener("input", () => {
+    daysDisplay.textContent = `${tripDays.value} Days`;
+  });
 }
 
 // ==========================================
@@ -886,7 +988,6 @@ async function loadMyTripsTracker() {
     }
 
     let html = "";
-    // عمل نسخة من المصفوفة لترتيب الرحلات من الأحدث للأقدم دون ضرب المصفوفة الأصلية
     const reversedTrips = [...trips].reverse();
 
     reversedTrips.forEach((trip) => {
@@ -900,7 +1001,8 @@ async function loadMyTripsTracker() {
 
           day.places.forEach((place, pIndex) => {
             totalPlaces++;
-            const placeName = typeof place === "string" ? place : place.name || "Attraction";
+            const placeName =
+              typeof place === "string" ? place : place.name || "Attraction";
             const uniqueId = `chk_${trip.tripId}_d${day.day}_p${pIndex}`;
 
             const isChecked = localStorage.getItem(uniqueId) === "true";
@@ -921,7 +1023,10 @@ async function loadMyTripsTracker() {
         });
       }
 
-      const progressPercent = totalPlaces === 0 ? 0 : Math.round((completedPlaces / totalPlaces) * 100);
+      const progressPercent =
+        totalPlaces === 0
+          ? 0
+          : Math.round((completedPlaces / totalPlaces) * 100);
 
       html += `
         <div class="day-card" style="margin-bottom:25px; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background:#fff;">
@@ -962,12 +1067,17 @@ async function loadMyTripsTracker() {
         }
 
         const tripCard = taskDiv.closest(".day-card");
-        const totalCheckboxes = tripCard.querySelectorAll(".trip-checkbox").length;
-        const checkedBoxes = tripCard.querySelectorAll(".trip-checkbox:checked").length;
+        const totalCheckboxes =
+          tripCard.querySelectorAll(".trip-checkbox").length;
+        const checkedBoxes = tripCard.querySelectorAll(
+          ".trip-checkbox:checked",
+        ).length;
         const newPercent = Math.round((checkedBoxes / totalCheckboxes) * 100);
 
-        document.getElementById(`progBar_${tripId}`).style.width = `${newPercent}%`;
-        document.getElementById(`badge_${tripId}`).textContent = `${newPercent}%`;
+        document.getElementById(`progBar_${tripId}`).style.width =
+          `${newPercent}%`;
+        document.getElementById(`badge_${tripId}`).textContent =
+          `${newPercent}%`;
       });
     });
   } catch (err) {
