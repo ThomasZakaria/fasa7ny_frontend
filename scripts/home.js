@@ -1078,32 +1078,53 @@ async function syncGlobalTracker() {
     const res = await fetch(`${API_BASE_URL}/users/${userId}`);
     const data = await res.json();
     const trips = data.data.user.saved_trips || [];
-    // Get the most recent trip that isn't 100% complete
-    const activeTrip = trips.reverse().find((t) => {
-      // Calculate progress if not provided
-      const total = t.itinerary.days.reduce(
-        (acc, d) => acc + d.places.length,
-        0,
-      );
-      const visited = 0; // Or retrieve completed count from localStorage
-      return (t.progress || 0) < 100;
-    });
 
-    if (activeTrip && widget) {
-      widget.style.display = "block";
-      document.getElementById("widgetTripTitle").textContent =
-        `${activeTrip.cities[0]} Expedition`;
-      document.getElementById("widgetProgressText").textContent =
-        `${activeTrip.progress || 0}% Complete`;
-      document.getElementById("widgetProgressBar").style.width =
-        `${activeTrip.progress || 0}%`;
-      document.getElementById("widgetNextAttraction").textContent =
-        activeTrip.itinerary.days[0].places[0].name;
+    // الحصول على آخر رحلة تم حفظها
+    const activeTrip = trips.length > 0 ? trips[trips.length - 1] : null;
 
+    if (activeTrip && activeTrip.itinerary && activeTrip.itinerary.days) {
+      // 1. حساب التقدم الحقيقي (Visited count)
+      let totalPlaces = 0;
+      let visitedPlaces = 0;
+      let nextAttraction = "Everything completed!";
+      let foundNext = false;
+
+      activeTrip.itinerary.days.forEach((day) => {
+        day.places.forEach((place, pIndex) => {
+          totalPlaces++;
+          // مطابقة مفتاح الـ ID المستخدم في الـ Dashboard
+          const uniqueId = `chk_${activeTrip.tripId}_d${day.day}_p${pIndex}`;
+          const isChecked = localStorage.getItem(uniqueId) === "true";
+
+          if (isChecked) {
+            visitedPlaces++;
+          } else if (!foundNext) {
+            nextAttraction = place.name;
+            foundNext = true;
+          }
+        });
+      });
+
+      const progress =
+        totalPlaces === 0 ? 0 : Math.round((visitedPlaces / totalPlaces) * 100);
+
+      // 2. تحديث الـ Widget
+      if (widget) {
+        widget.style.display = "block";
+        document.getElementById("widgetTripTitle").textContent =
+          `${activeTrip.cities[0]} Expedition`;
+        document.getElementById("widgetProgressText").textContent =
+          `${progress}% Complete`;
+        document.getElementById("widgetProgressBar").style.width =
+          `${progress}%`;
+        document.getElementById("widgetNextAttraction").textContent =
+          `Next: ${nextAttraction}`;
+      }
+
+      // 3. تحديث الـ Floating Button
       if (floatingBtn) {
         floatingBtn.style.display = "flex";
-        document.getElementById("floatingPercent").textContent =
-          `${activeTrip.progress || 0}%`;
+        document.getElementById("floatingPercent").textContent = `${progress}%`;
       }
     } else {
       if (widget) widget.style.display = "none";

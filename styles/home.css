@@ -2973,3 +2973,55 @@ html {
     grid-column: span 2;
   }
 }
+/* حاوية الكارت الأساسية (بدون margin سالب) */
+.adventure-widget-container {
+  padding: 20px 5%;
+  background: #f8f9fa; /* لون الخلفية الطبيعي */
+  position: relative;
+  width: 100%;
+}
+
+.adventure-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* ظل ناعم */
+  display: grid;
+  grid-template-columns: 60px 1fr 200px auto; /* توزيع أعمدة دقيق */
+  align-items: center;
+  gap: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+/* التجاوب مع الموبايل (Stacking) */
+@media (max-width: 768px) {
+  .adventure-card {
+    grid-template-columns: 60px 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  .adv-progress,
+  .premium-cta {
+    grid-column: span 2; /* الزر والبروجريس ياخدوا عرض الموبايل */
+  }
+  .premium-cta {
+    width: 100%;
+  }
+}
+
+/* تنسيق العناصر الداخلية */
+.adv-info h3 {
+  color: #0b4a6f;
+  font-size: 1.1rem;
+  margin-top: 4px;
+}
+.progress-fill {
+  background: #ff9800;
+}
+.premium-cta {
+  background: #0b4a6f;
+  color: white;
+  border-radius: 10px;
+  border: none;
+  padding: 10px 20px;
+}

@@ -55,39 +55,36 @@
     </nav>
     <section
       id="currentAdventureWidget"
-      class="adventure-widget-overlay"
+      class="adventure-widget-container"
       style="display: none"
     >
-      <div class="premium-adventure-card">
+      <div class="adventure-card">
         <div class="adv-thumb">
           <img
             id="widgetThumbnail"
             src="https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=200&q=80"
-            alt="Trip Image"
+            alt="Trip"
           />
         </div>
-
         <div class="adv-info">
+          <span class="adventure-tag"
+            ><i class="fas fa-globe"></i> Current Adventure</span
+          >
           <h3 id="widgetTripTitle">Aswan Expedition</h3>
           <div class="next-stop-pill">
             <i class="fas fa-map-pin"></i>
-            <span
-              >Next:
-              <strong id="widgetNextAttraction">Great Sphinx</strong></span
-            >
+            <span id="widgetNextAttraction">Next: Great Sphinx</span>
           </div>
         </div>
-
         <div class="adv-progress">
           <div class="progress-labels">
-            <span class="label">Progress</span>
-            <span class="percent" id="widgetProgressText">0%</span>
+            <span>Progress</span>
+            <span id="widgetProgressText">0%</span>
           </div>
-          <div class="progress-track">
+          <div class="progress-bar-track">
             <div id="widgetProgressBar" class="progress-fill"></div>
           </div>
         </div>
-
         <button id="continueJourneyBtn" class="premium-cta">
           Continue Journey
         </button>
