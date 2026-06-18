@@ -210,28 +210,34 @@
     </section>
 
     <section class="app-categories-section" id="dynamicCategoriesContainer">
-  
-  <div class="section-header-flex">
-    <h3 class="app-section-title">Explore Categories</h3>
-    
-    <select id="cityFilter" class="city-filter-dropdown" style="border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; border: 1.5px solid #0b4a6f; color: #0b4a6f; outline: none;">
-      <option value="all" selected>All Egypt</option>
-      <option value="cairo">Cairo & Giza</option>
-      <option value="alexandria">Alexandria</option>
-      <option value="luxor">Luxor</option>
-      <option value="aswan">Aswan</option>
-    </select>
-  </div>
+      <div class="premium-section-container">
+        <div class="section-header-flex">
+          <h3 class="app-section-title">
+            <i class="fas fa-compass"></i> Explore Extraordinary Places
+          </h3>
 
-  <div id="categoriesLoading" class="loading-container">
-    <div class="spinner"></div>
-    <p>Loading amazing places...</p>
-  </div>
+          <div class="filter-select-wrapper">
+            <select id="cityFilter" class="city-filter-dropdown">
+              <option value="all" selected>All Egypt</option>
+              <option value="cairo">Cairo & Giza</option>
+              <option value="alexandria">Alexandria</option>
+              <option value="luxor">Luxor</option>
+              <option value="aswan">Aswan</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-  <div id="categoriesContentWrapper" class="app-horizontal-scroll">
-    </div>
-  
-</section>
+      <div id="categoriesLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Curating the best experiences for you...</p>
+      </div>
+
+      <div
+        id="categoriesContentWrapper"
+        class="premium-categories-container"
+      ></div>
+    </section>
 
     <div id="placeModal" class="modal-overlay">
       <div class="modal-content">
@@ -703,11 +709,15 @@
     <script src="../scripts/reviews.js"></script>
     <script src="../scripts/search.js"></script>
     <nav class="bottom-nav">
-  <a href="home.html" class="active"><i class="fas fa-home"></i><span>Home</span></a>
-  <a href="#searchSection"><i class="fas fa-search"></i><span>Search</span></a>
-  <a href="#"><i class="fas fa-suitcase"></i><span>Trips</span></a>
-  <a href="#"><i class="far fa-heart"></i><span>Favorites</span></a>
-  <a href="profile.html"><i class="far fa-user"></i><span>Profile</span></a>
-</nav>
+      <a href="home.html" class="active"
+        ><i class="fas fa-home"></i><span>Home</span></a
+      >
+      <a href="#searchSection"
+        ><i class="fas fa-search"></i><span>Search</span></a
+      >
+      <a href="#"><i class="fas fa-suitcase"></i><span>Trips</span></a>
+      <a href="#"><i class="far fa-heart"></i><span>Favorites</span></a>
+      <a href="profile.html"><i class="far fa-user"></i><span>Profile</span></a>
+    </nav>
   </body>
 </html>

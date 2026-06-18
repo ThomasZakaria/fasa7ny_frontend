@@ -91,45 +91,143 @@ async function updateAuthUI() {
 }
 
 // ==========================================
-// 2. RENDER LOGIC
+// PREMIUM CATEGORIES CONFIGURATION (Airbnb / GetYourGuide Style)
 // ==========================================
-function renderCards(places, container, limit = false) {
+const categoryMeta = {
+  Museums: {
+    icon: "fas fa-museum",
+    desc: "Immerse yourself in Egypt's timeless treasures and monumental historical artifacts.",
+  },
+  "Ancient Temples": {
+    icon: "fas fa-archway",
+    desc: "Step into grand sacred spaces carved by the Pharaohs thousands of years ago.",
+  },
+  Pyramids: {
+    icon: "fas fa-triangle-shapes",
+    desc: "Stand in awe before humanity's ultimate ancient structural marvels.",
+  },
+  Mosques: {
+    icon: "fas fa-mosque",
+    desc: "Explore spectacular medieval Islamic architecture and rich spiritual heritage.",
+  },
+  "Churches & Monasteries": {
+    icon: "fas fa-church",
+    desc: "Discover tranquil, centuries-old sanctuaries and deep Coptic history.",
+  },
+  "Parks & Gardens": {
+    icon: "fas fa-tree",
+    desc: "Relax and unwind in beautiful green spaces and botanical landscapes.",
+  },
+  "Forts & Citadels": {
+    icon: "fas fa-fort-awesome",
+    desc: "Explore legendary defensive strongholds and panoramic city viewpoints.",
+  },
+  "Nature & Islands": {
+    icon: "fas fa-water",
+    desc: "Escape to breathtaking natural protectorates and serene Nile islands.",
+  },
+  General: {
+    icon: "fas fa-landmark",
+    desc: "Uncover marvelous tourist attractions and hidden historical gems across Egypt.",
+  },
+};
+
+function renderGroupedCategories(groupedData, selectedCity) {
+  if (!categoriesContentWrapper) return;
+  categoriesContentWrapper.innerHTML = "";
+
+  // تعيين الكلاس الجديد الخاص بالشبكة المنظمة
+  categoriesContentWrapper.className = "premium-categories-container";
+
+  let index = 0;
+
+  for (const [categoryName, places] of Object.entries(groupedData)) {
+    if (!places || places.length === 0) continue;
+
+    // جلب الأيقونة والوصف بناءً على اسم التصنيف من الباك إند أو استخدام الافتراضي
+    const meta = categoryMeta[categoryName] || categoryMeta["General"];
+
+    const section = document.createElement("section");
+    // تبديل الخلفيات تلقائياً: ويدعم الـ Zebra striping
+    section.className = `premium-category-section ${index % 2 === 0 ? "bg-white" : "bg-gray"}`;
+
+    section.innerHTML = `
+      <div class="premium-section-container">
+        <div class="premium-section-header">
+          <div class="header-left">
+            <div class="category-icon-box">
+              <i class="${meta.icon}"></i>
+            </div>
+            <div class="category-text-box">
+              <h3 class="category-title">${categoryName}</h3>
+              <p class="category-desc">${meta.desc}</p>
+            </div>
+          </div>
+          <a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="premium-view-all-btn">
+            View All <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        
+        <div class="premium-cards-grid"></div>
+      </div>
+    `;
+
+    categoriesContentWrapper.appendChild(section);
+
+    // نمرر أول 4 عناصر فقط لضمان ثبات الارتفاع والمظهر الاحترافي
+    const limitedPlaces = places.slice(0, 4);
+    renderPremiumCards(
+      limitedPlaces,
+      section.querySelector(".premium-cards-grid"),
+    );
+
+    index++;
+  }
+}
+
+function renderPremiumCards(places, container) {
   if (!container) return;
   container.innerHTML = "";
 
-  places.forEach((place, index) => {
+  places.forEach((place) => {
     if (!place || (!place["Landmark Name (English)"] && !place.name)) return;
 
     const currentPlaceId = "place_" + globalPlaceIdCounter++;
     window.globalPlacesMap[currentPlaceId] = place;
 
-    const isHiddenClass = limit && index >= 4 ? "hidden" : "";
     const name = place["Landmark Name (English)"] || place.name;
     const city = place.Location || "Egypt";
 
     const originalMainUrl = getValidImageUrl(place);
-    const optimizedMainUrl = optimizeImage(originalMainUrl, 400);
+    const optimizedMainUrl = optimizeImage(originalMainUrl, 500);
 
     container.insertAdjacentHTML(
       "beforeend",
       `
-      <div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
-        <img 
-          src="${optimizedMainUrl}" 
-          alt="${name}" 
-          loading="lazy" 
-          onerror="this.onerror=null; this.src='${originalMainUrl}';"
-        >
-        <div style="padding: 15px;">
-          <h3 style="color:#0b4a6f; font-size:1.1rem; margin-bottom:5px;">${name}</h3>
-          <p style="color:#666; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${city}</p>
-          ${place.distanceAway && place.distanceAway !== Infinity ? `<p style="color:#2ecc71; font-size:0.75rem; font-weight:bold;">${place.distanceAway.toFixed(1)} km away</p>` : ""}
+      <div class="premium-place-card" data-placeid="${currentPlaceId}">
+        <div class="card-image-wrapper">
+          <img 
+            src="${optimizedMainUrl}" 
+            alt="${name}" 
+            loading="lazy" 
+            onerror="this.onerror=null; this.src='${originalMainUrl}';"
+          >
+        </div>
+        <div class="card-content-wrapper">
+          <h4 class="card-landmark-name">${name}</h4>
+          <p class="card-landmark-location">
+            <i class="fas fa-map-marker-alt"></i> ${city}
+          </p>
+          ${
+            place.distanceAway && place.distanceAway !== Infinity
+              ? `<p class="card-landmark-distance"><i class="fas fa-location-arrow"></i> ${place.distanceAway.toFixed(1)} km away</p>`
+              : ""
+          }
         </div>
       </div>`,
     );
   });
 }
-
 async function loadPlaceRecommendations(placeId) {
   const nearbyContainer = document.getElementById("modalNearbyCards");
   const similarContainer = document.getElementById("modalSimilarCards");
@@ -617,56 +715,6 @@ async function fetchAndRenderCategories(selectedCity = "all") {
   } finally {
     if (categoriesLoading) categoriesLoading.classList.add("hidden");
     isFetchingCategories = false;
-  }
-}
-
-function renderGroupedCategories(groupedData, selectedCity) {
-  if (!categoriesContentWrapper) return;
-  categoriesContentWrapper.innerHTML = "";
-
-  // بنغير الـ class هنا عشان نلغي تأثير الفليكس القديم اللي كان بيلغبط العناصر في الموبايل
-  categoriesContentWrapper.className = "categories-main-block";
-
-  for (const [categoryName, places] of Object.entries(groupedData)) {
-    if (!places || places.length === 0) continue;
-
-    const section = document.createElement("div");
-    section.className = "category-block";
-
-    // توليد ID فريد لكل كاروسيل عشان الأزرار تتحكم فيه لوحده
-    const carouselId = "carousel_" + categoryName.replace(/\s+/g, "_");
-
-    section.innerHTML = `
-      <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
-        <h3 class="app-section-title" style="font-size: 1.25rem; color: #0b4a6f; margin: 0; font-weight: 700;">
-          <i class="fas fa-landmark"></i> ${categoryName}
-        </h3>
-        ${
-          places.length > 4
-            ? `<a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="view-all-btn" style="font-size: 0.8rem; color: #0b4a6f; text-decoration: none; border: 1.5px solid #0b4a6f; padding: 4px 14px; border-radius: 20px; font-weight: 600;">View All</a>`
-            : ""
-        }
-      </div>
-      
-      <div class="carousel-wrapper">
-        <button class="carousel-nav-btn prev" onclick="document.getElementById('${carouselId}').scrollBy({left: -320, behavior: 'smooth'})" aria-label="Scroll Left">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        
-        <div class="carousel-track-container" id="${carouselId}">
-          <div class="cards"></div>
-        </div>
-        
-        <button class="carousel-nav-btn next" onclick="document.getElementById('${carouselId}').scrollBy({left: 320, behavior: 'smooth'})" aria-label="Scroll Right">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-    `;
-
-    categoriesContentWrapper.appendChild(section);
-
-    // بنمرر false للـ limit عشان الكاروسيل يشيل كل الداتا المترتبة بالتوب بيكس والتنقل يتحكم في الرؤية
-    renderCards(places, section.querySelector(".cards"), false);
   }
 }
 
