@@ -1565,3 +1565,42 @@ html {
     color: #888;
     margin: 0;
 }
+/* ======================================================= */
+/* 💻 تظبيط الكروت عشان تملأ الشاشة في الديسكتوب (Desktop) */
+/* ======================================================= */
+
+@media (min-width: 769px) {
+    /* 1. نحول الحاوية لشبكة (Grid) بتوزع الكروت بالتساوي */
+    .app-horizontal-scroll {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important; /* 4 كروت جنب بعض */
+        gap: 25px !important;
+        overflow-x: hidden !important; /* نلغي السحب في الديسكتوب ملوش لازمة */
+        padding: 10px 0 !important;
+    }
+
+    /* 2. نخلي كل كارت ياخد المساحة اللي الشبكة اديتهاله بالكامل */
+    .app-category-card {
+        width: 100% !important;
+        min-width: auto !important; /* نلغي الحجم الصغير بتاع الموبايل */
+        transition: 0.3s;
+    }
+
+    /* 3. نكبر طول الصورة شوية في الديسكتوب عشان تليق مع العرض الجديد */
+    .app-category-card img {
+        height: 140px !important; 
+    }
+
+    /* 4. تأثير بسيط (Hover) لما الماوس يجي على الكارت في الديسكتوب */
+    .app-category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    /* 5. نظبط المسافات الجانبية للسيكشن كله في الديسكتوب */
+    .app-categories-section {
+        padding: 40px 20px !important;
+        max-width: 1200px; /* عشان ميفردش أوي في الشاشات العملاقة */
+        margin: 0 auto;
+    }
+}
