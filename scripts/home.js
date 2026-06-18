@@ -1065,36 +1065,56 @@ if (generateBtn) {
 }
 async function syncGlobalTracker() {
   const userId = localStorage.getItem("userId");
-  const widget = document.getElementById("globalAdventureWidget");
+  const widget = document.getElementById("currentAdventureWidget");
   const floatingBtn = document.getElementById("floatingTrackerBtn");
 
-  if (!userId) return;
+  if (!userId) {
+    if (widget) widget.style.display = "none";
+    if (floatingBtn) floatingBtn.style.display = "none";
+    return;
+  }
 
   try {
     const res = await fetch(`${API_BASE_URL}/users/${userId}`);
     const data = await res.json();
     const trips = data.data.user.saved_trips || [];
-    const activeTrip = trips.find((t) => t.progress < 100); // Logic for "Active"
+    // Get the most recent trip that isn't 100% complete
+    const activeTrip = trips.reverse().find((t) => {
+      // Calculate progress if not provided
+      const total = t.itinerary.days.reduce(
+        (acc, d) => acc + d.places.length,
+        0,
+      );
+      const visited = 0; // Or retrieve completed count from localStorage
+      return (t.progress || 0) < 100;
+    });
 
-    if (activeTrip) {
-      // Update Desktop Widget
-      document.getElementById("widgetTripTitle").textContent =
-        `Expedition in ${activeTrip.cities.join(", ")}`;
-      document.getElementById("widgetProgressText").textContent =
-        `${activeTrip.progress}% Complete`;
-
-      // Update Mobile Floating Button
-      floatingBtn.style.display = "flex";
-      document.getElementById("floatingPercent").textContent =
-        `${activeTrip.progress}%`;
-
+    if (activeTrip && widget) {
       widget.style.display = "block";
+      document.getElementById("widgetTripTitle").textContent =
+        `${activeTrip.cities[0]} Expedition`;
+      document.getElementById("widgetProgressText").textContent =
+        `${activeTrip.progress || 0}% Complete`;
+      document.getElementById("widgetProgressBar").style.width =
+        `${activeTrip.progress || 0}%`;
+      document.getElementById("widgetNextAttraction").textContent =
+        activeTrip.itinerary.days[0].places[0].name;
+
+      if (floatingBtn) {
+        floatingBtn.style.display = "flex";
+        document.getElementById("floatingPercent").textContent =
+          `${activeTrip.progress || 0}%`;
+      }
+    } else {
+      if (widget) widget.style.display = "none";
+      if (floatingBtn) floatingBtn.style.display = "none";
     }
   } catch (err) {
     console.error("Tracker Sync Error:", err);
   }
 }
 
+document.addEventListener("DOMContentLoaded", syncGlobalTracker);
 // Initialize on load
 document.addEventListener("DOMContentLoaded", syncGlobalTracker);
 // ==========================================
