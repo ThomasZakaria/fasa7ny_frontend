@@ -671,24 +671,97 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 // 5. INITIALIZATION & CORE FEATURES
 // ==========================================
-async function fetchAndRenderCategories(selectedCity = "all") {
-  if (isFetchingCategories || !categoriesContentWrapper) return;
-  isFetchingCategories = true;
-  if (categoriesLoading) categoriesLoading.classList.remove("hidden");
+/**
+ * Renders category sections dynamically based on the backend API payload.
+ * Reuses window.renderPremiumCards to maintain design consistency.
+ * * @param {Array|Object} categoriesData - The array or object of category blocks from the server
+ * @param {String} selectedCity - The current active city filter string
+ */
+function renderGroupedCategories(categoriesData, selectedCity) {
+  const container = document.getElementById("categoriesContentWrapper");
+  if (!container) return;
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/categories?city=${selectedCity}`,
-    );
-    const data = await response.json();
-    if (data.status === "success")
-      renderGroupedCategories(data.data, selectedCity);
-  } catch (error) {
-    console.error("Home Load Error:", error);
-  } finally {
-    if (categoriesLoading) categoriesLoading.classList.add("hidden");
-    isFetchingCategories = false;
+  // Clear previous content completely
+  container.innerHTML = "";
+
+  // Normalize data format (handles both array layouts and raw object mappings)
+  const categoriesArray = Array.isArray(categoriesData)
+    ? categoriesData
+    : Object.entries(categoriesData).map(([key, value]) => ({
+        name: key,
+        ...value,
+      }));
+
+  if (categoriesArray.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px; color:var(--airbnb-gray);">
+        <i class="fas fa-compass" style="font-size:2.5rem; margin-bottom:12px; opacity:0.5;"></i>
+        <p style="font-weight:500; margin:0;">No matching curated categories found for this region.</p>
+      </div>`;
+    return;
   }
+
+  // Loop through each category group to generate its layout scaffolding
+  categoriesArray.forEach((category, index) => {
+    // Prevent rendering empty slots or categories with missing data fields
+    const places = category.places || category.landmarks || [];
+    if (places.length === 0) return;
+
+    const categoryName = category.name || "Curated Wonders";
+    const categoryDesc =
+      category.description || "Handpicked local experiences optimized by AI.";
+
+    // Dynamically assign contextual icons to match your specific category filters
+    let iconClass = "fa-monument";
+    const lowerName = categoryName.toLowerCase();
+    if (lowerName.includes("temple")) iconClass = "fa-gopuram";
+    if (lowerName.includes("pyramid")) iconClass = "fa-triangle-exclamation"; // Pyramid stand-in icon
+    if (lowerName.includes("mosque")) iconClass = "fa-mosque";
+    if (lowerName.includes("church") || lowerName.includes("coptic"))
+      iconClass = "fa-church";
+    if (lowerName.includes("museum")) iconClass = "fa-gallery";
+    if (lowerName.includes("nature") || lowerName.includes("island"))
+      iconClass = "fa-tree";
+
+    // Alternate background coloring rows matching your home.css specs (.bg-white vs .bg-gray)
+    const bgRowClass = index % 2 === 0 ? "bg-white" : "bg-gray";
+    const uniqueGridId = `grid_cat_${index}_${Date.now()}`;
+
+    // Build the structural outer section block
+    const sectionHtml = `
+      <section class="premium-category-section ${bgRowClass}">
+        <div class="premium-section-container">
+          <div class="premium-section-header">
+            <div class="header-left">
+              <div class="category-icon-box">
+                <i class="fas ${iconClass}"></i>
+              </div>
+              <div>
+                <h4 class="category-title">${categoryName}</h4>
+                <p class="category-desc">${categoryDesc}</p>
+              </div>
+            </div>
+            <a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="premium-view-all-btn">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          
+          <div id="${uniqueGridId}" class="premium-cards-grid"></div>
+        </div>
+      </section>
+    `;
+
+    // Inject the section container into the root layout wrapper
+    container.insertAdjacentHTML("beforeend", sectionHtml);
+
+    // Target the inner cards grid area we just created
+    const subGridTarget = document.getElementById(uniqueGridId);
+
+    // Leverage your existing global card-renderer to populate the grid flawlessly
+    if (subGridTarget && typeof window.renderPremiumCards === "function") {
+      window.renderPremiumCards(places, subGridTarget);
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
