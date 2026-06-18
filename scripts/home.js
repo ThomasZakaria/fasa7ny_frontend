@@ -1063,7 +1063,40 @@ if (generateBtn) {
     }, 2000);
   });
 }
+async function syncGlobalTracker() {
+  const userId = localStorage.getItem("userId");
+  const widget = document.getElementById("globalAdventureWidget");
+  const floatingBtn = document.getElementById("floatingTrackerBtn");
 
+  if (!userId) return;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/users/${userId}`);
+    const data = await res.json();
+    const trips = data.data.user.saved_trips || [];
+    const activeTrip = trips.find((t) => t.progress < 100); // Logic for "Active"
+
+    if (activeTrip) {
+      // Update Desktop Widget
+      document.getElementById("widgetTripTitle").textContent =
+        `Expedition in ${activeTrip.cities.join(", ")}`;
+      document.getElementById("widgetProgressText").textContent =
+        `${activeTrip.progress}% Complete`;
+
+      // Update Mobile Floating Button
+      floatingBtn.style.display = "flex";
+      document.getElementById("floatingPercent").textContent =
+        `${activeTrip.progress}%`;
+
+      widget.style.display = "block";
+    }
+  } catch (err) {
+    console.error("Tracker Sync Error:", err);
+  }
+}
+
+// Initialize on load
+document.addEventListener("DOMContentLoaded", syncGlobalTracker);
 // ==========================================
 // 8. PROGRESS TRACKER & TABS LOGIC
 // ==========================================
