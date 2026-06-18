@@ -23,7 +23,7 @@ async function signup() {
   if (popup) popup.style.display = "flex";
 
   try {
-    const response = await fetch("${API_BASE_URL}/signup", {
+    const response = await fetch(`${window.API_BASE_URL}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -80,7 +80,7 @@ async function login() {
   if (popup) popup.style.display = "flex";
 
   try {
-    const response = await fetch("${API_BASE_URL}/login", {
+    const response = await fetch(`${window.API_BASE_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password: pass }),

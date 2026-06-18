@@ -36,20 +36,17 @@ async function performSmartSearch() {
   if (searchLoadingState) searchLoadingState.classList.remove("hidden");
 
   try {
-    const response = await fetch(
-      "${API_BASE_URL}/recommend-search",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          keyword,
-          filters,
-          sort,
-          page: 1, // لدعم الـ Pagination اللي ضيفناه في app.js
-          limit: 12,
-        }),
-      },
-    );
+    const response = await fetch(`${window.API_BASE_URL}/recommend-search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        keyword,
+        filters,
+        sort,
+        page: 1, // لدعم الـ Pagination اللي ضيفناه في app.js
+        limit: 12,
+      }),
+    });
 
     const data = await response.json();
     if (searchLoadingState) searchLoadingState.classList.add("hidden");

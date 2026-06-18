@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // جلب كل الأماكن الخاصة بقسم معين باستخدام دالة البحث التي صنعناها في Backend
 async function fetchAllByCategory(category, container, loader) {
   try {
-    const res = await fetch("${API_BASE_URL}/recommend-search", {
+    const res = await fetch(`${window.API_BASE_URL}/recommend-search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
