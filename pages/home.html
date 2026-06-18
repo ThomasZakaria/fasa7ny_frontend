@@ -53,41 +53,38 @@
       </ul>
       <a href="auth.html" class="login-btn" id="loginBtn">Sign In</a>
     </nav>
-
-    <ul class="nav-links">
-      <li><a href="home.html">Home</a></li>
-      <li><a href="#dynamicCategoriesContainer">Categories</a></li>
-      <li><a href="tracker.html" class="active">Tracker</a></li>
-      <li><a href="about.html">About</a></li>
-    </ul>
-    <div
-      id="globalAdventureWidget"
-      class="global-adventure-widget"
+    <section
+      id="currentAdventureWidget"
+      class="adventure-widget-container"
       style="display: none"
     >
-      <div class="widget-content">
-        <div class="adventure-info">
-          <h4 id="widgetTripTitle">Adventure in Cairo</h4>
-          <div class="adventure-meta">
-            <span id="widgetProgressText">65% Complete</span>
-            <span id="widgetNextAttraction">Next: The Great Sphinx</span>
+      <div class="adventure-card">
+        <div class="adventure-header">
+          <span class="adventure-tag"
+            ><i class="fas fa-globe"></i> Current Adventure</span
+          >
+          <h3 id="widgetTripTitle">Aswan Expedition</h3>
+        </div>
+
+        <div class="adventure-progress">
+          <div class="progress-info">
+            <span id="widgetProgressText">0% Complete</span>
+          </div>
+          <div class="progress-bar-track">
+            <div id="widgetProgressBar" class="progress-fill"></div>
           </div>
         </div>
-        <button id="continueJourneyBtn" class="primary-action-cta">
+
+        <div class="next-stop">
+          <span>Next Stop:</span>
+          <strong id="widgetNextAttraction">Great Sphinx</strong>
+        </div>
+
+        <button id="continueJourneyBtn" class="continue-btn">
           Continue Journey
         </button>
       </div>
-    </div>
-
-    <button
-      id="floatingTrackerBtn"
-      class="floating-tracker-btn"
-      style="display: none"
-    >
-      <i class="fas fa-route"></i>
-      <span id="floatingPercent">65%</span>
-    </button>
-
+    </section>
     <section class="hero">
       <div class="hero-content">
         <h1>Discover Egypt Through AI</h1>
