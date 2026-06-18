@@ -624,32 +624,49 @@ function renderGroupedCategories(groupedData, selectedCity) {
   if (!categoriesContentWrapper) return;
   categoriesContentWrapper.innerHTML = "";
 
+  // بنغير الـ class هنا عشان نلغي تأثير الفليكس القديم اللي كان بيلغبط العناصر في الموبايل
+  categoriesContentWrapper.className = "categories-main-block";
+
   for (const [categoryName, places] of Object.entries(groupedData)) {
+    if (!places || places.length === 0) continue;
+
     const section = document.createElement("div");
     section.className = "category-block";
+
+    // توليد ID فريد لكل كاروسيل عشان الأزرار تتحكم فيه لوحده
+    const carouselId = "carousel_" + categoryName.replace(/\s+/g, "_");
+
     section.innerHTML = `
-      <h3 class="category-title"><i class="fas fa-landmark"></i> ${categoryName}</h3>
-      <div class="cards"></div>
-      ${
-        places.length > 4
-          ? `
-        <div style="text-align: center; margin-top: 20px;">
-          <button class="show-more-global-btn cat-specific-btn">
-            View All ${categoryName} <i class="fas fa-arrow-right"></i>
-          </button>
-        </div>`
-          : ""
-      }
+      <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
+        <h3 class="app-section-title" style="font-size: 1.25rem; color: #0b4a6f; margin: 0; font-weight: 700;">
+          <i class="fas fa-landmark"></i> ${categoryName}
+        </h3>
+        ${
+          places.length > 4
+            ? `<a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="view-all-btn" style="font-size: 0.8rem; color: #0b4a6f; text-decoration: none; border: 1.5px solid #0b4a6f; padding: 4px 14px; border-radius: 20px; font-weight: 600;">View All</a>`
+            : ""
+        }
+      </div>
+      
+      <div class="carousel-wrapper">
+        <button class="carousel-nav-btn prev" onclick="document.getElementById('${carouselId}').scrollBy({left: -320, behavior: 'smooth'})" aria-label="Scroll Left">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="carousel-track-container" id="${carouselId}">
+          <div class="cards"></div>
+        </div>
+        
+        <button class="carousel-nav-btn next" onclick="document.getElementById('${carouselId}').scrollBy({left: 320, behavior: 'smooth'})" aria-label="Scroll Right">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
     `;
 
     categoriesContentWrapper.appendChild(section);
-    renderCards(places, section.querySelector(".cards"), true);
 
-    const btn = section.querySelector(".cat-specific-btn");
-    if (btn) {
-      btn.onclick = () =>
-        (window.location.href = `explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}`);
-    }
+    // بنمرر false للـ limit عشان الكاروسيل يشيل كل الداتا المترتبة بالتوب بيكس والتنقل يتحكم في الرؤية
+    renderCards(places, section.querySelector(".cards"), false);
   }
 }
 
