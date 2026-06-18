@@ -90,11 +90,11 @@ async function updateAuthUI() {
   }
 }
 // ==========================================
-// 2. RENDER LOGIC (Standard, Premium & Categories)
+// 2. GLOBAL RENDER LOGIC (Resilient Scoping)
 // ==========================================
 
-// 1. الدالة الأساسية (تخدم البحث، الأماكن القريبة، والتوصيات)
-function renderCards(places, container, limit = false) {
+// الدالة الأساسية: مربوطة بـ window لضمان وصول البحث، الـ Near Me، والتوصيات إليها من أي مكان
+window.renderCards = function (places, container, limit = false) {
   if (!container) return;
   container.innerHTML = "";
 
@@ -129,10 +129,10 @@ function renderCards(places, container, limit = false) {
       </div>`,
     );
   });
-}
+};
 
-// 2. الدالة الفاخرة (تخدم قسم التصنيفات الرأسي المودرن وتدعم فتح المودال)
-function renderPremiumCards(places, container) {
+// الدالة الفاخرة: تخدم السكاشن الرأسية المودرن ومؤمنة تماماً بـ window
+window.renderPremiumCards = function (places, container) {
   if (!container) return;
   container.innerHTML = "";
 
@@ -174,104 +174,9 @@ function renderPremiumCards(places, container) {
       </div>`,
     );
   });
-}
-
-// 3. كائن بيانات التصنيفات (Airbnb / GetYourGuide Style)
-const categoryMeta = {
-  Museums: {
-    icon: "fas fa-museum",
-    desc: "Immerse yourself in Egypt's timeless treasures and monumental historical artifacts.",
-  },
-  "Ancient Temples": {
-    icon: "fas fa-archway",
-    desc: "Step into grand sacred spaces carved by the Pharaohs thousands of years ago.",
-  },
-  Pyramids: {
-    icon: "fas fa-triangle-shapes",
-    desc: "Stand in awe before humanity's ultimate ancient structural marvels.",
-  },
-  Mosques: {
-    icon: "fas fa-mosque",
-    desc: "Explore spectacular medieval Islamic architecture and rich spiritual heritage.",
-  },
-  "Churches & Monasteries": {
-    icon: "fas fa-church",
-    desc: "Discover tranquil, centuries-old sanctuaries and deep Coptic history.",
-  },
-  "Parks & Gardens": {
-    icon: "fas fa-tree",
-    desc: "Relax and unwind in beautiful green spaces and botanical landscapes.",
-  },
-  "Forts & Citadels": {
-    icon: "fas fa-fort-awesome",
-    desc: "Explore legendary defensive strongholds and panoramic city viewpoints.",
-  },
-  "Nature & Islands": {
-    icon: "fas fa-water",
-    desc: "Escape to breathtaking natural protectorates and serene Nile islands.",
-  },
-  General: {
-    icon: "fas fa-landmark",
-    desc: "Uncover marvelous tourist attractions and hidden historical gems across Egypt.",
-  },
 };
 
-// 4. بناء التصنيفات وتوزيعها في سكاشن متبادلة الخلفية
-function renderGroupedCategories(groupedData, selectedCity) {
-  if (!categoriesContentWrapper) return;
-  categoriesContentWrapper.innerHTML = "";
-
-  categoriesContentWrapper.className = "premium-categories-container";
-
-  let index = 0;
-
-  for (const [categoryName, places] of Object.entries(groupedData)) {
-    if (!places || places.length === 0) continue;
-
-    const matchedKey =
-      Object.keys(categoryMeta).find(
-        (key) => key.toLowerCase().trim() === categoryName.toLowerCase().trim(),
-      ) || "General";
-
-    const meta = categoryMeta[matchedKey];
-
-    const section = document.createElement("section");
-    section.className = `premium-category-section ${index % 2 === 0 ? "bg-white" : "bg-gray"}`;
-
-    section.innerHTML = `
-      <div class="premium-section-container">
-        <div class="premium-section-header">
-          <div class="header-left">
-            <div class="category-icon-box">
-              <i class="${meta.icon}"></i>
-            </div>
-            <div class="category-text-box">
-              <h3 class="category-title">${categoryName}</h3>
-              <p class="category-desc">${meta.desc}</p>
-            </div>
-          </div>
-          <a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="premium-view-all-btn">
-            View All <i class="fas fa-arrow-right"></i>
-          </a>
-        </div>
-        
-        <div class="premium-cards-grid"></div>
-      </div>
-    `;
-
-    categoriesContentWrapper.appendChild(section);
-
-    const limitedPlaces = places.slice(0, 4);
-    renderPremiumCards(
-      limitedPlaces,
-      section.querySelector(".premium-cards-grid"),
-    );
-
-    index++;
-  }
-}
-
-// 5. جلب توصيات المودال (تعتمد على renderCards التقليدية)
+// دالة جلب التوصيات للمودال: تم تحديثها لتستدعي الدالة عبر window لكسر الـ ReferenceError
 async function loadPlaceRecommendations(placeId) {
   const nearbyContainer = document.getElementById("modalNearbyCards");
   const similarContainer = document.getElementById("modalSimilarCards");
@@ -287,8 +192,9 @@ async function loadPlaceRecommendations(placeId) {
 
     if (result.status === "success") {
       const { nearest, similar } = result.data;
-      if (nearbyContainer) renderCards(nearest, nearbyContainer, false);
-      if (similarContainer) renderCards(similar, similarContainer, false);
+      if (nearbyContainer) window.renderCards(nearest, nearbyContainer, false);
+      if (similarContainer)
+        window.renderCards(similar, similarContainer, false);
     }
   } catch (err) {
     console.error("Recommendations UI Error:", err);
