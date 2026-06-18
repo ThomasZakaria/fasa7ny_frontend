@@ -355,8 +355,10 @@ function openPlaceModal(placeData) {
         addToTripBtn.innerHTML = `<i class="fas fa-check-circle"></i> Added to Trip`;
 
         // إشعار فوري وتفاعلي لليوزر
-        alert(
-          `✨ Curated: "${pName}" has been pinned! When you generate your itinerary, the AI will prioritize and include it.`,
+        window.showPremiumToast(
+          "Landmark Curated!",
+          `"${pName}" has been pinned to your temporary workspace context preferences.`,
+          false,
         );
       }
     });
@@ -1043,8 +1045,11 @@ if (generateBtn) {
                   days: tripDaysInput ? tripDaysInput.value : 3,
                 }),
               });
-              alert(
-                "✨ Expedition path successfully synced to Live Dashboard records!",
+              // استبدل الـ alert المزعج بالـ Modal التفاعلي الجديد
+              window.showPremiumToast(
+                "Expedition Saved!",
+                "Your adventure path has been successfully synced to the Live Dashboard.",
+                true,
               );
               document.getElementById("tabMyTrips").click();
             } catch (err) {
@@ -1188,7 +1193,43 @@ async function loadMyTripsTracker() {
     console.error(error);
   }
 }
+/**
+ * دالة بديلة للـ Alert المزعج تظهر Modal تفاعلي فاخر
+ * @param {String} title - عنوان الرسالة
+ * @param {String} message - نص الرسالة الداخلي
+ * @param {Boolean} isSuccess - هل العملية ناجحة أم خطأ لتغيير الأيقونة والألوان
+ */
+window.showPremiumToast = function (title, message, isSuccess = true) {
+  const toastModal = document.getElementById("premiumToastModal");
+  const toastIcon = document.getElementById("toastIcon");
+  const toastTitle = document.getElementById("toastTitle");
+  const toastMessage = document.getElementById("toastMessage");
+  const closeToastBtn = document.getElementById("closeToastBtn");
 
+  if (!toastModal) return;
+
+  // تخصيص الشكل بناءً على نوع الرسالة (ناجحة أم تنبيه/خطأ)
+  if (isSuccess) {
+    toastIcon.className = "fas fa-check-circle";
+    toastIcon.parentElement.style.background = "rgba(16, 185, 129, 0.1)";
+    toastIcon.parentElement.style.color = "#10b981";
+  } else {
+    toastIcon.className = "fas fa-info-circle";
+    toastIcon.parentElement.style.background = "rgba(255, 152, 0, 0.1)";
+    toastIcon.parentElement.style.color = "#ff9800";
+  }
+
+  toastTitle.textContent = title;
+  toastMessage.textContent = message;
+
+  // إظهار الـ Modal
+  toastModal.classList.add("active");
+
+  // إغلاق عند الضغط على الزر
+  closeToastBtn.onclick = () => {
+    toastModal.classList.remove("active");
+  };
+};
 window.togglePremiumAccordion = function (elementId) {
   const selectedAccordionFrame = document.getElementById(elementId);
   if (!selectedAccordionFrame) return;
