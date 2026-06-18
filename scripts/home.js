@@ -329,7 +329,38 @@ function openPlaceModal(placeData) {
     if (typeof loadReviews === "function") loadReviews(idStr);
     loadPlaceRecommendations(idStr);
   }
+  // ✨ تحديث حالة زر الإضافة إلى الرحلة (Add to your trip) بناءً على وجوده في السلة
+  // ==========================================
+  // SMART TRIP CART SELECTION LOGIC (Groq AI Integration)
+  // ==========================================
+  const addToTripBtn = document.getElementById("addToTripBtn");
+  if (addToTripBtn) {
+    addToTripBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!window.currentModalPlace) return;
 
+      const pName =
+        window.currentModalPlace["Landmark Name (English)"] ||
+        window.currentModalPlace.name;
+
+      if (window.tripCart.includes(pName)) {
+        // إذا كان مضافاً بالفعل، نقوم بحذفه عند الضغط مرة أخرى
+        window.tripCart = window.tripCart.filter((item) => item !== pName);
+        addToTripBtn.style.background = "#27ae60";
+        addToTripBtn.innerHTML = `<i class="fas fa-plus-circle"></i> Add to your trip`;
+      } else {
+        // إضافة المعلم إلى مصفوفة الاختيارات اليدوية الخاصة بك
+        window.tripCart.push(pName);
+        addToTripBtn.style.background = "#0b4a6f";
+        addToTripBtn.innerHTML = `<i class="fas fa-check-circle"></i> Added to Trip`;
+
+        // إشعار فوري وتفاعلي لليوزر
+        alert(
+          `✨ Curated: "${pName}" has been pinned! When you generate your itinerary, the AI will prioritize and include it.`,
+        );
+      }
+    });
+  }
   placeModal.classList.add("active");
   document.body.style.overflow = "hidden";
 }
