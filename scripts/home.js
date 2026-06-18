@@ -5,7 +5,7 @@ window.globalPlacesMap = {};
 let globalPlaceIdCounter = 0;
 let isFetchingCategories = false;
 window.currentModalPlace = null; // هام جداً لربط الحفظ، التعليقات، والحاسبة
-
+window.tripCart = [];
 const API_BASE_URL = window.API_BASE_URL;
 const DEFAULT_THUMB =
   "https://s7g10.scene7.com/is/image/barcelo/pyramids-of-giza-facts_ancient-pyramids-of-giza?&&fmt=webp-alpha&qlt=75&wid=1300&fit=crop,1";
@@ -262,7 +262,7 @@ function openPlaceModal(placeData) {
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `https://maps.google.com/?q=$${cleanCoords}`;
+    mapBtn.href = `https://maps.google.com/?q=${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
@@ -841,7 +841,6 @@ const loadingMessages = [
   "Building itinerary...",
   "Finalizing your trip...",
 ];
-
 if (generateBtn) {
   generateBtn.addEventListener("click", () => {
     if (selectedCities.length === 0) {
@@ -853,9 +852,11 @@ if (generateBtn) {
     document.getElementById("tripResult").innerHTML = "";
 
     let index = 0;
+
     const interval = setInterval(() => {
       loadingMessage.textContent = loadingMessages[index];
       index++;
+
       if (index >= loadingMessages.length) {
         index = 0;
       }
@@ -863,167 +864,142 @@ if (generateBtn) {
 
     setTimeout(async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/trip-planner`, {
+        const ROOT_API = API_BASE_URL.replace("/api/v1", "");
+
+        const response = await fetch(`${ROOT_API}/trip-planner`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             cities: selectedCities,
-            days: tripDays.value,
-            interests: selectedInterests, // بعتنا الـ Array بتاع الزراير الشيك
+            days: tripDays ? tripDays.value : 3,
+            interests: selectedInterests,
+            manualSelection: window.tripCart || [],
           }),
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
+
         clearInterval(interval);
         tripLoading.style.display = "none";
 
-        const itinerary = data.data.itinerary;
+        console.log("Trip Planner Response:", data);
+
+        const itinerary = data?.data?.itinerary;
 
         if (!itinerary || !itinerary.days) {
           document.getElementById("tripResult").innerHTML = `
-            <div class="trip-card error-card" style="text-align: center; color: #e74c3c; padding: 20px; background: #fdf0ed; border-radius: 12px;">
-              ⚠️ Could not generate itinerary. Please try again.
+            <div class="trip-card error-card">
+              ⚠️ Could not generate itinerary.
             </div>
           `;
           return;
         }
 
-        // بناء الـ UI الجديد بالتفاصيل الأنيقة
-        let htmlContent = `
-          <div class="premium-itinerary">
-            <div class="itinerary-header" style="text-align: center; margin-bottom: 20px;">
-              <h3 style="color: #0b4a6f;">✨ Your Personalized Adventure</h3>
-              <p style="color: #666;">A ${tripDays.value}-Day Journey curated for your taste.</p>
-            </div>
-        `;
+        let html = `
+  <div class="premium-itinerary">
+    <h3>✨ Your Egypt Adventure</h3>
+`;
 
         itinerary.days.forEach((dayObj) => {
-          htmlContent += `
-            <div class="day-card" style="margin-bottom: 20px; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
-              <div class="day-header" style="display: flex; justify-content: flex-start; align-items: center; border-bottom: 2px dashed #eee; padding-bottom: 15px;">
-                <span class="day-badge" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 6px 15px; border-radius: 20px; font-weight: bold;">Day ${dayObj.day}</span>
-                <h4 class="day-city" style="margin: 0 0 0 15px; font-size: 1.2rem; color: #2c3e50;">📍 ${dayObj.city}</h4>
-              </div>
-              <ul class="places-list" style="margin-top: 15px; padding: 0; display: flex; flex-direction: column; gap: 15px;">
-          `;
+          html += `
+    <div class="day-card">
+      <h4>Day ${dayObj.day} - ${dayObj.city}</h4>
+      <ul>
+  `;
 
           dayObj.places.forEach((place) => {
-            // Defensive Programming + Price Extraction
-            let placeName = "";
-            let placeTime = "Anytime";
-            let placeReason = "";
-            let placePrice = "Free"; // القيمة الافتراضية
+            html += `
+      <li style="margin-bottom:12px;">
+        <strong>${place.name}</strong><br>
 
-            if (typeof place === "string") {
-              placeName = place;
-            } else {
-              placeName =
-                place.name ||
-                place["Landmark Name"] ||
-                place.Landmark ||
-                "Amazing Attraction";
-              placeTime = place.time || "Anytime";
-              placeReason = place.reason || place.description || "";
-              placePrice = place.price || "Free"; // استخراج السعر
-            }
+        ${place.time ? `<small>🕒 ${place.time}</small><br>` : ""}
 
-            htmlContent += `
-                <li class="place-item" style="background: #f8f9fa; border-radius: 12px; padding: 15px; border-left: 4px solid #3498db; list-style: none; transition: transform 0.2s; margin-bottom: 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-                    <div style="font-weight: bold; color: #2c3e50; font-size: 1.1rem;">
-                      🏛️ ${placeName}
-                    </div>
-                    
-                    <div style="display: flex; gap: 8px;">
-                      <span style="font-size: 0.8rem; background: #fff7ed; color: #c2410c; padding: 4px 10px; border-radius: 12px; font-weight: bold; white-space: nowrap; border: 1px solid #ffedd5;">
-                        💸 ${placePrice}
-                      </span>
-                      
-                      <span style="font-size: 0.8rem; background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 12px; font-weight: bold; white-space: nowrap;">
-                        <i class="far fa-clock"></i> ${placeTime}
-                      </span>
-                    </div>
-                  </div>
-                  ${placeReason ? `<p style="color: #666; font-size: 0.95rem; margin: 0; line-height: 1.5;">${placeReason}</p>` : ""}
-                </li>
-            `;
+        ${place.reason ? `<small>${place.reason}</small><br>` : ""}
+
+        ${
+          place.price_range
+            ? `<span style="color:#e67e22;font-weight:bold;">
+                💰 ${place.price_range}
+              </span>`
+            : ""
+        }
+      </li>
+    `;
           });
 
-          htmlContent += `
-              </ul>
-            </div>
-          `;
+          html += `
+      </ul>
+    </div>
+  `;
         });
 
-        // إضافة زرار الحفظ في نهاية الرحلة
-        htmlContent += `
-            <div style="text-align: center; margin-top: 30px;">
-              <button id="saveAiTripBtn" class="scanner-btn" style="background: #27ae60; width: 100%; border: none;">
-                <i class="fas fa-bookmark"></i> Save Trip to My Profile
-              </button>
-            </div>
-          </div>`;
+        html += `
+  <button id="saveAiTripBtn"
+          class="primary-btn"
+          style="margin-top:20px;width:100%;">
+      💾 Save Trip
+  </button>
+</div>
+`;
 
-        document.getElementById("tripResult").innerHTML = htmlContent;
+        document.getElementById("tripResult").innerHTML = html;
+        const saveBtn = document.getElementById("saveAiTripBtn");
 
-        // تفعيل زرار الحفظ عشان يكلم الـ Backend
-        const saveTripBtn = document.getElementById("saveAiTripBtn");
-        if (saveTripBtn) {
-          saveTripBtn.addEventListener("click", async () => {
+        if (saveBtn) {
+          saveBtn.addEventListener("click", async () => {
             const userId = localStorage.getItem("userId");
+
             if (!userId) {
-              alert("Please sign in to save your trip!");
-              window.location.href = "auth.html"; // حوله لصفحة اللوجين لو مش عامل
+              alert("Please login first");
               return;
             }
 
-            saveTripBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
-            saveTripBtn.disabled = true;
-
             try {
-              const saveRes = await fetch(`${API_BASE_URL}/user/save-trip`, {
+              const response = await fetch(`${API_BASE_URL}/user/save-trip`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                  "Content-Type": "application/json",
+                },
                 body: JSON.stringify({
-                  userId: userId,
-                  itinerary: itinerary, // بنبعت تفاصيل الرحلة اللي الـ AI عملها
+                  userId,
+                  itinerary,
                   cities: selectedCities,
                   days: tripDays.value,
                 }),
               });
 
-              const saveResult = await saveRes.json();
-              if (saveResult.status === "success") {
-                saveTripBtn.innerHTML = `<i class="fas fa-check"></i> Trip Saved Successfully!`;
-                saveTripBtn.style.background = "#0b4a6f";
+              const result = await response.json();
 
-                setTimeout(() => {
-                  // تحويل المستخدم لتاب التتبع (Tracker) فوراً بدل الـ Alert!
-                  const tabTrips = document.getElementById("tabMyTrips");
-                  if (tabTrips) tabTrips.click();
-                }, 800);
+              if (result.status === "success") {
+                alert("Trip saved successfully!");
               }
             } catch (err) {
-              console.error("Save Trip Error:", err);
-              saveTripBtn.innerHTML = `⚠️ Error Saving`;
-              saveTripBtn.style.background = "#e74c3c";
+              console.error(err);
+              alert("Failed to save trip");
             }
           });
         }
       } catch (error) {
         clearInterval(interval);
         tripLoading.style.display = "none";
+
         document.getElementById("tripResult").innerHTML = `
-          <div class="trip-card error-card" style="text-align: center; color: #e74c3c; padding: 20px; background: #fdf0ed; border-radius: 12px;">
+          <div class="trip-card error-card">
             ⚠️ Failed to connect to AI.
           </div>
         `;
+
         console.error(error);
       }
     }, 2000);
   });
 }
-
 const tripDays = document.getElementById("tripDays");
 const daysDisplay = document.querySelector(".days-display");
 
