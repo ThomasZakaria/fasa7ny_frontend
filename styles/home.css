@@ -1349,3 +1349,130 @@ html {
         width: 100% !important;
     }
 }
+/* ======================================================= */
+/* 🚀 تحويل الموقع لشكل تطبيق موبايل (Mobile App UI) */
+/* ======================================================= */
+
+/* إخفاء البار السفلي في الديسكتوب */
+.bottom-nav {
+    display: none; 
+}
+
+@media (max-width: 768px) {
+    /* 1. الهيرو سيكشن وتداخل صندوق البحث */
+    .hero {
+        min-height: 420px !important;
+        align-items: flex-start !important; /* نرفع المحتوى لفوق */
+        padding-top: 60px !important;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin: -80px 15px 20px 15px !important; /* السر هنا: ده اللي بيسحب الصندوق فوق الصورة */
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    /* 2. شبكة الفلاتر (Dropdowns) نخليها 2x2 زي الصورة */
+    .smart-filters-container {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        flex-direction: row !important; /* نلغي الكولم القديم */
+    }
+    
+    .smart-filter-select {
+        font-size: 0.8rem !important;
+        padding: 12px 10px !important;
+        border-radius: 12px !important;
+        border: 1px solid #ddd !important;
+        background: #f9f9f9 !important;
+    }
+
+    /* 3. سكرول أفقي للكروت (عشان تتسحب يمين وشمال) */
+    .cards, #exploreGrid, #categoriesContentWrapper {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 15px !important;
+        padding-bottom: 20px !important;
+        padding-left: 10px !important;
+        /* إخفاء شريط السكرول المزعج */
+        scrollbar-width: none; 
+        -ms-overflow-style: none; 
+        -webkit-overflow-scrolling: touch; 
+    }
+    .cards::-webkit-scrollbar, #exploreGrid::-webkit-scrollbar {
+        display: none; 
+    }
+    
+    /* عرض الكارت عشان يظهر جزء من اللي بعده ويشجع اليوزر يسحب */
+    .cards > *, #exploreGrid > * {
+        min-width: 160px !important; 
+        flex: 0 0 auto;
+    }
+
+    /* 4. إظهار البار السفلي وإخفاء اللينكات العلوية */
+    body {
+        padding-bottom: 80px !important; /* مساحة من تحت عشان البار ميغطيش الكلام */
+        background-color: #f4f7f6; /* لون خلفية هادي زي الأبلكيشنز */
+    }
+    
+    .navbar .nav-links, .navbar .login-btn {
+        display: none !important;
+    }
+
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+        justify-content: space-around;
+        padding: 12px 0 20px 0;
+        z-index: 1000;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+    }
+
+    .bottom-nav a {
+        text-decoration: none;
+        color: #888;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.75rem;
+        gap: 6px;
+        transition: 0.3s;
+    }
+
+    .bottom-nav a i {
+        font-size: 1.3rem;
+    }
+
+    .bottom-nav a.active {
+        color: #0b4a6f;
+        font-weight: 600;
+    }
+    
+    .bottom-nav a.active i {
+        color: #ff9800; /* لون الأيقونة المفعلة */
+    }
+
+    /* 5. تظبيط زرار (أماكن قريبة مني) ليكون شبه الصورة */
+    .location-btn {
+        border-radius: 30px !important;
+        padding: 10px 25px !important;
+        font-size: 0.9rem !important;
+        background-color: #0b4a6f !important;
+        color: white !important;
+        width: auto !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
+}
