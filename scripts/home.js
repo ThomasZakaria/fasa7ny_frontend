@@ -22,6 +22,34 @@ const uploadBtn = document.getElementById("uploadBtn");
 const imageInput = document.getElementById("imageInput");
 const getLocationBtn = document.getElementById("getLocationBtn");
 
+const openBtn = document.getElementById("openTripPlannerBtn");
+const modal = document.getElementById("tripPlannerModal");
+const closeBtn = document.getElementById("closeTripPlannerBtn");
+const tripResultContainer = document.getElementById("tripResult");
+
+const generateBtn = document.getElementById("generateTripBtn");
+const tripLoading = document.getElementById("tripLoading");
+const loadingMessage = document.getElementById("loadingMessage");
+const tripDaysInput = document.getElementById("tripDays");
+const daysDisplayLabel = document.querySelector(".days-display-v2");
+
+const tabCreate = document.getElementById("tabCreateTrip");
+const tabTrips = document.getElementById("tabMyTrips");
+const plannerCont = document.getElementById("plannerContainer");
+const trackerCont = document.getElementById("trackerContainer");
+
+let selectedCities = [];
+let selectedInterests = [];
+
+const loadingMessages = [
+  "Analyzing destinations...",
+  "Finding top attractions...",
+  "Optimizing travel route...",
+  "Calculating visit times...",
+  "Building itinerary...",
+  "Finalizing your trip...",
+];
+
 // ==========================================
 // 1. HELPERS & AUTH
 // ==========================================
@@ -89,11 +117,10 @@ async function updateAuthUI() {
     loginBtn.style.border = "none";
   }
 }
+
 // ==========================================
 // 2. GLOBAL RENDER LOGIC (Resilient Scoping)
 // ==========================================
-
-// الدالة الأساسية: مربوطة بـ window لضمان وصول البحث، الـ Near Me، والتوصيات إليها من أي مكان
 window.renderCards = function (places, container, limit = false) {
   if (!container) return;
   container.innerHTML = "";
@@ -113,14 +140,8 @@ window.renderCards = function (places, container, limit = false) {
 
     container.insertAdjacentHTML(
       "beforeend",
-      `
-      <div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
-        <img 
-          src="${optimizedMainUrl}" 
-          alt="${name}" 
-          loading="lazy" 
-          onerror="this.onerror=null; this.src='${originalMainUrl}';"
-        >
+      `<div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
+        <img src="${optimizedMainUrl}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
         <div style="padding: 15px;">
           <h3 style="color:#0b4a6f; font-size:1.1rem; margin-bottom:5px;">${name}</h3>
           <p style="color:#666; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${city}</p>
@@ -131,7 +152,6 @@ window.renderCards = function (places, container, limit = false) {
   });
 };
 
-// الدالة الفاخرة: تخدم السكاشن الرأسية المودرن ومؤمنة تماماً بـ window
 window.renderPremiumCards = function (places, container) {
   if (!container) return;
   container.innerHTML = "";
@@ -150,33 +170,20 @@ window.renderPremiumCards = function (places, container) {
 
     container.insertAdjacentHTML(
       "beforeend",
-      `
-      <div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
+      `<div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
         <div class="card-image-wrapper">
-          <img 
-            src="${optimizedMainUrl}" 
-            alt="${name}" 
-            loading="lazy" 
-            onerror="this.onerror=null; this.src='${originalMainUrl}';"
-          >
+          <img src="${optimizedMainUrl}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
         </div>
         <div class="card-content-wrapper">
           <h4 class="card-landmark-name">${name}</h4>
-          <p class="card-landmark-location">
-            <i class="fas fa-map-marker-alt"></i> ${city}
-          </p>
-          ${
-            place.distanceAway && place.distanceAway !== Infinity
-              ? `<p class="card-landmark-distance"><i class="fas fa-location-arrow"></i> ${place.distanceAway.toFixed(1)} km away</p>`
-              : ""
-          }
+          <p class="card-landmark-location"><i class="fas fa-map-marker-alt"></i> ${city}</p>
+          ${place.distanceAway && place.distanceAway !== Infinity ? `<p class="card-landmark-distance"><i class="fas fa-location-arrow"></i> ${place.distanceAway.toFixed(1)} km away</p>` : ""}
         </div>
       </div>`,
     );
   });
 };
 
-// دالة جلب التوصيات للمودال: تم تحديثها لتستدعي الدالة عبر window لكسر الـ ReferenceError
 async function loadPlaceRecommendations(placeId) {
   const nearbyContainer = document.getElementById("modalNearbyCards");
   const similarContainer = document.getElementById("modalSimilarCards");
@@ -195,29 +202,6 @@ async function loadPlaceRecommendations(placeId) {
       if (nearbyContainer) window.renderCards(nearest, nearbyContainer, false);
       if (similarContainer)
         window.renderCards(similar, similarContainer, false);
-    }
-  } catch (err) {
-    console.error("Recommendations UI Error:", err);
-  }
-}
-
-async function loadPlaceRecommendations(placeId) {
-  const nearbyContainer = document.getElementById("modalNearbyCards");
-  const similarContainer = document.getElementById("modalSimilarCards");
-
-  if (nearbyContainer) nearbyContainer.innerHTML = "Loading...";
-  if (similarContainer) similarContainer.innerHTML = "Loading...";
-
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/places/${placeId}/recommendations`,
-    );
-    const result = await res.json();
-
-    if (result.status === "success") {
-      const { nearest, similar } = result.data;
-      if (nearbyContainer) renderCards(nearest, nearbyContainer, false);
-      if (similarContainer) renderCards(similar, similarContainer, false);
     }
   } catch (err) {
     console.error("Recommendations UI Error:", err);
@@ -343,8 +327,7 @@ function openPlaceModal(placeData) {
   if (placeId) {
     const idStr = placeId.toString();
     if (typeof loadReviews === "function") loadReviews(idStr);
-    if (typeof loadPlaceRecommendations === "function")
-      loadPlaceRecommendations(idStr);
+    loadPlaceRecommendations(idStr);
   }
 
   placeModal.classList.add("active");
@@ -474,7 +457,148 @@ window.updateStepper = function (inputId, change) {
   if (window.triggerTripCalculation) window.triggerTripCalculation();
 };
 
+// ==========================================
+// 5. INITIALIZATION & CORE FEATURES
+// ==========================================
+function renderGroupedCategories(categoriesData, selectedCity) {
+  const container = document.getElementById("categoriesContentWrapper");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const categoriesArray = Array.isArray(categoriesData)
+    ? categoriesData
+    : Object.entries(categoriesData).map(([key, value]) => ({
+        name: key,
+        ...value,
+      }));
+
+  if (categoriesArray.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px; color:var(--airbnb-gray);">
+        <i class="fas fa-compass" style="font-size:2.5rem; margin-bottom:12px; opacity:0.5;"></i>
+        <p style="font-weight:500; margin:0;">No matching curated categories found for this region.</p>
+      </div>`;
+    return;
+  }
+
+  categoriesArray.forEach((category, index) => {
+    const places = category.places || category.landmarks || [];
+    if (places.length === 0) return;
+
+    const categoryName = category.name || "Curated Wonders";
+    const categoryDesc =
+      category.description || "Handpicked local experiences optimized by AI.";
+
+    let iconClass = "fa-monument";
+    const lowerName = categoryName.toLowerCase();
+    if (lowerName.includes("temple")) iconClass = "fa-gopuram";
+    if (lowerName.includes("pyramid")) iconClass = "fa-landmark";
+    if (lowerName.includes("mosque")) iconClass = "fa-mosque";
+    if (lowerName.includes("church") || lowerName.includes("coptic"))
+      iconClass = "fa-church";
+    if (lowerName.includes("museum")) iconClass = "fa-images";
+    if (lowerName.includes("nature") || lowerName.includes("island"))
+      iconClass = "fa-tree";
+
+    const bgRowClass = index % 2 === 0 ? "bg-white" : "bg-gray";
+    const uniqueGridId = `grid_cat_${index}_${Date.now()}`;
+
+    const sectionHtml = `
+      <section class="premium-category-section ${bgRowClass}">
+        <div class="premium-section-container">
+          <div class="premium-section-header">
+            <div class="header-left">
+              <div class="category-icon-box"><i class="fas ${iconClass}"></i></div>
+              <div>
+                <h4 class="category-title">${categoryName}</h4>
+                <p class="category-desc">${categoryDesc}</p>
+              </div>
+            </div>
+            <a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="premium-view-all-btn">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div id="${uniqueGridId}" class="premium-cards-grid"></div>
+        </div>
+      </section>
+    `;
+
+    container.insertAdjacentHTML("beforeend", sectionHtml);
+
+    const subGridTarget = document.getElementById(uniqueGridId);
+    if (subGridTarget && typeof window.renderPremiumCards === "function") {
+      window.renderPremiumCards(places, subGridTarget);
+    }
+  });
+}
+
+async function fetchAndRenderCategories(selectedCity = "all") {
+  if (isFetchingCategories || !categoriesContentWrapper) return;
+  isFetchingCategories = true;
+  if (categoriesLoading) categoriesLoading.classList.remove("hidden");
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/categories?city=${selectedCity}`,
+    );
+    const data = await response.json();
+    if (data.status === "success") {
+      renderGroupedCategories(data.data, selectedCity);
+    }
+  } catch (error) {
+    console.error("Home Load Error:", error);
+  } finally {
+    // FIXED: Was 'finaly' with one 'l'
+    if (categoriesLoading) categoriesLoading.classList.add("hidden");
+    isFetchingCategories = false;
+  }
+}
+
+function setDefaultItineraryPlaceholder() {
+  const container = document.getElementById("tripResult");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="itinerary-empty-placeholder-card" style="text-align:center; padding: 40px 24px; border: 2px dashed #ddd; border-radius:12px; background:#fafafa; margin-top:2px;">
+      <div style="width:64px; height:64px; border-radius:50%; background:rgba(11,74,111,0.05); color:#0b4a6f; display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 16px;"><i class="fas fa-map-marked-alt"></i></div>
+      <h3 style="font-size:1.25rem; font-weight:600; color:#222; margin:0 0 8px 0;">Your Egyptian Itinerary Awaits</h3>
+      <p style="font-size:0.92rem; color:#717171; line-height:1.5; max-width:440px; margin:0 auto;">Select your target destinations, trip duration, and historic exploration preferences on the left panel, then tap generate to visualize your fully optimized visual timeline.</p>
+    </div>`;
+}
+
+// ==========================================
+// UNIFIED DOMContentLoaded Lifecycle INITIALIZER
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
+  updateAuthUI();
+  const initialCity = cityFilter ? cityFilter.value : "all";
+  fetchAndRenderCategories(initialCity);
+  if (tripResultContainer) setDefaultItineraryPlaceholder();
+
+  if (cityFilter) {
+    cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
+  }
+
+  if (closeModalBtn) {
+    closeModalBtn.onclick = () => {
+      if (placeModal) placeModal.classList.remove("active");
+      document.body.style.overflow = "auto";
+    };
+  }
+
+  if (openBtn && modal) {
+    openBtn.addEventListener("click", () => {
+      modal.classList.add("active");
+      if (tripResultContainer && !tripResultContainer.innerHTML.trim()) {
+        setDefaultItineraryPlaceholder();
+      }
+    });
+  }
+  if (closeBtn && modal) {
+    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+  }
+
+  // Calculator Initializations
   const calcModal = document.getElementById("calc-modal");
   const openCalcBtn = document.getElementById("open-calc-btn");
   const closeCalcBtn = document.getElementById("close-calc-modal");
@@ -494,69 +618,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const exchangeRates = { EGP: 1, USD: 0.021, EUR: 0.019 };
   let previousCurrency = "EGP";
   let lastCalcPlaceId = null;
-
-  async function fetchAIRecommendations(placeObj) {
-    const costInputs = [inputs.accommodation, inputs.food, inputs.transport];
-    costInputs.forEach((input) => {
-      if (input) input.style.opacity = "0.5";
-    });
-
-    if (aiBudgetBtn) {
-      aiBudgetBtn.innerHTML =
-        '<i class="fas fa-spinner fa-spin"></i> جاري الحساب...';
-      aiBudgetBtn.style.background = "#e68a00";
-      aiBudgetBtn.disabled = true;
-    }
-
-    try {
-      const placeDataToSend = {
-        placeName:
-          placeObj["Landmark Name (English)"] ||
-          placeObj.name ||
-          "Giza Pyramids",
-        location: placeObj["Location"] || "Egypt",
-        category: placeObj["category"] || "Tourist Attraction",
-        description: placeObj["Short History Summary"] || "",
-      };
-
-      const response = await fetch(`${API_BASE_URL}/ai/budget`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(placeDataToSend),
-      });
-
-      const result = await response.json();
-
-      if (result.status === "success" && result.data) {
-        const currentRate = exchangeRates[currencySelect.value] || 1;
-        if (inputs.accommodation)
-          inputs.accommodation.value = Math.round(
-            (result.data.accommodation || 1500) * currentRate,
-          );
-        if (inputs.food)
-          inputs.food.value = Math.round(
-            (result.data.food || 600) * currentRate,
-          );
-        if (inputs.transport)
-          inputs.transport.value = Math.round(
-            (result.data.transport || 300) * currentRate,
-          );
-      }
-    } catch (error) {
-      console.error("Failed to fetch smart defaults", error);
-    } finally {
-      costInputs.forEach((input) => {
-        if (input) input.style.opacity = "1";
-      });
-      if (aiBudgetBtn) {
-        aiBudgetBtn.innerHTML =
-          '<i class="fas fa-magic"></i> اقترح ميزانية بالذكاء الاصطناعي';
-        aiBudgetBtn.style.background = "#ff9800";
-        aiBudgetBtn.disabled = false;
-      }
-      window.triggerTripCalculation();
-    }
-  }
 
   if (aiBudgetBtn) {
     aiBudgetBtn.addEventListener("click", () => {
@@ -666,150 +727,11 @@ document.addEventListener("DOMContentLoaded", () => {
       window.triggerTripCalculation();
     });
   }
-});
-// ==========================================
-// 5. INITIALIZATION & CORE FEATURES
-// ==========================================
 
-/**
- * Renders category sections dynamically based on the backend API payload.
- * Reuses window.renderPremiumCards to maintain design consistency.
- */
-function renderGroupedCategories(categoriesData, selectedCity) {
-  const container = document.getElementById("categoriesContentWrapper");
-  if (!container) return;
-
-  // Clear previous content completely
-  container.innerHTML = "";
-
-  // Normalize data format (handles both array layouts and raw object mappings)
-  const categoriesArray = Array.isArray(categoriesData)
-    ? categoriesData
-    : Object.entries(categoriesData).map(([key, value]) => ({
-        name: key,
-        ...value,
-      }));
-
-  if (categoriesArray.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; padding:40px; color:var(--airbnb-gray);">
-        <i class="fas fa-compass" style="font-size:2.5rem; margin-bottom:12px; opacity:0.5;"></i>
-        <p style="font-weight:500; margin:0;">No matching curated categories found for this region.</p>
-      </div>`;
-    return;
-  }
-
-  // Loop through each category group to generate its layout scaffolding
-  categoriesArray.forEach((category, index) => {
-    const places = category.places || category.landmarks || [];
-    if (places.length === 0) return;
-
-    const categoryName = category.name || "Curated Wonders";
-    const categoryDesc =
-      category.description || "Handpicked local experiences optimized by AI.";
-
-    // Dynamically assign contextual icons to match specific category filters
-    let iconClass = "fa-monument";
-    const lowerName = categoryName.toLowerCase();
-    if (lowerName.includes("temple")) iconClass = "fa-gopuram";
-    if (lowerName.includes("pyramid")) iconClass = "fa-landmark";
-    if (lowerName.includes("mosque")) iconClass = "fa-mosque";
-    if (lowerName.includes("church") || lowerName.includes("coptic"))
-      iconClass = "fa-church";
-    if (lowerName.includes("museum")) iconClass = "fa-images";
-    if (lowerName.includes("nature") || lowerName.includes("island"))
-      iconClass = "fa-tree";
-
-    // Alternate background coloring rows matching home.css specs
-    const bgRowClass = index % 2 === 0 ? "bg-white" : "bg-gray";
-    const uniqueGridId = `grid_cat_${index}_${Date.now()}`;
-
-    const sectionHtml = `
-      <section class="premium-category-section ${bgRowClass}">
-        <div class="premium-section-container">
-          <div class="premium-section-header">
-            <div class="header-left">
-              <div class="category-icon-box">
-                <i class="fas ${iconClass}"></i>
-              </div>
-              <div>
-                <h4 class="category-title">${categoryName}</h4>
-                <p class="category-desc">${categoryDesc}</p>
-              </div>
-            </div>
-            <a href="explore.html?category=${encodeURIComponent(categoryName)}&city=${selectedCity}" class="premium-view-all-btn">
-              View All <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-          <div id="${uniqueGridId}" class="premium-cards-grid"></div>
-        </div>
-      </section>
-    `;
-
-    container.insertAdjacentHTML("beforeend", sectionHtml);
-
-    // Populate the sub-grid utilizing the premium engine card generator
-    const subGridTarget = document.getElementById(uniqueGridId);
-    if (subGridTarget && typeof window.renderPremiumCards === "function") {
-      window.renderPremiumCards(places, subGridTarget);
-    }
-  });
-}
-
-/**
- * Fetches curated category blocks safely from the API endpoints
- */
-async function fetchAndRenderCategories(selectedCity = "all") {
-  if (isFetchingCategories || !categoriesContentWrapper) return;
-  isFetchingCategories = true;
-  if (categoriesLoading) categoriesLoading.classList.remove("hidden");
-
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/categories?city=${selectedCity}`,
-    );
-    const data = await response.json();
-    if (data.status === "success") {
-      renderGroupedCategories(data.data, selectedCity);
-    }
-  } catch (error) {
-    console.error("Home Load Error:", error);
-  } finally {
-    if (categoriesLoading) categoriesLoading.classList.add("hidden");
-    isFetchingCategories = false;
-  }
-}
-
-// Fixed-scope DOM Lifecycle Initializer
-document.addEventListener("DOMContentLoaded", () => {
-  updateAuthUI();
-  const initialCity = cityFilter ? cityFilter.value : "all";
-  fetchAndRenderCategories(initialCity);
-
-  if (cityFilter) {
-    cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
-  }
-
-  if (closeModalBtn) {
-    closeModalBtn.onclick = () => {
-      if (placeModal) placeModal.classList.remove("active");
-      document.body.style.overflow = "auto";
-    };
-  }
-});
-document.addEventListener("DOMContentLoaded", () => {
-  updateAuthUI();
-  const initialCity = cityFilter ? cityFilter.value : "all";
-  fetchAndRenderCategories(initialCity);
-
-  if (cityFilter)
-    cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
-
-  if (closeModalBtn) {
-    closeModalBtn.onclick = () => {
-      if (placeModal) placeModal.classList.remove("active");
-      document.body.style.overflow = "auto";
-    };
+  if (tripDaysInput && daysDisplayLabel) {
+    tripDaysInput.addEventListener("input", () => {
+      daysDisplayLabel.textContent = `${tripDaysInput.value} Days Selected`;
+    });
   }
 });
 
@@ -844,17 +766,15 @@ if (uploadBtn && imageInput) {
       const data = await res.json();
 
       if (data.status === "success") {
-        if (data.data.details) {
-          openPlaceModal(data.data.details);
-        } else if (data.data.prediction) {
+        if (data.data.details) openPlaceModal(data.data.details);
+        else if (data.data.prediction)
           alert(
             `AI identified this as: ${data.data.prediction}\nBut full details are not in our database yet.`,
           );
-        } else {
+        else
           alert(
             "AI couldn't identify this landmark clearly. Try another angle!",
           );
-        }
       } else {
         alert("Error analyzing image: " + (data.message || "Unknown error"));
       }
@@ -862,6 +782,7 @@ if (uploadBtn && imageInput) {
       console.error("AI Scan Error:", err);
       alert("Make sure both Node.js and Python servers are running!");
     } finally {
+      // FIXED: Was 'finaly' with one 'l'
       if (loadState) loadState.classList.add("hidden");
       imageInput.value = "";
     }
@@ -906,26 +827,11 @@ if (getLocationBtn) {
   };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const openBtn = document.getElementById("openTripPlannerBtn");
-  const modal = document.getElementById("tripPlannerModal");
-  const closeBtn = document.getElementById("closeTripPlannerBtn");
-
-  if (openBtn)
-    openBtn.addEventListener("click", () => {
-      modal.classList.add("active");
-    });
-  if (closeBtn)
-    closeBtn.addEventListener("click", () => {
-      modal.classList.remove("active");
-    });
-});
-
-let selectedCities = [];
-let selectedInterests = [];
-
+// =========================================================================
+// 7. ITINERARY MATRIX INTERACTION DECK
+// =========================================================================
 document.addEventListener("click", (e) => {
-  const cityChip = e.target.closest(".city-chip:not(.interest-chip)");
+  const cityChip = e.target.closest(".city-chip-v2:not(.interest-chip-v2)");
   if (cityChip) {
     const city = cityChip.dataset.city;
     cityChip.classList.toggle("active");
@@ -936,7 +842,7 @@ document.addEventListener("click", (e) => {
     }
   }
 
-  const interestChip = e.target.closest(".interest-chip");
+  const interestChip = e.target.closest(".interest-chip-v2");
   if (interestChip) {
     const interest = interestChip.dataset.interest;
     interestChip.classList.toggle("active");
@@ -948,20 +854,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-const generateBtn = document.getElementById("generateTripBtn");
-const tripLoading = document.getElementById("tripLoading");
-const loadingMessage = document.getElementById("loadingMessage");
-const loadingMessages = [
-  "Analyzing destinations...",
-  "Finding top attractions...",
-  "Optimizing travel route...",
-  "Calculating visit times...",
-  "Building itinerary...",
-  "Finalizing your trip...",
-];
-// =========================================================================
-// RETAINED/RE-ENGINERED GENERATION LOGIC LOOP (High Fidelity Componentization)
-// =========================================================================
 if (generateBtn) {
   generateBtn.addEventListener("click", () => {
     if (selectedCities.length === 0) {
@@ -969,13 +861,15 @@ if (generateBtn) {
       return;
     }
 
-    tripLoading.style.display = "block";
+    if (tripLoading) tripLoading.style.display = "block";
     document.getElementById("tripResult").innerHTML = "";
 
-    let index = 0;
+    let msgIdx = 0;
     const interval = setInterval(() => {
-      loadingMessage.textContent = loadingMessages[index];
-      index = (index + 1) % loadingMessages.length;
+      if (loadingMessage) {
+        loadingMessage.textContent = loadingMessages[msgIdx];
+        msgIdx = (msgIdx + 1) % loadingMessages.length;
+      }
     }, 1000);
 
     setTimeout(async () => {
@@ -985,7 +879,7 @@ if (generateBtn) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             cities: selectedCities,
-            days: tripDays ? tripDays.value : 3,
+            days: tripDaysInput ? tripDaysInput.value : 3,
             interests: selectedInterests,
             manualSelection: window.tripCart || [],
           }),
@@ -994,7 +888,7 @@ if (generateBtn) {
 
         const data = await response.json();
         clearInterval(interval);
-        tripLoading.style.display = "none";
+        if (tripLoading) tripLoading.style.display = "none";
 
         const itinerary = data?.data?.itinerary;
         if (!itinerary || !itinerary.days) {
@@ -1003,13 +897,11 @@ if (generateBtn) {
           return;
         }
 
-        // --- TRANSITION FROM PREFERENCE CONTROL TO COMPACT STATE SUMMARY VIEW ---
         document.getElementById("plannerInputsForm").style.display = "none";
-
         document.getElementById("summaryLabelDestinations").textContent =
           selectedCities.join(", ");
         document.getElementById("summaryLabelDuration").textContent =
-          `${tripDays ? tripDays.value : 3} Days Scheduled`;
+          `${tripDaysInput ? tripDaysInput.value : 3} Days Scheduled`;
         document.getElementById("summaryLabelInterests").textContent =
           selectedInterests.length > 0
             ? selectedInterests.join(", ")
@@ -1018,16 +910,14 @@ if (generateBtn) {
         const summaryWidgetElement = document.getElementById(
           "compactTripSummaryWidget",
         );
-        summaryWidgetElement.style.display = "flex";
+        if (summaryWidgetElement) summaryWidgetElement.style.display = "flex";
 
-        // Bind interactive reversion event hook handler controls
         document.getElementById("editPreferencesBtn").onclick = function () {
-          summaryWidgetElement.style.display = "none";
+          if (summaryWidgetElement) summaryWidgetElement.style.display = "none";
           document.getElementById("plannerInputsForm").style.display = "block";
-          document.getElementById("tripResult").innerHTML = "";
+          setDefaultItineraryPlaceholder();
         };
 
-        // --- ITERATE DATA STACKS VIA ACCORDION PAIRS COMPONENT ARCHITECTURE ---
         let accordionDaysHtml = "";
 
         itinerary.days.forEach((dayObj, dayIndex) => {
@@ -1036,7 +926,6 @@ if (generateBtn) {
           let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
 
           dayObj.places.forEach((place, placeIndex) => {
-            // Numeric Cost Extraction Regular Expression Parser Pipeline Vector
             let entryFee = 0;
             if (place.price_range) {
               const numericMatch = place.price_range.match(/\d+/);
@@ -1044,11 +933,10 @@ if (generateBtn) {
             }
             dayEstimatedCost += entryFee;
 
-            // Universal Image Asset Reference Mapping Cache Layer
             let curatedThumbnail =
               "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=350&q=70";
             const textQuery = (place.name || "").toLowerCase();
-            let resolvedCategoryTag = "Historic Landmark"; // Baseline Default Pill Tag Descriptor Label Value
+            let resolvedCategoryTag = "Historic Landmark";
 
             if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
               curatedThumbnail =
@@ -1086,85 +974,57 @@ if (generateBtn) {
               resolvedCategoryTag = "Coptic Heritage";
             }
 
-            // Route execution times into chronological slots
             const timeString = (place.time || "").toUpperCase();
             let assignedPeriod = "afternoon";
 
-            if (timeString.includes("AM") || placeIndex === 0) {
+            if (timeString.includes("AM") || placeIndex === 0)
               assignedPeriod = "morning";
-            } else if (
+            else if (
               timeString.includes("PM") &&
               (timeString.includes("5:") ||
                 timeString.includes("6:") ||
                 timeString.includes("7:") ||
                 timeString.includes("8:") ||
                 placeIndex === dayActivitiesCount - 1)
-            ) {
+            )
               assignedPeriod = "evening";
-            } else if (placeIndex === 1 && dayActivitiesCount > 2) {
+            else if (placeIndex === 1 && dayActivitiesCount > 2)
               assignedPeriod = "afternoon";
-            }
 
             const cleanNarrative = place.reason
               ? place.reason.replace(/^"|焦点|"/g, "")
               : "Visual AI recommendation optimized for historical context mapping.";
 
-            // Standard Component Attraction Matrix Card Frame Construction
             const singleCardMarkup = `
               <div class="premium-attraction-item-card generation-mode-card">
-                <div class="attraction-thumbnail-frame">
-                  <img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy">
-                </div>
-
+                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy"></div>
                 <div class="attraction-details-frame">
                   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">
                     <h5>${place.name || "Historical Destination Landmark"}</h5>
                     <span class="category-badge-pill">${resolvedCategoryTag}</span>
                   </div>
                   <p class="attraction-short-narrative">${cleanNarrative}</p>
-                  
                   <div class="attraction-meta-row-tags">
                     <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
                     <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
                   </div>
                 </div>
-
                 <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')">
-                    <i class="fas fa-exchange-alt"></i> Swap
-                  </button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')">
-                    <i class="far fa-edit"></i> Edit
-                  </button>
+                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')"><i class="fas fa-exchange-alt"></i> Swap</button>
+                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')"><i class="far fa-edit"></i> Edit</button>
                 </div>
               </div>`;
 
             chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
 
-          // Compound chronological slots into sequential timeline modules
           let timelineBlocksContent = "";
-          if (chronologicalSlots.morning.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.afternoon.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.evening.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div>
-              </div>`;
-          }
+          if (chronologicalSlots.morning.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div></div>`;
+          if (chronologicalSlots.afternoon.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div></div>`;
+          if (chronologicalSlots.evening.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div></div>`;
 
           const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
           const uniqueAccordionIdentifier = `generationAccordionDay_d${dayObj.day}`;
@@ -1180,48 +1040,30 @@ if (generateBtn) {
                     <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
                   </div>
                 </div>
-                <div class="accordion-toggle-chevron">
-                  <i class="fas fa-chevron-down"></i>
-                </div>
+                <div class="accordion-toggle-chevron"><i class="fas fa-chevron-down"></i></div>
               </div>
-              
               <div class="day-accordion-body-wrapper">
-                <div class="day-accordion-content-inner">
-                  ${timelineBlocksContent}
-                </div>
+                <div class="day-accordion-content-inner">${timelineBlocksContent}</div>
               </div>
             </div>`;
         });
 
-        // Construct high-fidelity output container, removing bullet lists completely
-        let finalOutputStructureTemplate = `
+        document.getElementById("tripResult").innerHTML = `
           <div class="generated-premium-itinerary-wrapper">
-            <div class="itinerary-display-column" style="margin-bottom: 24px;">
-              ${accordionDaysHtml}
-            </div>
-            
+            <div class="itinerary-display-column" style="margin-bottom: 24px;">${accordionDaysHtml}</div>
             <div class="sticky-mobile-save-container">
-              <button id="saveAiTripBtn" class="primary-action-cta full-width-save-btn">
-                <i class="fas fa-cloud-download-alt"></i> Commit & Save Plan to Dashboard
-              </button>
+              <button id="saveAiTripBtn" class="primary-action-cta full-width-save-btn"><i class="fas fa-cloud-download-alt"></i> Commit & Save Plan to Dashboard</button>
             </div>
           </div>`;
 
-        document.getElementById("tripResult").innerHTML =
-          finalOutputStructureTemplate;
-
-        // --- ATTACH SAVE DATA HANDLER FUNCTION EVENT HOOKS ---
-        const saveBtn = document.getElementById("saveAiTripBtn");
-        if (saveBtn) {
-          saveBtn.addEventListener("click", async () => {
+        const savePlanBtn = document.getElementById("saveAiTripBtn");
+        if (savePlanBtn) {
+          savePlanBtn.addEventListener("click", async () => {
             const userId = localStorage.getItem("userId");
             if (!userId) {
-              alert(
-                "Please authenticate into user profile directories first to commit tracks.",
-              );
+              alert("Please authenticate first.");
               return;
             }
-
             try {
               const saveResponse = await fetch(
                 `${API_BASE_URL}/user/save-trip`,
@@ -1232,7 +1074,7 @@ if (generateBtn) {
                     userId,
                     itinerary,
                     cities: selectedCities,
-                    days: tripDays.value,
+                    days: tripDaysInput.value,
                   }),
                 },
               );
@@ -1241,21 +1083,18 @@ if (generateBtn) {
                 alert(
                   "✨ Expedition path successfully synced to Live Dashboard records!",
                 );
-                if (typeof loadMyTripsTracker === "function") {
-                  document.getElementById("tabMyTrips").click(); // Pivot layout focus directly onto dashboard track cards
-                }
+                if (typeof loadMyTripsTracker === "function")
+                  document.getElementById("tabMyTrips").click();
               }
             } catch (err) {
               console.error(err);
-              alert(
-                "Transmission interface failure executing backend synchronizations.",
-              );
+              alert("Transmission interface failure.");
             }
           });
         }
       } catch (error) {
         clearInterval(interval);
-        tripLoading.style.display = "none";
+        if (tripLoading) tripLoading.style.display = "none";
         document.getElementById("tripResult").innerHTML =
           `<div class="premium-attraction-item-card" style="padding:24px; color:#E74C3C; background:#FDF0ED; border:1px solid #FADBD8;">⚠️ Connection Fault: AI matrix pipelines are currently unreachable.</div>`;
         console.error(error);
@@ -1263,22 +1102,10 @@ if (generateBtn) {
     }, 2000);
   });
 }
-const tripDays = document.getElementById("tripDays");
-const daysDisplay = document.querySelector(".days-display");
-if (tripDays && daysDisplay) {
-  tripDays.addEventListener("input", () => {
-    daysDisplay.textContent = `${tripDays.value} Days`;
-  });
-}
 
 // ==========================================
-// 9. PROGRESS TRACKER & TABS LOGIC
+// 8. PROGRESS TRACKER & TABS LOGIC
 // ==========================================
-const tabCreate = document.getElementById("tabCreateTrip");
-const tabTrips = document.getElementById("tabMyTrips");
-const plannerCont = document.getElementById("plannerContainer");
-const trackerCont = document.getElementById("trackerContainer");
-
 if (tabCreate && tabTrips) {
   tabCreate.addEventListener("click", () => {
     tabCreate.classList.add("active");
@@ -1311,10 +1138,6 @@ if (tabCreate && tabTrips) {
   });
 }
 
-/**
- * Fully Componentized Visual Itinerary Tracker Engine
- * Re-architected for High-Scannability, Image Injection, and Progressive Disclosure
- */
 async function loadMyTripsTracker() {
   const userId = localStorage.getItem("userId");
   const container = document.getElementById("myTripsList");
@@ -1353,7 +1176,6 @@ async function loadMyTripsTracker() {
     }
 
     let finalHtml = "";
-    // Display recent generation models first
     const activeTripsStack = [...trips].reverse();
 
     activeTripsStack.forEach((trip) => {
@@ -1369,14 +1191,12 @@ async function loadMyTripsTracker() {
 
           let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
 
-          // Build item structures and map to chronological slots
           dayObj.places.forEach((place, placeIndex) => {
             const uniqueActivityId = `chk_${trip.tripId}_d${dayObj.day}_p${placeIndex}`;
             const isCompleted =
               localStorage.getItem(uniqueActivityId) === "true";
             if (isCompleted) completedActivitiesCount++;
 
-            // Smart Cost Parser
             let entryFee = 0;
             if (place.price_range) {
               const numericMatch = place.price_range.match(/\d+/);
@@ -1384,9 +1204,8 @@ async function loadMyTripsTracker() {
             }
             dayEstimatedCost += entryFee;
 
-            // Image Lookup Engine Pipeline
             let curatedThumbnail =
-              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=250&q=70"; // Fallback Architecture Standard
+              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=250&q=70";
             const textQuery = (place.name || "").toLowerCase();
             if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
               curatedThumbnail =
@@ -1418,24 +1237,22 @@ async function loadMyTripsTracker() {
                 "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=250&q=70";
             }
 
-            // Route execution times into chronological slots
             const timeString = (place.time || "").toUpperCase();
-            let assignedPeriod = "afternoon"; // Engine Baseline Default Slot Group
+            let assignedPeriod = "afternoon";
 
-            if (timeString.includes("AM") || placeIndex === 0) {
+            if (timeString.includes("AM") || placeIndex === 0)
               assignedPeriod = "morning";
-            } else if (
+            else if (
               timeString.includes("PM") &&
               (timeString.includes("5:") ||
                 timeString.includes("6:") ||
                 timeString.includes("7:") ||
                 timeString.includes("8:") ||
                 placeIndex === dayActivitiesCount - 1)
-            ) {
+            )
               assignedPeriod = "evening";
-            } else if (placeIndex === 1 && dayActivitiesCount > 2) {
+            else if (placeIndex === 1 && dayActivitiesCount > 2)
               assignedPeriod = "afternoon";
-            }
 
             const cleanNarrative = place.reason
               ? place.reason.replace(/^"|焦点|"/g, "")
@@ -1444,70 +1261,36 @@ async function loadMyTripsTracker() {
             const singleCardMarkup = `
               <div class="premium-attraction-item-card ${isCompleted ? "task-completed" : ""}" id="cardWrapper_${uniqueActivityId}">
                 <div class="task-checkbox-wrapper-premium">
-                  <input type="checkbox" 
-                         class="modern-circular-checkbox tracker-checkbox-engine" 
-                         data-id="${uniqueActivityId}" 
-                         data-tripid="${trip.tripId}"
-                         ${isCompleted ? "checked" : ""} 
-                         aria-label="Complete activity">
+                  <input type="checkbox" class="modern-circular-checkbox tracker-checkbox-engine" data-id="${uniqueActivityId}" data-tripid="${trip.tripId}" ${isCompleted ? "checked" : ""} aria-label="Complete activity">
                 </div>
-                
-                <div class="attraction-thumbnail-frame">
-                  <img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy">
-                </div>
-
+                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy"></div>
                 <div class="attraction-details-frame">
                   <h5>${place.name || "Historical Destination Landmark"}</h5>
                   <p class="attraction-short-narrative">${cleanNarrative}</p>
-                  
                   <div class="attraction-meta-row-tags">
                     <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
                     <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
                   </div>
                 </div>
-
                 <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')">
-                    <i class="fas fa-exchange-alt"></i> Swap
-                  </button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')">
-                    <i class="far fa-edit"></i> Edit
-                  </button>
+                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')"><i class="fas fa-exchange-alt"></i> Swap</button>
+                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')"><i class="far fa-edit"></i> Edit</button>
                 </div>
               </div>`;
 
             chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
 
-          // Compound chronological slots into sequential timeline modules
           let timelineBlocksContent = "";
+          if (chronologicalSlots.morning.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div></div>`;
+          if (chronologicalSlots.afternoon.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div></div>`;
+          if (chronologicalSlots.evening.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div></div>`;
 
-          if (chronologicalSlots.morning.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.afternoon.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div>
-              </div>`;
-          }
-          if (chronologicalSlots.evening.length > 0) {
-            timelineBlocksContent += `
-              <div class="chronological-timeline-slot">
-                <div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div>
-              </div>`;
-          }
-
-          // Build individual collapsible day panels
-          const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
           accordionDaysHtml += `
-            <div class="day-accordion-card ${isFirstDayDefaultOpen}" id="accordionDay_${trip.tripId}_d${dayObj.day}">
+            <div class="day-accordion-card ${dayIndex === 0 ? "expanded" : ""}" id="accordionDay_${trip.tripId}_d${dayObj.day}">
               <div class="day-accordion-header" onclick="window.togglePremiumAccordion('accordionDay_${trip.tripId}_d${dayObj.day}')">
                 <div class="day-header-left-pane">
                   <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
@@ -1517,15 +1300,10 @@ async function loadMyTripsTracker() {
                     <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
                   </div>
                 </div>
-                <div class="accordion-toggle-chevron">
-                  <i class="fas fa-chevron-down"></i>
-                </div>
+                <div class="accordion-toggle-chevron"><i class="fas fa-chevron-down"></i></div>
               </div>
-              
               <div class="day-accordion-body-wrapper">
-                <div class="day-accordion-content-inner">
-                  ${timelineBlocksContent}
-                </div>
+                <div class="day-accordion-content-inner">${timelineBlocksContent}</div>
               </div>
             </div>`;
         });
@@ -1535,22 +1313,18 @@ async function loadMyTripsTracker() {
         totalActivitiesCount === 0
           ? 0
           : Math.round((completedActivitiesCount / totalActivitiesCount) * 100);
-
-      // Radius size = 28, Math Formula Track Circumference calculation = 2 * PI * r
       const svgRingCircumference = 2 * Math.PI * 28;
       const initialStrokeDashOffset =
         svgRingCircumference -
         (activeProgressPercentage / 100) * svgRingCircumference;
 
-      // Unify UI elements under a single operational card wrapper
       finalHtml += `
         <div class="trip-operational-grand-card" style="margin-bottom:40px; border-bottom:1px solid #EAEAEA; padding-bottom:32px;">
           <div class="sticky-trip-summary-header">
             <div class="summary-meta-text">
               <h4>Expedition inside ${trip.cities.join(", ")}</h4>
-              <p>Duration Vector Tracker: ${trip.days || dayObj.day} Active Days Plan Matrix</p>
+              <p>Duration Vector Tracker: ${trip.days} Active Days Plan Matrix</p>
             </div>
-            
             <div class="circular-progress-component">
               <div class="summary-meta-text" style="text-align: right;">
                 <p style="font-weight:700; color:var(--airbnb-black);" id="counterText_${trip.tripId}">${completedActivitiesCount} of ${totalActivitiesCount} Visited</p>
@@ -1559,24 +1333,18 @@ async function loadMyTripsTracker() {
               <div class="progress-svg-frame">
                 <svg>
                   <circle class="circle-track-bg" cx="32" cy="32" r="28"></circle>
-                  <circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" 
-                          stroke-dasharray="${svgRingCircumference}" 
-                          stroke-dashoffset="${initialStrokeDashOffset}"></circle>
+                  <circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" stroke-dasharray="${svgRingCircumference}" stroke-dashoffset="${initialStrokeDashOffset}"></circle>
                 </svg>
                 <div class="progress-percentage-label" id="badgePercentage_${trip.tripId}">${activeProgressPercentage}%</div>
               </div>
             </div>
           </div>
-
-          <div class="itinerary-display-column">
-            ${accordionDaysHtml}
-          </div>
+          <div class="itinerary-display-column">${accordionDaysHtml}</div>
         </div>`;
     });
 
     container.innerHTML = finalHtml;
 
-    // Attach runtime click hooks to handle state transitions dynamically
     document
       .querySelectorAll(".tracker-checkbox-engine")
       .forEach((checkbox) => {
@@ -1597,7 +1365,6 @@ async function loadMyTripsTracker() {
               targetedCardContainer.classList.remove("task-completed");
           }
 
-          // Recompute execution loop indexes to refresh layout counters dynamically
           const grandParentCardScope = event.target.closest(
             ".trip-operational-grand-card",
           );
@@ -1609,12 +1376,10 @@ async function loadMyTripsTracker() {
             grandParentCardScope.querySelectorAll(
               ".tracker-checkbox-engine:checked",
             ).length;
-
           const runtimeUpdatedPercentage = Math.round(
             (currentCheckedBoxesCount / aggregateCheckboxesCount) * 100,
           );
 
-          // Render update vectors to structural labels
           const localizedPercentageTextNode = document.getElementById(
             `badgePercentage_${parentTripIdentifier}`,
           );
@@ -1648,10 +1413,6 @@ async function loadMyTripsTracker() {
   }
 }
 
-/**
- * Interface Animation Controller Function
- * Replaces pure toggles with high-performance CSS transition height sizing
- */
 window.togglePremiumAccordion = function (elementId) {
   const selectedAccordionFrame = document.getElementById(elementId);
   if (!selectedAccordionFrame) return;
@@ -1661,7 +1422,6 @@ window.togglePremiumAccordion = function (elementId) {
   );
 
   if (selectedAccordionFrame.classList.contains("expanded")) {
-    // Graceful closure sequencing
     contentSliderWrapper.style.maxHeight =
       contentSliderWrapper.scrollHeight + "px";
     setTimeout(() => {
@@ -1669,12 +1429,10 @@ window.togglePremiumAccordion = function (elementId) {
       selectedAccordionFrame.classList.remove("expanded");
     }, 10);
   } else {
-    // Smooth transition opening
     selectedAccordionFrame.classList.add("expanded");
     contentSliderWrapper.style.maxHeight =
       contentSliderWrapper.scrollHeight + "px";
 
-    // Release bounds once transitions settle completely
     contentSliderWrapper.addEventListener(
       "transitionend",
       function clearBounds(e) {
