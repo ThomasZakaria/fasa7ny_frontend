@@ -2884,3 +2884,92 @@ html {
     gap: 15px;
   }
 }
+.adventure-widget-overlay {
+  padding: 0 5%;
+  margin-top: -60px; /* Overlaps hero */
+  position: relative;
+  z-index: 100;
+}
+
+.premium-adventure-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  padding: 16px 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 60px 1fr 150px auto;
+  align-items: center;
+  gap: 24px;
+  transition: transform 0.3s ease;
+}
+
+.premium-adventure-card:hover {
+  transform: translateY(-5px);
+}
+
+.adv-thumb img {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.adv-info h3 {
+  color: var(--egyptian-indigo);
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+.next-stop-pill {
+  font-size: 0.85rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+.progress-track {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--sunrise-amber);
+  border-radius: 3px;
+}
+
+.premium-cta {
+  background: var(--egyptian-indigo);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Mobile Adaptation */
+@media (max-width: 768px) {
+  .premium-adventure-card {
+    grid-template-columns: 60px 1fr;
+    gap: 12px;
+  }
+  .adv-progress,
+  .premium-cta {
+    grid-column: span 2;
+  }
+}
