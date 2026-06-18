@@ -209,26 +209,55 @@
       </div>
     </section>
 
-    <section class="categories" id="dynamicCategoriesContainer">
-      <div class="category-header-flex">
-        <h2 class="section-title" style="margin-bottom: 0">
-          Explore Categories
-        </h2>
-        <select id="cityFilter" class="city-filter-dropdown">
-          <option value="all" selected>All Egypt</option>
-          <option value="cairo">Cairo & Giza</option>
-          <option value="alexandria">Alexandria</option>
-          <option value="luxor">Luxor</option>
-          <option value="aswan">Aswan</option>
-          <option value="sinai">Sinai (Sharm / Dahab)</option>
-        </select>
+    <<!-- 📱 سيكشن Explore Categories الجديد -->
+<section class="app-categories-section">
+  <!-- الهيدر اللي فيه العنوان وزرار View All -->
+  <div class="section-header-flex">
+    <h3 class="app-section-title">Explore Categories</h3>
+    <a href="#" class="view-all-btn">View All &rarr;</a>
+  </div>
+
+  <!-- حاوية الكروت اللي بتتسحب بالعرض -->
+  <div class="app-horizontal-scroll">
+    
+    <!-- كارت 1 -->
+    <div class="app-category-card">
+      <img src="../images/hero.jpg" alt="Art & History"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-university"></i> Art & History</h4>
+        <p>12 Places</p>
       </div>
-      <div id="categoriesLoading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Loading amazing places...</p>
+    </div>
+
+    <!-- كارت 2 -->
+    <div class="app-category-card">
+      <img src="../images/pyramids.jpg" alt="Culture"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-monument"></i> Culture</h4>
+        <p>18 Places</p>
       </div>
-      <div id="categoriesContentWrapper"></div>
-    </section>
+    </div>
+
+    <!-- كارت 3 -->
+    <div class="app-category-card">
+      <img src="../images/hero.jpg" alt="Spiritual"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-mosque"></i> Spiritual</h4>
+        <p>10 Places</p>
+      </div>
+    </div>
+
+    <!-- كارت 4 -->
+    <div class="app-category-card">
+      <img src="../images/pyramids.jpg" alt="Top Sights"> <!-- حط مسار صورة مناسبة هنا -->
+      <div class="card-info">
+        <h4><i class="fas fa-star"></i> Top Sights</h4>
+        <p>15 Places</p>
+      </div>
+    </div>
+
+  </div>
+</section>
 
     <div id="placeModal" class="modal-overlay">
       <div class="modal-content">

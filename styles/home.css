@@ -1476,3 +1476,92 @@ html {
         display: block !important;
     }
 }
+/* ========================================= */
+/* 📱 تظبيطات سيكشن Explore Categories */
+/* ========================================= */
+
+.app-categories-section {
+    padding: 10px 15px 20px 15px;
+}
+
+/* تظبيط العنوان وزرار View All على نفس السطر */
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.app-section-title {
+    font-size: 1.15rem;
+    color: #0b4a6f;
+    margin: 0;
+    font-weight: 700;
+}
+
+.view-all-btn {
+    font-size: 0.75rem;
+    color: #0b4a6f;
+    text-decoration: none;
+    border: 1.5px solid #0b4a6f;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+/* حاوية السحب الأفقي (Horizontal Scroll) */
+.app-horizontal-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 10px;
+    scrollbar-width: none; /* إخفاء سكرول فايرفوكس */
+}
+.app-horizontal-scroll::-webkit-scrollbar {
+    display: none; /* إخفاء سكرول كروم */
+}
+
+/* الكارت نفسه */
+.app-category-card {
+    min-width: 140px; /* عرض الكارت الثابت عشان يسمح بالسحب */
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+}
+
+/* صورة الكارت من فوق */
+.app-category-card img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+}
+
+/* المعلومات اللي تحت الصورة */
+.card-info {
+    padding: 10px;
+    text-align: left;
+}
+
+.card-info h4 {
+    font-size: 0.8rem;
+    color: #0b4a6f;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.card-info h4 i {
+    color: #666;
+    font-size: 0.75rem;
+}
+
+.card-info p {
+    font-size: 0.7rem !important;
+    color: #888;
+    margin: 0;
+}
