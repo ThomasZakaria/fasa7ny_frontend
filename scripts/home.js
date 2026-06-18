@@ -6,7 +6,7 @@ let globalPlaceIdCounter = 0;
 let isFetchingCategories = false;
 window.currentModalPlace = null; // هام جداً لربط الحفظ، التعليقات، والحاسبة
 
-const API_BASE_URL = "${API_BASE_URL}";
+const API_BASE_URL = window.API_BASE_URL;
 const DEFAULT_THUMB =
   "https://s7g10.scene7.com/is/image/barcelo/pyramids-of-giza-facts_ancient-pyramids-of-giza?&&fmt=webp-alpha&qlt=75&wid=1300&fit=crop,1";
 
@@ -691,7 +691,6 @@ document.addEventListener("click", (e) => {
 // ==========================================
 // 6. AI SCANNER & GPS LOGIC
 // ==========================================
-
 if (uploadBtn && imageInput) {
   uploadBtn.onclick = () => imageInput.click();
 
@@ -703,7 +702,7 @@ if (uploadBtn && imageInput) {
     if (loadState) loadState.classList.remove("hidden");
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", file); // لازم يكون image عشان multer في الباك إند يقراه
 
     try {
       const res = await fetch(`${API_BASE_URL}/detect`, {
@@ -712,10 +711,22 @@ if (uploadBtn && imageInput) {
       });
       const data = await res.json();
 
-      if (data.status === "success" && data.data.details) {
-        openPlaceModal(data.data.details);
+      if (data.status === "success") {
+        if (data.data.details) {
+          // الموديل اتعرف عليه ولقيناه في قاعدة البيانات
+          openPlaceModal(data.data.details);
+        } else if (data.data.prediction) {
+          // الموديل اتعرف عليه بس تفاصيله مش في الداتا
+          alert(
+            `AI identified this as: ${data.data.prediction}\nBut full details are not in our database yet.`,
+          );
+        } else {
+          alert(
+            "AI couldn't identify this landmark clearly. Try another angle!",
+          );
+        }
       } else {
-        alert("AI couldn't identify this landmark clearly. Try another angle!");
+        alert("Error analyzing image: " + (data.message || "Unknown error"));
       }
     } catch (err) {
       console.error("AI Scan Error:", err);
