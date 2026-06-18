@@ -89,7 +89,6 @@ async function updateAuthUI() {
     loginBtn.style.border = "none";
   }
 }
-
 // ==========================================
 // PREMIUM CATEGORIES CONFIGURATION (Airbnb / GetYourGuide Style)
 // ==========================================
@@ -136,7 +135,6 @@ function renderGroupedCategories(groupedData, selectedCity) {
   if (!categoriesContentWrapper) return;
   categoriesContentWrapper.innerHTML = "";
 
-  // تعيين الكلاس الجديد الخاص بالشبكة المنظمة
   categoriesContentWrapper.className = "premium-categories-container";
 
   let index = 0;
@@ -144,11 +142,15 @@ function renderGroupedCategories(groupedData, selectedCity) {
   for (const [categoryName, places] of Object.entries(groupedData)) {
     if (!places || places.length === 0) continue;
 
-    // جلب الأيقونة والوصف بناءً على اسم التصنيف من الباك إند أو استخدام الافتراضي
-    const meta = categoryMeta[categoryName] || categoryMeta["General"];
+    // تحسين ذكي: البحث عن التصنيف بدون الحساسية لحالة الأحرف (Case-Insensitive) منعاً لـ Bugs الباك إند
+    const matchedKey =
+      Object.keys(categoryMeta).find(
+        (key) => key.toLowerCase().trim() === categoryName.toLowerCase().trim(),
+      ) || "General";
+
+    const meta = categoryMeta[matchedKey];
 
     const section = document.createElement("section");
-    // تبديل الخلفيات تلقائياً: ويدعم الـ Zebra striping
     section.className = `premium-category-section ${index % 2 === 0 ? "bg-white" : "bg-gray"}`;
 
     section.innerHTML = `
@@ -174,7 +176,6 @@ function renderGroupedCategories(groupedData, selectedCity) {
 
     categoriesContentWrapper.appendChild(section);
 
-    // نمرر أول 4 عناصر فقط لضمان ثبات الارتفاع والمظهر الاحترافي
     const limitedPlaces = places.slice(0, 4);
     renderPremiumCards(
       limitedPlaces,
@@ -204,7 +205,7 @@ function renderPremiumCards(places, container) {
     container.insertAdjacentHTML(
       "beforeend",
       `
-      <div class="premium-place-card" data-placeid="${currentPlaceId}">
+      <div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
         <div class="card-image-wrapper">
           <img 
             src="${optimizedMainUrl}" 
@@ -228,6 +229,7 @@ function renderPremiumCards(places, container) {
     );
   });
 }
+
 async function loadPlaceRecommendations(placeId) {
   const nearbyContainer = document.getElementById("modalNearbyCards");
   const similarContainer = document.getElementById("modalSimilarCards");
