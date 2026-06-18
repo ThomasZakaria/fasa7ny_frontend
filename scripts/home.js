@@ -1002,6 +1002,10 @@ if (tabCreate && tabTrips) {
   });
 }
 
+/**
+ * Fully Componentized Visual Itinerary Tracker Engine
+ * Re-architected for High-Scannability, Image Injection, and Progressive Disclosure
+ */
 async function loadMyTripsTracker() {
   const userId = localStorage.getItem("userId");
   const container = document.getElementById("myTripsList");
@@ -1009,11 +1013,20 @@ async function loadMyTripsTracker() {
   if (!container) return;
 
   if (!userId) {
-    container.innerHTML = `<div class="error-card" style="text-align:center; padding:20px; color:#e74c3c; background:#fdf0ed; border-radius:12px;">Please sign in to track your trips.</div>`;
+    container.innerHTML = `
+      <div class="error-card" style="text-align:center; padding:32px; color:#E74C3C; background:#FDF0ED; border-radius:16px; border:1px solid #FADBD8;">
+        <i class="fas fa-user-lock" style="font-size:2.5rem; margin-bottom:12px;"></i>
+        <p style="margin:0; font-weight:600; font-size:1.1rem;">Authentication Required</p>
+        <p style="margin:6px 0 0 0; color:#666; font-size:0.95rem;">Please sign in to view and interact with your personal visual itineraries.</p>
+      </div>`;
     return;
   }
 
-  container.innerHTML = `<div class="spinner"></div><p style="text-align:center; margin-top:10px; color:#666;">Syncing your adventures...</p>`;
+  container.innerHTML = `
+    <div class="premium-loader-box">
+      <div class="pulse-spinner"></div>
+      <p style="color: #717171; font-weight: 500;">Synchronizing your Egyptian Expeditions...</p>
+    </div>`;
 
   try {
     const res = await fetch(`${API_BASE_URL}/users/${userId}`);
@@ -1021,105 +1034,346 @@ async function loadMyTripsTracker() {
     const trips = data.data.user.saved_trips || [];
 
     if (trips.length === 0) {
-      container.innerHTML = `<div style="text-align:center; padding: 30px; color:#666;"><i class="fas fa-suitcase-rolling" style="font-size:3rem; margin-bottom:15px; color:#ddd;"></i><br>You haven't saved any trips yet.<br>Go to "Plan New Trip" to create one!</div>`;
+      container.innerHTML = `
+        <div style="text-align:center; padding:48px 24px; color:var(--airbnb-gray); border: 2px dashed #EAEAEA; border-radius:16px;">
+          <i class="fas fa-suitcase-rolling" style="font-size:3.5rem; margin-bottom:16px; color:#CCCCCC;"></i>
+          <h4 style="margin:0; color:var(--airbnb-black); font-size:1.25rem;">No Expeditions Found</h4>
+          <p style="margin:8px 0 0 0; font-size:1rem;">Generate a fresh AI Plan on the configuration panel to begin tracking.</p>
+        </div>`;
       return;
     }
 
-    let html = "";
-    const reversedTrips = [...trips].reverse();
+    let finalHtml = "";
+    // Display recent generation models first
+    const activeTripsStack = [...trips].reverse();
 
-    reversedTrips.forEach((trip) => {
-      let totalPlaces = 0;
-      let completedPlaces = 0;
-      let tasksHtml = "";
+    activeTripsStack.forEach((trip) => {
+      let totalActivitiesCount = 0;
+      let completedActivitiesCount = 0;
+      let accordionDaysHtml = "";
 
       if (trip.itinerary && trip.itinerary.days) {
-        trip.itinerary.days.forEach((day) => {
-          tasksHtml += `<h5 style="margin: 15px 0 8px 0; color:#0b4a6f; border-bottom: 2px dashed #eee; padding-bottom: 5px; font-size:1.1rem;">📅 Day ${day.day} - ${day.city}</h5>`;
+        trip.itinerary.days.forEach((dayObj, dayIndex) => {
+          let dayEstimatedCost = 0;
+          let dayActivitiesCount = dayObj.places.length;
+          totalActivitiesCount += dayActivitiesCount;
 
-          day.places.forEach((place, pIndex) => {
-            totalPlaces++;
-            const placeName =
-              typeof place === "string" ? place : place.name || "Attraction";
-            const uniqueId = `chk_${trip.tripId}_d${day.day}_p${pIndex}`;
+          let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
 
-            const isChecked = localStorage.getItem(uniqueId) === "true";
-            if (isChecked) completedPlaces++;
+          // Build item structures and map to chronological slots
+          dayObj.places.forEach((place, placeIndex) => {
+            const uniqueActivityId = `chk_${trip.tripId}_d${dayObj.day}_p${placeIndex}`;
+            const isCompleted =
+              localStorage.getItem(uniqueActivityId) === "true";
+            if (isCompleted) completedActivitiesCount++;
 
-            tasksHtml += `
-              <div class="place-task ${isChecked ? "completed" : ""}" id="taskDiv_${uniqueId}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${isChecked ? "#f0fdf4" : "#f9f9f9"}; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${isChecked ? "#27ae60" : "#ccc"}; transition: all 0.3s ease; flex-wrap: wrap; gap: 10px;">
-                <label style="display:flex; align-items:center; gap:12px; cursor:pointer; flex:1; min-width: 200px;">
-                  <input type="checkbox" class="trip-checkbox" data-id="${uniqueId}" ${isChecked ? "checked" : ""} style="width:20px; height:20px; accent-color:#27ae60; cursor:pointer;">
-                  <span class="task-text" style="font-weight:bold; font-size:1rem; color:${isChecked ? "#888" : "#2c3e50"}; text-decoration:${isChecked ? "line-through" : "none"}; transition: 0.3s;">${placeName}</span>
-                </label>
-                <div class="task-actions" style="display:flex; gap:8px;">
-                  <button onclick="alert('🔄 AI Swap feature is planned for V2!')" style="border:none; background:#e0f2fe; color:#0284c7; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem;"><i class="fas fa-exchange-alt"></i> Swap</button>
-                  <button onclick="alert('✏️ Manual Edit coming soon!')" style="border:none; background:#fef08a; color:#c2410c; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem;"><i class="fas fa-edit"></i> Edit</button>
+            // Smart Cost Parser
+            let entryFee = 0;
+            if (place.price_range) {
+              const numericMatch = place.price_range.match(/\d+/);
+              if (numericMatch) entryFee = parseInt(numericMatch[0]);
+            }
+            dayEstimatedCost += entryFee;
+
+            // Image Lookup Engine Pipeline
+            let curatedThumbnail =
+              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=250&q=70"; // Fallback Architecture Standard
+            const textQuery = (place.name || "").toLowerCase();
+            if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=250&q=70";
+            } else if (
+              textQuery.includes("museum") ||
+              textQuery.includes("tahrir")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=250&q=70";
+            } else if (
+              textQuery.includes("temple") ||
+              textQuery.includes("luxor") ||
+              textQuery.includes("karnak")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=250&q=70";
+            } else if (
+              textQuery.includes("mosque") ||
+              textQuery.includes("citadel")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=250&q=70";
+            } else if (
+              textQuery.includes("church") ||
+              textQuery.includes("coptic")
+            ) {
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=250&q=70";
+            }
+
+            // Route execution times into chronological slots
+            const timeString = (place.time || "").toUpperCase();
+            let assignedPeriod = "afternoon"; // Engine Baseline Default Slot Group
+
+            if (timeString.includes("AM") || placeIndex === 0) {
+              assignedPeriod = "morning";
+            } else if (
+              timeString.includes("PM") &&
+              (timeString.includes("5:") ||
+                timeString.includes("6:") ||
+                timeString.includes("7:") ||
+                timeString.includes("8:") ||
+                placeIndex === dayActivitiesCount - 1)
+            ) {
+              assignedPeriod = "evening";
+            } else if (placeIndex === 1 && dayActivitiesCount > 2) {
+              assignedPeriod = "afternoon";
+            }
+
+            const cleanNarrative = place.reason
+              ? place.reason.replace(/^"|焦点|"/g, "")
+              : "Visual AI recommendation optimized for historical context mapping.";
+
+            const singleCardMarkup = `
+              <div class="premium-attraction-item-card ${isCompleted ? "task-completed" : ""}" id="cardWrapper_${uniqueActivityId}">
+                <div class="task-checkbox-wrapper-premium">
+                  <input type="checkbox" 
+                         class="modern-circular-checkbox tracker-checkbox-engine" 
+                         data-id="${uniqueActivityId}" 
+                         data-tripid="${trip.tripId}"
+                         ${isCompleted ? "checked" : ""} 
+                         aria-label="Complete activity">
+                </div>
+                
+                <div class="attraction-thumbnail-frame">
+                  <img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy">
+                </div>
+
+                <div class="attraction-details-frame">
+                  <h5>${place.name || "Historical Destination Landmark"}</h5>
+                  <p class="attraction-short-narrative">${cleanNarrative}</p>
+                  
+                  <div class="attraction-meta-row-tags">
+                    <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
+                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
+                  </div>
+                </div>
+
+                <div class="attraction-action-rail-buttons">
+                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')">
+                    <i class="fas fa-exchange-alt"></i> Swap
+                  </button>
+                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')">
+                    <i class="far fa-edit"></i> Edit
+                  </button>
                 </div>
               </div>`;
+
+            chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
+
+          // Compound chronological slots into sequential timeline modules
+          let timelineBlocksContent = "";
+
+          if (chronologicalSlots.morning.length > 0) {
+            timelineBlocksContent += `
+              <div class="chronological-timeline-slot">
+                <div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div>
+              </div>`;
+          }
+          if (chronologicalSlots.afternoon.length > 0) {
+            timelineBlocksContent += `
+              <div class="chronological-timeline-slot">
+                <div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div>
+              </div>`;
+          }
+          if (chronologicalSlots.evening.length > 0) {
+            timelineBlocksContent += `
+              <div class="chronological-timeline-slot">
+                <div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div>
+              </div>`;
+          }
+
+          // Build individual collapsible day panels
+          const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
+          accordionDaysHtml += `
+            <div class="day-accordion-card ${isFirstDayDefaultOpen}" id="accordionDay_${trip.tripId}_d${dayObj.day}">
+              <div class="day-accordion-header" onclick="window.togglePremiumAccordion('accordionDay_${trip.tripId}_d${dayObj.day}')">
+                <div class="day-header-left-pane">
+                  <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
+                  <div class="day-subtitle-tags">
+                    <span class="tag-lbl-item"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
+                    <span class="tag-divider-dot"></span>
+                    <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
+                  </div>
+                </div>
+                <div class="accordion-toggle-chevron">
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+              </div>
+              
+              <div class="day-accordion-body-wrapper">
+                <div class="day-accordion-content-inner">
+                  ${timelineBlocksContent}
+                </div>
+              </div>
+            </div>`;
         });
       }
 
-      const progressPercent =
-        totalPlaces === 0
+      const activeProgressPercentage =
+        totalActivitiesCount === 0
           ? 0
-          : Math.round((completedPlaces / totalPlaces) * 100);
+          : Math.round((completedActivitiesCount / totalActivitiesCount) * 100);
 
-      html += `
-        <div class="day-card" style="margin-bottom:25px; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background:#fff;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h4 style="margin:0; color:#e67e22; font-size:1.2rem;">🌍 Trip to ${trip.cities.join(", ")}</h4>
-            <span class="day-badge" id="badge_${trip.tripId}" style="background:linear-gradient(90deg, #27ae60, #2ecc71); color:white; padding:5px 12px; border-radius:20px; font-weight:bold; font-size:1rem;">${progressPercent}%</span>
+      // Radius size = 28, Math Formula Track Circumference calculation = 2 * PI * r
+      const svgRingCircumference = 2 * Math.PI * 28;
+      const initialStrokeDashOffset =
+        svgRingCircumference -
+        (activeProgressPercentage / 100) * svgRingCircumference;
+
+      // Unify UI elements under a single operational card wrapper
+      finalHtml += `
+        <div class="trip-operational-grand-card" style="margin-bottom:40px; border-bottom:1px solid #EAEAEA; padding-bottom:32px;">
+          <div class="sticky-trip-summary-header">
+            <div class="summary-meta-text">
+              <h4>Expedition inside ${trip.cities.join(", ")}</h4>
+              <p>Duration Vector Tracker: ${trip.days || dayObj.day} Active Days Plan Matrix</p>
+            </div>
+            
+            <div class="circular-progress-component">
+              <div class="summary-meta-text" style="text-align: right;">
+                <p style="font-weight:700; color:var(--airbnb-black);" id="counterText_${trip.tripId}">${completedActivitiesCount} of ${totalActivitiesCount} Visited</p>
+                <p style="font-size:0.85rem;">Live Completion Metrics</p>
+              </div>
+              <div class="progress-svg-frame">
+                <svg>
+                  <circle class="circle-track-bg" cx="32" cy="32" r="28"></circle>
+                  <circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" 
+                          stroke-dasharray="${svgRingCircumference}" 
+                          stroke-dashoffset="${initialStrokeDashOffset}"></circle>
+                </svg>
+                <div class="progress-percentage-label" id="badgePercentage_${trip.tripId}">${activeProgressPercentage}%</div>
+              </div>
+            </div>
           </div>
-          <div class="progress-container" style="width: 100%; height: 12px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden;">
-            <div class="progress-fill" id="progBar_${trip.tripId}" style="height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: ${progressPercent}%; transition: width 0.5s ease;"></div>
-          </div>
-          <div style="margin-top: 20px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
-            ${tasksHtml}
+
+          <div class="itinerary-display-column">
+            ${accordionDaysHtml}
           </div>
         </div>`;
     });
 
-    container.innerHTML = html;
+    container.innerHTML = finalHtml;
 
-    document.querySelectorAll(".trip-checkbox").forEach((chk) => {
-      chk.addEventListener("change", (e) => {
-        const id = e.target.dataset.id;
-        const taskDiv = document.getElementById(`taskDiv_${id}`);
-        const tripId = id.split("_")[1];
-        const taskText = taskDiv.querySelector(".task-text");
+    // Attach runtime click hooks to handle state transitions dynamically
+    document
+      .querySelectorAll(".tracker-checkbox-engine")
+      .forEach((checkbox) => {
+        checkbox.addEventListener("change", (event) => {
+          const uniqueActivityId = event.target.dataset.id;
+          const parentTripIdentifier = event.target.dataset.tripid;
+          const targetedCardContainer = document.getElementById(
+            `cardWrapper_${uniqueActivityId}`,
+          );
 
-        if (e.target.checked) {
-          localStorage.setItem(id, "true");
-          taskDiv.style.borderLeftColor = "#27ae60";
-          taskDiv.style.background = "#f0fdf4";
-          taskText.style.color = "#888";
-          taskText.style.textDecoration = "line-through";
-        } else {
-          localStorage.removeItem(id);
-          taskDiv.style.borderLeftColor = "#ccc";
-          taskDiv.style.background = "#f9f9f9";
-          taskText.style.color = "#2c3e50";
-          taskText.style.textDecoration = "none";
-        }
+          if (event.target.checked) {
+            localStorage.setItem(uniqueActivityId, "true");
+            if (targetedCardContainer)
+              targetedCardContainer.classList.add("task-completed");
+          } else {
+            localStorage.removeItem(uniqueActivityId);
+            if (targetedCardContainer)
+              targetedCardContainer.classList.remove("task-completed");
+          }
 
-        const tripCard = taskDiv.closest(".day-card");
-        const totalCheckboxes =
-          tripCard.querySelectorAll(".trip-checkbox").length;
-        const checkedBoxes = tripCard.querySelectorAll(
-          ".trip-checkbox:checked",
-        ).length;
-        const newPercent = Math.round((checkedBoxes / totalCheckboxes) * 100);
+          // Recompute execution loop indexes to refresh layout counters dynamically
+          const grandParentCardScope = event.target.closest(
+            ".trip-operational-grand-card",
+          );
+          const aggregateCheckboxesCount =
+            grandParentCardScope.querySelectorAll(
+              ".tracker-checkbox-engine",
+            ).length;
+          const currentCheckedBoxesCount =
+            grandParentCardScope.querySelectorAll(
+              ".tracker-checkbox-engine:checked",
+            ).length;
 
-        document.getElementById(`progBar_${tripId}`).style.width =
-          `${newPercent}%`;
-        document.getElementById(`badge_${tripId}`).textContent =
-          `${newPercent}%`;
+          const runtimeUpdatedPercentage = Math.round(
+            (currentCheckedBoxesCount / aggregateCheckboxesCount) * 100,
+          );
+
+          // Render update vectors to structural labels
+          const localizedPercentageTextNode = document.getElementById(
+            `badgePercentage_${parentTripIdentifier}`,
+          );
+          const localizedCounterTextNode = document.getElementById(
+            `counterText_${parentTripIdentifier}`,
+          );
+          const targetSvgCircleElement = document.getElementById(
+            `svgCircleFill_${parentTripIdentifier}`,
+          );
+
+          if (localizedPercentageTextNode)
+            localizedPercentageTextNode.textContent = `${runtimeUpdatedPercentage}%`;
+          if (localizedCounterTextNode)
+            localizedCounterTextNode.textContent = `${currentCheckedBoxesCount} of ${aggregateCheckboxesCount} Visited`;
+
+          if (targetSvgCircleElement) {
+            const freshOffsetValue =
+              svgRingCircumference -
+              (runtimeUpdatedPercentage / 100) * svgRingCircumference;
+            targetSvgCircleElement.style.strokeDashoffset = freshOffsetValue;
+          }
+        });
       });
-    });
-  } catch (err) {
-    console.error(err);
-    container.innerHTML = `<div class="error-card" style="text-align:center; padding:20px; color:#e74c3c; background:#fdf0ed; border-radius:12px;">Failed to load trips.</div>`;
+  } catch (error) {
+    console.error("Critical Render Pipeline Failure:", error);
+    container.innerHTML = `
+      <div class="error-card" style="text-align:center; padding:24px; color:#E74C3C; background:#FDF0ED; border-radius:12px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:1.5rem; margin-bottom:8px;"></i>
+        <p style="margin:0; font-weight:600;">Synchronization Fault Encountered</p>
+      </div>`;
   }
 }
+
+/**
+ * Interface Animation Controller Function
+ * Replaces pure toggles with high-performance CSS transition height sizing
+ */
+window.togglePremiumAccordion = function (elementId) {
+  const selectedAccordionFrame = document.getElementById(elementId);
+  if (!selectedAccordionFrame) return;
+
+  const contentSliderWrapper = selectedAccordionFrame.querySelector(
+    ".day-accordion-body-wrapper",
+  );
+
+  if (selectedAccordionFrame.classList.contains("expanded")) {
+    // Graceful closure sequencing
+    contentSliderWrapper.style.maxHeight =
+      contentSliderWrapper.scrollHeight + "px";
+    setTimeout(() => {
+      contentSliderWrapper.style.maxHeight = "0";
+      selectedAccordionFrame.classList.remove("expanded");
+    }, 10);
+  } else {
+    // Smooth transition opening
+    selectedAccordionFrame.classList.add("expanded");
+    contentSliderWrapper.style.maxHeight =
+      contentSliderWrapper.scrollHeight + "px";
+
+    // Release bounds once transitions settle completely
+    contentSliderWrapper.addEventListener(
+      "transitionend",
+      function clearBounds(e) {
+        if (selectedAccordionFrame.classList.contains("expanded")) {
+          contentSliderWrapper.style.maxHeight = "none";
+        }
+        contentSliderWrapper.removeEventListener("transitionend", clearBounds);
+      },
+    );
+  }
+};

@@ -553,154 +553,139 @@
         </button>
       </div>
     </div>
-
     <div id="tripPlannerModal" class="modal-overlay">
-      <div class="modal-content">
-        <span id="closeTripPlannerBtn" class="close-modal"> × </span>
+      <div class="modal-content premium-planner-modal">
+        <span
+          id="closeTripPlannerBtn"
+          class="close-modal-premium"
+          aria-label="Close Planner"
+          >&times;</span
+        >
 
-        <div class="modal-body">
-          <h2>🤖 Fasa7ny AI Trip Planner</h2>
-          <p>Create a personalized Egypt itinerary in seconds.</p>
+        <div class="modal-body-premium">
+          <header class="planner-brand-header">
+            <div class="brand-badge">
+              <i class="fas fa-sparkles"></i> AI Engine Active
+            </div>
+            <h2>Egypt Adventure Planner</h2>
+            <p>
+              Your personalized journey curated by advanced local intelligence.
+            </p>
+          </header>
 
-          <div
-            class="trip-tabs"
-            style="
-              display: flex;
-              background: #f0f4f8;
-              border-radius: 12px;
-              padding: 5px;
-              margin-bottom: 20px;
-            "
-          >
-            <button
-              id="tabCreateTrip"
-              class="tab-btn active"
-              style="
-                flex: 1;
-                padding: 10px;
-                border: none;
-                background: #fff;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: bold;
-                color: #0b4a6f;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-                transition: 0.3s;
-              "
-            >
-              📝 Plan New Trip
+          <div class="trip-tabs-premium">
+            <button id="tabCreateTrip" class="tab-btn-premium active">
+              <i class="fas fa-sliders-h"></i> Plan New Itinerary
             </button>
-            <button
-              id="tabMyTrips"
-              class="tab-btn"
-              style="
-                flex: 1;
-                padding: 10px;
-                border: none;
-                background: transparent;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: bold;
-                color: #666;
-                transition: 0.3s;
-              "
-            >
-              🎒 My Trips Tracker
+            <button id="tabMyTrips" class="tab-btn-premium">
+              <i class="fas fa-compass"></i> Live Tracker Dashboard
             </button>
           </div>
 
-          <div id="plannerContainer">
-            <div style="margin-top: 20px">
-              <div class="planner-step">
-                <span class="step-title"> 📍 Choose Destinations </span>
-                <div class="city-chips">
-                  <button class="city-chip" data-city="Cairo">Cairo</button>
-                  <button class="city-chip" data-city="Giza">Giza</button>
-                  <button class="city-chip" data-city="Luxor">Luxor</button>
-                  <button class="city-chip" data-city="Aswan">Aswan</button>
-                  <button class="city-chip" data-city="Alexandria">
+          <div id="plannerContainer" class="planner-view-grid">
+            <div class="configuration-sidebar-card">
+              <div class="planner-step-card">
+                <span class="step-lbl">📍 Target Destinations</span>
+                <div class="city-chips-premium">
+                  <button class="city-chip-v2" data-city="Cairo">Cairo</button>
+                  <button class="city-chip-v2" data-city="Giza">Giza</button>
+                  <button class="city-chip-v2" data-city="Luxor">Luxor</button>
+                  <button class="city-chip-v2" data-city="Aswan">Aswan</button>
+                  <button class="city-chip-v2" data-city="Alexandria">
                     Alexandria
                   </button>
                 </div>
               </div>
 
-              <div class="planner-step">
-                <span class="step-title"> 📅 Trip Duration </span>
-                <input type="range" id="tripDays" min="1" max="14" value="3" />
-                <div class="days-display">3 Days</div>
+              <div class="planner-step-card">
+                <span class="step-lbl">📅 Journey Duration</span>
+                <div class="range-slider-wrapper">
+                  <input
+                    type="range"
+                    id="tripDays"
+                    min="1"
+                    max="14"
+                    value="3"
+                    class="modern-slider"
+                  />
+                  <div class="days-display-v2">3 Days Selected</div>
+                </div>
               </div>
 
-              <div class="planner-step" style="margin-top: 20px">
-                <span class="step-title"
-                  >💡 Select Your Interests (Optional)</span
-                >
-                <div class="city-chips" id="interest-chips-container">
+              <div class="planner-step-card">
+                <span class="step-lbl">💡 Curated Exploration Interests</span>
+                <div class="city-chips-premium" id="interest-chips-container">
                   <button
-                    class="city-chip interest-chip"
+                    class="city-chip-v2 interest-chip-v2"
                     data-interest="Pyramids"
                   >
                     🔺 Pyramids
                   </button>
                   <button
-                    class="city-chip interest-chip"
+                    class="city-chip-v2 interest-chip-v2"
                     data-interest="Ancient Temples"
                   >
                     🏛️ Temples
                   </button>
                   <button
-                    class="city-chip interest-chip"
+                    class="city-chip-v2 interest-chip-v2"
                     data-interest="Museum"
                   >
                     🖼️ Museums
                   </button>
                   <button
-                    class="city-chip interest-chip"
+                    class="city-chip-v2 interest-chip-v2"
                     data-interest="Mosque"
                   >
                     🕌 Islamic
                   </button>
                   <button
-                    class="city-chip interest-chip"
+                    class="city-chip-v2 interest-chip-v2"
                     data-interest="Church & Monastery"
                   >
                     ⛪ Coptic
                   </button>
                   <button
-                    class="city-chip interest-chip"
+                    class="city-chip-v2 interest-chip-v2"
                     data-interest="Nature & Islands"
                   >
                     🌿 Nature
                   </button>
                 </div>
               </div>
+
+              <button id="generateTripBtn" class="primary-action-cta">
+                <span>Generate Visual Itinerary</span>
+                <i class="fas fa-magic"></i>
+              </button>
+
+              <div
+                id="tripLoading"
+                class="premium-loader-box"
+                style="display: none"
+              >
+                <div class="pulse-spinner"></div>
+                <p id="loadingMessage">Structuring historical pathways...</p>
+              </div>
             </div>
 
-            <button
-              id="generateTripBtn"
-              class="scanner-btn"
-              style="margin-top: 20px; width: 100%"
-            >
-              Generate AI Itinerary
-            </button>
-            <div id="tripLoading" style="display: none">
-              <div class="spinner"></div>
-              <p id="loadingMessage">Analyzing destinations...</p>
-            </div>
-
-            <div id="tripResult" style="margin-top: 20px"></div>
+            <div id="tripResult" class="itinerary-display-column"></div>
           </div>
 
-          <div id="trackerContainer" style="display: none">
-            <div id="myTripsList">
-              <p style="text-align: center; color: #666">
-                Loading your trips...
+          <div
+            id="trackerContainer"
+            class="planner-view-grid"
+            style="display: none"
+          >
+            <div id="myTripsList" class="tracker-full-width-wrapper">
+              <p class="empty-state-text">
+                Gathering your active travel operations...
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <footer class="footer">
       <div class="footer-bottom">© 2026 Fasa7ny. All rights reserved.</div>
     </footer>

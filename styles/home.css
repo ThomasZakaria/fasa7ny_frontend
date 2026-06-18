@@ -1862,3 +1862,614 @@ html {
     flex: 0 0 auto;
   }
 }
+/* Premium Trip Planner Variables & Foundations */
+:root {
+  --airbnb-black: #222222;
+  --airbnb-gray: #717171;
+  --airbnb-light-gray: #dddddd;
+  --bg-sand: #f7f6f2;
+  --egyptian-indigo: #0b4a6f;
+  --sunrise-amber: #ff9800;
+  --emerald-clear: #10b981;
+  --radius-premium: 16px;
+  --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* Modal Frame Structural Refactor */
+.premium-planner-modal {
+  max-width: 1100px !important;
+  width: 92vw !important;
+  border-radius: 24px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.modal-body-premium {
+  padding: 32px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.close-modal-premium {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--airbnb-black);
+  z-index: 100;
+  transition: var(--transition-smooth);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f3f4f6;
+}
+.close-modal-premium:hover {
+  background: var(--airbnb-light-gray);
+  transform: rotate(90deg);
+}
+
+/* Typographic Architecture Styling */
+.planner-brand-header {
+  margin-bottom: 28px;
+}
+.planner-brand-header h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--airbnb-black);
+  margin: 8px 0;
+}
+.planner-brand-header p {
+  color: var(--airbnb-gray);
+  font-size: 1.05rem;
+}
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(11, 74, 111, 0.08);
+  color: var(--egyptian-indigo);
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Tabs Navigation Layout Refactor */
+.trip-tabs-premium {
+  display: flex;
+  background: #f3f4f6;
+  padding: 6px;
+  border-radius: 14px;
+  margin-bottom: 32px;
+  gap: 4px;
+}
+.tab-btn-premium {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--airbnb-gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+}
+.tab-btn-premium.active {
+  background: #ffffff;
+  color: var(--egyptian-indigo);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Workspace Multi-Column Grid Design */
+.planner-view-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .planner-view-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Configuration Step Layout Styling Elements */
+.configuration-sidebar-card {
+  background: #fafafa;
+  border: 1px solid #eaeaea;
+  border-radius: var(--radius-premium);
+  padding: 24px;
+}
+.planner-step-card {
+  margin-bottom: 24px;
+}
+.step-lbl {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--airbnb-black);
+  margin-bottom: 12px;
+}
+
+/* Modern Chip Selectors Core Refactor */
+.city-chips-premium {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.city-chip-v2 {
+  background: #ffffff;
+  border: 1px solid var(--airbnb-light-gray);
+  padding: 10px 18px;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--airbnb-black);
+  transition: var(--transition-smooth);
+}
+.city-chip-v2:hover {
+  border-color: var(--airbnb-black);
+  background: #faf9f6;
+}
+.city-chip-v2.active {
+  background: var(--airbnb-black);
+  color: #ffffff;
+  border-color: var(--airbnb-black);
+}
+
+/* Inputs, Controls & Layout Slider Rules */
+.modern-slider {
+  width: 100%;
+  accent-color: var(--egyptian-indigo);
+  margin: 8px 0;
+  cursor: pointer;
+}
+.days-display-v2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--egyptian-indigo);
+  text-align: right;
+}
+.primary-action-cta {
+  width: 100%;
+  padding: 16px;
+  background: var(--egyptian-indigo);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(11, 74, 111, 0.2);
+  transition: var(--transition-smooth);
+}
+.primary-action-cta:hover {
+  background: #06334d;
+  transform: translateY(-1px);
+}
+
+/* Sticky Premium Trip Summary Tracker Element */
+.sticky-trip-summary-header {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 20px 24px;
+  border-radius: var(--radius-premium);
+  margin-bottom: 24px;
+  z-index: 10;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* Interactive Circular Progress Infrastructure Configuration */
+.circular-progress-component {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.progress-svg-frame {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.progress-svg-frame svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+.circle-track-bg {
+  fill: none;
+  stroke: #eaeaea;
+  stroke-width: 5;
+}
+.circle-progress-fill {
+  fill: none;
+  stroke: var(--emerald-clear);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease-in-out;
+}
+.progress-percentage-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--airbnb-black);
+}
+
+.summary-meta-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--airbnb-black);
+}
+.summary-meta-text p {
+  margin: 0;
+  color: var(--airbnb-gray);
+  font-size: 0.95rem;
+}
+
+/* Day Accordion Base Interface Architecture styling */
+.itinerary-display-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.day-accordion-card {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: var(--radius-premium);
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: var(--transition-smooth);
+}
+.day-accordion-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  border-color: #dde2e5;
+}
+.day-accordion-header {
+  padding: 22px 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: #ffffff;
+  user-select: none;
+  gap: 16px;
+}
+.day-header-left-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.day-title-txt {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--airbnb-black);
+  margin: 0;
+}
+.day-subtitle-tags {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--airbnb-gray);
+  flex-wrap: wrap;
+}
+.tag-lbl-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tag-divider-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--airbnb-light-gray);
+}
+.accordion-toggle-chevron {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--airbnb-black);
+  transition: var(--transition-smooth);
+}
+.day-accordion-card.expanded .accordion-toggle-chevron {
+  transform: rotate(180deg);
+  background: rgba(11, 74, 111, 0.1);
+  color: var(--egyptian-indigo);
+}
+
+/* Collapsible Section Layout Management Configuration */
+.day-accordion-body-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fafafa;
+  border-top: 0 solid #eaeaea;
+}
+.day-accordion-card.expanded .day-accordion-body-wrapper {
+  max-height: 2500px; /* Functional ceiling limit for animation track */
+  border-top-width: 1px;
+}
+.day-accordion-content-inner {
+  padding: 26px;
+  position: relative;
+}
+
+/* Visual Timeline Rail Mechanics styling */
+.day-accordion-content-inner::before {
+  content: "";
+  position: absolute;
+  top: 30px;
+  bottom: 30px;
+  left: 42px;
+  width: 2px;
+  background: #eaeaea;
+  z-index: 1;
+}
+
+/* Chronological Slot Structure styling */
+.chronological-timeline-slot {
+  position: relative;
+  margin-bottom: 28px;
+  z-index: 2;
+}
+.chronological-timeline-slot:last-child {
+  margin-bottom: 0;
+}
+.timeline-slot-anchor-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--egyptian-indigo);
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #eaeaea;
+  margin-left: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+/* High Fidelity Attraction Card Component Blueprint */
+.premium-attraction-item-card {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 14px;
+  padding: 16px;
+  gap: 18px;
+  margin-left: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+  transition: var(--transition-smooth);
+}
+.premium-attraction-item-card:hover {
+  transform: translateX(4px);
+  border-color: #d0d6db;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+/* Checklist Checkbox Layout Elements Refactor */
+.task-checkbox-wrapper-premium {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+}
+.modern-circular-checkbox {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--airbnb-light-gray);
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  display: grid;
+  place-content: center;
+}
+.modern-circular-checkbox:checked {
+  background: var(--emerald-clear);
+  border-color: var(--emerald-clear);
+}
+.modern-circular-checkbox::before {
+  content: "\f00c";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 11px;
+  color: #ffffff;
+  display: none;
+}
+.modern-circular-checkbox:checked::before {
+  display: block;
+}
+
+/* Card Visual Thumbnail Component Layout Rules */
+.attraction-thumbnail-frame {
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+.attraction-thumbnail-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.premium-attraction-item-card:hover .attraction-thumbnail-frame img {
+  transform: scale(1.06);
+}
+
+/* Internal Card Text Content Fields styling */
+.attraction-details-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.attraction-details-frame h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--airbnb-black);
+  margin: 0 0 6px 0;
+  transition: var(--transition-smooth);
+}
+.premium-attraction-item-card.task-completed h5 {
+  text-decoration: line-through;
+  color: var(--airbnb-gray);
+}
+.attraction-short-narrative {
+  font-size: 0.9rem;
+  color: var(--airbnb-gray);
+  line-height: 1.4;
+  margin: 0 0 10px 0;
+}
+.attraction-meta-row-tags {
+  display: flex;
+  gap: 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555555;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.attraction-meta-row-tags span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.attraction-meta-row-tags i {
+  color: var(--egyptian-indigo);
+}
+
+/* Card External Operations Action Buttons layout rules */
+.attraction-action-rail-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  border-left: 1px solid #f0f0f0;
+  padding-left: 16px;
+}
+.action-icon-pill-btn {
+  border: 1px solid var(--airbnb-light-gray);
+  background: #ffffff;
+  color: var(--airbnb-black);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px; /* Accessible Touch Target Safety */
+  transition: var(--transition-smooth);
+}
+.action-icon-pill-btn:hover {
+  background: #f3f4f6;
+  border-color: var(--airbnb-black);
+}
+.action-icon-pill-btn.swap-variant {
+  color: #0284c7;
+  background: #f0f9ff;
+  border-color: #bde4ff;
+}
+.action-icon-pill-btn.swap-variant:hover {
+  background: #e0f2fe;
+  border-color: #0284c7;
+}
+
+/* Operational Completion Card States styling rules */
+.premium-attraction-item-card.task-completed {
+  background: #fafefa;
+  border-color: #d1e7dd;
+}
+
+/* Framework Loading Animation Objects */
+.premium-loader-box {
+  text-align: center;
+  padding: 24px 0;
+}
+.pulse-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 12px;
+  background-color: var(--egyptian-indigo);
+  border-radius: 100%;
+  animation: scale-out-pulse 1s infinite ease-in-out;
+}
+@keyframes scale-out-pulse {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Interactive Responsive Framework Adaptations */
+@media (max-width: 680px) {
+  .premium-attraction-item-card {
+    flex-direction: column;
+    margin-left: 4px;
+  }
+  .day-accordion-content-inner::before {
+    left: 28px;
+  }
+  .timeline-slot-anchor-title {
+    margin-left: 4px;
+  }
+  .attraction-action-rail-buttons {
+    flex-direction: row;
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+    padding-left: 0;
+    padding-top: 12px;
+    justify-content: flex-start;
+  }
+  .sticky-trip-summary-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .action-icon-pill-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
