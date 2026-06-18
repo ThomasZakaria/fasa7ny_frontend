@@ -1185,15 +1185,10 @@ html {
   width: 100%;
   accent-color: #ff9800;
 }
-.modal-content {
-  max-width: 800px;
-}
 #tripPlannerModal .modal-content {
-  width: 95%;
-  max-width: 1100px;
-  height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
-  border-radius: 24px;
+  padding-right: 10px;
 }
 .city-chip {
   transition: all 0.25s ease;
@@ -1284,82 +1279,75 @@ html {
 /* ======================================================= */
 
 @media (max-width: 768px) {
-  /* 1. تظبيط كل السكاشن (Sections) عشان متدخلش في بعض */
-  section {
-    padding: 40px 15px !important; /* تقليل المسافات الفاضية المبالغ فيها */
-    height: auto !important;
-    min-height: auto !important;
-  }
+    /* 1. تظبيط كل السكاشن (Sections) عشان متدخلش في بعض */
+    section {
+        padding: 40px 15px !important; /* تقليل المسافات الفاضية المبالغ فيها */
+        height: auto !important;
+        min-height: auto !important;
+    }
 
-  /* 2. أي عناصر جنب بعض (Flex) هنخليها تنزل تحت بعض (Column) */
-  .hero-content,
-  .ai-card,
-  .modal-content,
-  .calc-grid-2-col,
-  .profile-header {
-    display: flex !important;
-    flex-direction: column !important;
-    text-align: center !important;
-    gap: 15px !important;
-  }
+    /* 2. أي عناصر جنب بعض (Flex) هنخليها تنزل تحت بعض (Column) */
+    .hero-content, 
+    .ai-card, 
+    .modal-content, 
+    .calc-grid-2-col,
+    .profile-header {
+        display: flex !important;
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 15px !important;
+    }
 
-  /* 3. الكروت (Cards) زي المعالم والأماكن، بدل ما تتزنق، هتاخد الشاشة كلها */
-  .cards,
-  .profile-cards,
-  #exploreGrid {
-    display: grid !important;
-    grid-template-columns: 1fr !important; /* عمود واحد بس في الموبايل */
-    gap: 15px !important;
-  }
+    /* 3. الكروت (Cards) زي المعالم والأماكن، بدل ما تتزنق، هتاخد الشاشة كلها */
+    .cards, 
+    .profile-cards, 
+    #exploreGrid {
+        display: grid !important;
+        grid-template-columns: 1fr !important; /* عمود واحد بس في الموبايل */
+        gap: 15px !important;
+    }
 
-  /* 4. النافبار (شريط التنقل اللي فوق) */
-  .navbar {
-    padding: 15px !important;
-    flex-wrap: wrap !important;
-    justify-content: space-between !important;
-  }
-  .nav-links {
-    display: none !important; /* بنخفي اللينكات في الموبايل عشان متعملش زحمة وتضرب اللوجو */
-  }
-  .login-btn,
-  .scanner-btn {
-    font-size: 0.9rem !important;
-    padding: 8px 15px !important;
-  }
+    /* 4. النافبار (شريط التنقل اللي فوق) */
+    .navbar {
+        padding: 15px !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+    }
+    .nav-links {
+        display: none !important; /* بنخفي اللينكات في الموبايل عشان متعملش زحمة وتضرب اللوجو */
+    }
+    .login-btn, .scanner-btn {
+        font-size: 0.9rem !important;
+        padding: 8px 15px !important;
+    }
 
-  /* 5. المودال (الـ Popups زي بتاع الحسابات أو تفاصيل المعلم) */
-  .modal-content {
-    width: 95% !important; /* ياخد الشاشة كلها بدل ما يخرج براها */
-    margin: 20px auto !important;
-    padding: 15px !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important; /* عشان لو المحتوى طويل تعمل سكرول جوه البوب آب */
-  }
+    /* 5. المودال (الـ Popups زي بتاع الحسابات أو تفاصيل المعلم) */
+    .modal-content {
+        width: 95% !important; /* ياخد الشاشة كلها بدل ما يخرج براها */
+        margin: 20px auto !important;
+        padding: 15px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important; /* عشان لو المحتوى طويل تعمل سكرول جوه البوب آب */
+    }
 
-  /* 6. تصغير الخطوط العنيفة */
-  h1 {
-    font-size: 1.8rem !important;
-  }
-  h2 {
-    font-size: 1.4rem !important;
-  }
-  p {
-    font-size: 0.95rem !important;
-  }
+    /* 6. تصغير الخطوط العنيفة */
+    h1 { font-size: 1.8rem !important; }
+    h2 { font-size: 1.4rem !important; }
+    p { font-size: 0.95rem !important; }
 
-  /* 7. أي صور في الموقع تتلم جوه الشاشة */
-  img {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-
-  /* 8. فلاتر البحث (Smart Search) */
-  .smart-filters-container {
-    flex-direction: column !important;
-  }
-  .smart-filter-select {
-    width: 100% !important;
-  }
+    /* 7. أي صور في الموقع تتلم جوه الشاشة */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* 8. فلاتر البحث (Smart Search) */
+    .smart-filters-container {
+        flex-direction: column !important;
+    }
+    .smart-filter-select {
+        width: 100% !important;
+    }
 }
 /* ======================================================= */
 /* 🚀 تحويل الموقع لشكل تطبيق موبايل (Mobile App UI) */
@@ -1367,198 +1355,124 @@ html {
 
 /* إخفاء البار السفلي في الديسكتوب */
 .bottom-nav {
-  display: none;
+    display: none; 
 }
 
 @media (max-width: 768px) {
-  /* 1. الهيرو سيكشن وتداخل صندوق البحث */
-  .hero {
-    min-height: 420px !important;
-    align-items: flex-start !important; /* نرفع المحتوى لفوق */
-    padding-top: 60px !important;
-  }
+    /* 1. الهيرو سيكشن وتداخل صندوق البحث */
+    .hero {
+        min-height: 420px !important;
+        align-items: flex-start !important; /* نرفع المحتوى لفوق */
+        padding-top: 60px !important;
+    }
 
-  .search-section {
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    margin: -80px 15px 20px 15px !important; /* السر هنا: ده اللي بيسحب الصندوق فوق الصورة */
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-  }
+    .search-section {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin: -80px 15px 20px 15px !important; /* السر هنا: ده اللي بيسحب الصندوق فوق الصورة */
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
 
-  /* 2. شبكة الفلاتر (Dropdowns) نخليها 2x2 زي الصورة */
-  .smart-filters-container {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-    flex-direction: row !important; /* نلغي الكولم القديم */
-  }
+    /* 2. شبكة الفلاتر (Dropdowns) نخليها 2x2 زي الصورة */
+    .smart-filters-container {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        flex-direction: row !important; /* نلغي الكولم القديم */
+    }
+    
+    .smart-filter-select {
+        font-size: 0.8rem !important;
+        padding: 12px 10px !important;
+        border-radius: 12px !important;
+        border: 1px solid #ddd !important;
+        background: #f9f9f9 !important;
+    }
 
-  .smart-filter-select {
-    font-size: 0.8rem !important;
-    padding: 12px 10px !important;
-    border-radius: 12px !important;
-    border: 1px solid #ddd !important;
-    background: #f9f9f9 !important;
-  }
+    /* 3. سكرول أفقي للكروت (عشان تتسحب يمين وشمال) */
+    .cards, #exploreGrid, #categoriesContentWrapper {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 15px !important;
+        padding-bottom: 20px !important;
+        padding-left: 10px !important;
+        /* إخفاء شريط السكرول المزعج */
+        scrollbar-width: none; 
+        -ms-overflow-style: none; 
+        -webkit-overflow-scrolling: touch; 
+    }
+    .cards::-webkit-scrollbar, #exploreGrid::-webkit-scrollbar {
+        display: none; 
+    }
+    
+    /* عرض الكارت عشان يظهر جزء من اللي بعده ويشجع اليوزر يسحب */
+    .cards > *, #exploreGrid > * {
+        min-width: 160px !important; 
+        flex: 0 0 auto;
+    }
 
-  /* 3. سكرول أفقي للكروت (عشان تتسحب يمين وشمال) */
-  .cards,
-  #exploreGrid,
-  #categoriesContentWrapper {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 15px !important;
-    padding-bottom: 20px !important;
-    padding-left: 10px !important;
-    /* إخفاء شريط السكرول المزعج */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .cards::-webkit-scrollbar,
-  #exploreGrid::-webkit-scrollbar {
-    display: none;
-  }
+    /* 4. إظهار البار السفلي وإخفاء اللينكات العلوية */
+    body {
+        padding-bottom: 80px !important; /* مساحة من تحت عشان البار ميغطيش الكلام */
+        background-color: #f4f7f6; /* لون خلفية هادي زي الأبلكيشنز */
+    }
+    
+    .navbar .nav-links, .navbar .login-btn {
+        display: none !important;
+    }
 
-  /* عرض الكارت عشان يظهر جزء من اللي بعده ويشجع اليوزر يسحب */
-  .cards > *,
-  #exploreGrid > * {
-    min-width: 160px !important;
-    flex: 0 0 auto;
-  }
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+        justify-content: space-around;
+        padding: 12px 0 20px 0;
+        z-index: 1000;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+    }
 
-  /* 4. إظهار البار السفلي وإخفاء اللينكات العلوية */
-  body {
-    padding-bottom: 80px !important; /* مساحة من تحت عشان البار ميغطيش الكلام */
-    background-color: #f4f7f6; /* لون خلفية هادي زي الأبلكيشنز */
-  }
+    .bottom-nav a {
+        text-decoration: none;
+        color: #888;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.75rem;
+        gap: 6px;
+        transition: 0.3s;
+    }
 
-  .navbar .nav-links,
-  .navbar .login-btn {
-    display: none !important;
-  }
+    .bottom-nav a i {
+        font-size: 1.3rem;
+    }
 
-  .bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: white;
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
-    justify-content: space-around;
-    padding: 12px 0 20px 0;
-    z-index: 1000;
-    border-top-left-radius: 25px;
-    border-top-right-radius: 25px;
-  }
+    .bottom-nav a.active {
+        color: #0b4a6f;
+        font-weight: 600;
+    }
+    
+    .bottom-nav a.active i {
+        color: #ff9800; /* لون الأيقونة المفعلة */
+    }
 
-  .bottom-nav a {
-    text-decoration: none;
-    color: #888;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.75rem;
-    gap: 6px;
-    transition: 0.3s;
-  }
-
-  .bottom-nav a i {
-    font-size: 1.3rem;
-  }
-
-  .bottom-nav a.active {
-    color: #0b4a6f;
-    font-weight: 600;
-  }
-
-  .bottom-nav a.active i {
-    color: #ff9800; /* لون الأيقونة المفعلة */
-  }
-
-  /* 5. تظبيط زرار (أماكن قريبة مني) ليكون شبه الصورة */
-  .location-btn {
-    border-radius: 30px !important;
-    padding: 10px 25px !important;
-    font-size: 0.9rem !important;
-    background-color: #0b4a6f !important;
-    color: white !important;
-    width: auto !important;
-    margin: 0 auto !important;
-    display: block !important;
-  }
-}
-.premium-itinerary {
-  padding: 10px;
-}
-
-.day-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.day-card h4 {
-  color: #0b4a6f;
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-}
-
-.place-item {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
-  border-left: 4px solid #ff9800;
-}
-
-.place-name {
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.place-time {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.place-desc {
-  color: #555;
-  margin-top: 5px;
-}
-
-.place-budget {
-  color: #ff9800;
-  font-weight: bold;
-  margin-top: 8px;
-}
-.save-trip-btn {
-  width: 100%;
-  border: none;
-  padding: 16px;
-  border-radius: 12px;
-  background: #0b4a6f;
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-  margin-top: 25px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.save-trip-btn:hover {
-  background: #083652;
-}
-.cards,
-#exploreGrid,
-#categoriesContentWrapper {
-  display: flex !important;
-  flex-wrap: nowrap !important;
+    /* 5. تظبيط زرار (أماكن قريبة مني) ليكون شبه الصورة */
+    .location-btn {
+        border-radius: 30px !important;
+        padding: 10px 25px !important;
+        font-size: 0.9rem !important;
+        background-color: #0b4a6f !important;
+        color: white !important;
+        width: auto !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
 }
