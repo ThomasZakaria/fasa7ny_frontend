@@ -408,57 +408,8 @@ if (modalSaveBtn) {
   };
 }
 
-async function submitReview() {
-  const userId = localStorage.getItem("userId");
-  const username = localStorage.getItem("username");
-  const comment = document.getElementById("reviewComment").value.trim();
-  const rating = document.querySelector('input[name="stars"]:checked')?.value;
-
-  if (!userId) return alert("Please login to post a review!");
-  if (!comment || !rating) return alert("Please add a comment and rating!");
-
-  const placeId =
-    window.currentModalPlace.ID ||
-    window.currentModalPlace._id?.$oid ||
-    window.currentModalPlace._id;
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/places/${placeId}/reviews`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        username: username || "Tourist",
-        comment,
-        rating: parseInt(rating),
-      }),
-    });
-
-    const data = await res.json();
-    if (data.status === "success") {
-      document.getElementById("reviewComment").value = "";
-      if (typeof loadReviews === "function") loadReviews(placeId.toString());
-      alert("Review posted!");
-    }
-  } catch (err) {
-    console.error("Review Error:", err);
-  }
-}
-
 // ==========================================
-// TRIP COST CALCULATOR LOGIC (Advanced)
-// ==========================================
-window.updateStepper = function (inputId, change) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  let newVal = parseInt(input.value) + change;
-  if (newVal < 1) newVal = 1;
-  input.value = newVal;
-  if (window.triggerTripCalculation) window.triggerTripCalculation();
-};
-
-// ==========================================
-// 5. INITIALIZATION & CORE FEATURES
+// 5. INITIALIZATION & Curated Categories Rendering
 // ==========================================
 function renderGroupedCategories(categoriesData, selectedCity) {
   const container = document.getElementById("categoriesContentWrapper");
@@ -549,7 +500,6 @@ async function fetchAndRenderCategories(selectedCity = "all") {
   } catch (error) {
     console.error("Home Load Error:", error);
   } finally {
-    // FIXED: Was 'finaly' with one 'l'
     if (categoriesLoading) categoriesLoading.classList.add("hidden");
     isFetchingCategories = false;
   }
@@ -619,12 +569,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let previousCurrency = "EGP";
   let lastCalcPlaceId = null;
 
-  if (aiBudgetBtn) {
-    aiBudgetBtn.addEventListener("click", () => {
-      fetchAIRecommendations(window.currentModalPlace || {});
-    });
-  }
-
   if (openCalcBtn) {
     openCalcBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -654,10 +598,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (calcModal) calcModal.classList.remove("active");
     });
   }
-
-  window.addEventListener("click", (e) => {
-    if (e.target === calcModal) calcModal.classList.remove("active");
-  });
 
   window.triggerTripCalculation = function () {
     if (!inputs.days) return;
@@ -698,35 +638,8 @@ document.addEventListener("DOMContentLoaded", () => {
   Object.values(inputs).forEach((input) => {
     if (input) {
       input.addEventListener("input", window.triggerTripCalculation);
-      input.addEventListener("blur", (e) => {
-        let val = parseInt(e.target.value, 10);
-        e.target.value = isNaN(val) || val < 0 ? "" : val;
-        window.triggerTripCalculation();
-      });
     }
   });
-
-  if (currencySelect) {
-    currencySelect.addEventListener("change", (e) => {
-      const newCurrency = e.target.value;
-      const oldRate = exchangeRates[previousCurrency];
-      const newRate = exchangeRates[newCurrency];
-
-      const convertField = (input) => {
-        let val = parseFloat(input.value);
-        if (!isNaN(val) && val > 0) {
-          let baseEGP = val / oldRate;
-          let newVal = baseEGP * newRate;
-          input.value = Math.round(newVal);
-        }
-      };
-      convertField(inputs.transport);
-      convertField(inputs.accommodation);
-      convertField(inputs.food);
-      previousCurrency = newCurrency;
-      window.triggerTripCalculation();
-    });
-  }
 
   if (tripDaysInput && daysDisplayLabel) {
     tripDaysInput.addEventListener("input", () => {
@@ -768,21 +681,11 @@ if (uploadBtn && imageInput) {
       if (data.status === "success") {
         if (data.data.details) openPlaceModal(data.data.details);
         else if (data.data.prediction)
-          alert(
-            `AI identified this as: ${data.data.prediction}\nBut full details are not in our database yet.`,
-          );
-        else
-          alert(
-            "AI couldn't identify this landmark clearly. Try another angle!",
-          );
-      } else {
-        alert("Error analyzing image: " + (data.message || "Unknown error"));
+          alert(`AI identified this as: ${data.data.prediction}`);
       }
     } catch (err) {
       console.error("AI Scan Error:", err);
-      alert("Make sure both Node.js and Python servers are running!");
     } finally {
-      // FIXED: Was 'finaly' with one 'l'
       if (loadState) loadState.classList.add("hidden");
       imageInput.value = "";
     }
@@ -795,35 +698,20 @@ if (getLocationBtn) {
     const container = document.getElementById("nearMeCards");
     if (loader) loader.classList.remove("hidden");
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        try {
-          const res = await fetch(
-            `${API_BASE_URL}/places/near-me?lat=${lat}&lng=${lng}`,
-          );
-          const d = await res.json();
-          if (loader) loader.classList.add("hidden");
-          renderCards(d.data.places, container, true);
-
-          const showBtn = document.getElementById("showMoreNearMeBtn");
-          if (showBtn && d.data.places.length > 0) {
-            showBtn.classList.remove("hidden");
-            showBtn.onclick = () => {
-              window.location.href = `explore.html?type=near-me&lat=${lat}&lng=${lng}`;
-            };
-          }
-        } catch (err) {
-          if (loader) loader.classList.add("hidden");
-          console.error("Location Fetch Error:", err);
-        }
-      },
-      (err) => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/places/near-me?lat=${lat}&lng=${lng}`,
+        );
+        const d = await res.json();
         if (loader) loader.classList.add("hidden");
-        alert("Please enable location services in your browser.");
-      },
-    );
+        renderCards(d.data.places, container, true);
+      } catch (err) {
+        if (loader) loader.classList.add("hidden");
+      }
+    });
   };
 }
 
@@ -835,22 +723,18 @@ document.addEventListener("click", (e) => {
   if (cityChip) {
     const city = cityChip.dataset.city;
     cityChip.classList.toggle("active");
-    if (selectedCities.includes(city)) {
+    if (selectedCities.includes(city))
       selectedCities = selectedCities.filter((c) => c !== city);
-    } else {
-      selectedCities.push(city);
-    }
+    else selectedCities.push(city);
   }
 
   const interestChip = e.target.closest(".interest-chip-v2");
   if (interestChip) {
     const interest = interestChip.dataset.interest;
     interestChip.classList.toggle("active");
-    if (selectedInterests.includes(interest)) {
+    if (selectedInterests.includes(interest))
       selectedInterests = selectedInterests.filter((i) => i !== interest);
-    } else {
-      selectedInterests.push(interest);
-    }
+    else selectedInterests.push(interest);
   }
 });
 
@@ -884,18 +768,12 @@ if (generateBtn) {
             manualSelection: window.tripCart || [],
           }),
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
         const data = await response.json();
         clearInterval(interval);
         if (tripLoading) tripLoading.style.display = "none";
 
         const itinerary = data?.data?.itinerary;
-        if (!itinerary || !itinerary.days) {
-          document.getElementById("tripResult").innerHTML =
-            `<div class="premium-attraction-item-card" style="padding:24px; color:var(--airbnb-gray); text-align:center;">⚠️ Could not validate itinerary parameters.</div>`;
-          return;
-        }
+        if (!itinerary || !itinerary.days) return;
 
         document.getElementById("plannerInputsForm").style.display = "none";
         document.getElementById("summaryLabelDestinations").textContent =
@@ -919,7 +797,6 @@ if (generateBtn) {
         };
 
         let accordionDaysHtml = "";
-
         itinerary.days.forEach((dayObj, dayIndex) => {
           let dayEstimatedCost = 0;
           let dayActivitiesCount = dayObj.places.length;
@@ -944,77 +821,47 @@ if (generateBtn) {
               resolvedCategoryTag = "Necropolis";
             } else if (
               textQuery.includes("museum") ||
-              textQuery.includes("tahrir") ||
-              textQuery.includes("grand")
+              textQuery.includes("tahrir")
             ) {
               curatedThumbnail =
                 "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Exhibition Gallery";
-            } else if (
-              textQuery.includes("temple") ||
-              textQuery.includes("luxor") ||
-              textQuery.includes("karnak")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Pharaonic Sanctuary";
-            } else if (
-              textQuery.includes("mosque") ||
-              textQuery.includes("citadel")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Islamic Architecture";
-            } else if (
-              textQuery.includes("church") ||
-              textQuery.includes("coptic")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Coptic Heritage";
             }
 
             const timeString = (place.time || "").toUpperCase();
             let assignedPeriod = "afternoon";
-
             if (timeString.includes("AM") || placeIndex === 0)
               assignedPeriod = "morning";
             else if (
               timeString.includes("PM") &&
               (timeString.includes("5:") ||
                 timeString.includes("6:") ||
-                timeString.includes("7:") ||
-                timeString.includes("8:") ||
                 placeIndex === dayActivitiesCount - 1)
             )
               assignedPeriod = "evening";
-            else if (placeIndex === 1 && dayActivitiesCount > 2)
-              assignedPeriod = "afternoon";
 
             const cleanNarrative = place.reason
               ? place.reason.replace(/^"|焦点|"/g, "")
-              : "Visual AI recommendation optimized for historical context mapping.";
+              : "AI optimized recommendation.";
 
             const singleCardMarkup = `
               <div class="premium-attraction-item-card generation-mode-card">
-                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy"></div>
+                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Preview" loading="lazy"></div>
                 <div class="attraction-details-frame">
                   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">
-                    <h5>${place.name || "Historical Destination Landmark"}</h5>
+                    <h5>${place.name || "Destination Landmark"}</h5>
                     <span class="category-badge-pill">${resolvedCategoryTag}</span>
                   </div>
                   <p class="attraction-short-narrative">${cleanNarrative}</p>
                   <div class="attraction-meta-row-tags">
-                    <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
-                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
+                    <span><i class="far fa-clock"></i> ${place.time || "Flexible"}</span>
+                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free"}</span>
                   </div>
                 </div>
                 <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')"><i class="fas fa-exchange-alt"></i> Swap</button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')"><i class="far fa-edit"></i> Edit</button>
+                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 Swapping options...')"><i class="fas fa-exchange-alt"></i> Swap</button>
+                  <button class="action-icon-pill-btn" onclick="alert('✏️ Editing panel...')"><i class="far fa-edit"></i> Edit</button>
                 </div>
               </div>`;
-
             chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
 
@@ -1026,11 +873,9 @@ if (generateBtn) {
           if (chronologicalSlots.evening.length > 0)
             timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div></div>`;
 
-          const isFirstDayDefaultOpen = dayIndex === 0 ? "expanded" : "";
           const uniqueAccordionIdentifier = `generationAccordionDay_d${dayObj.day}`;
-
           accordionDaysHtml += `
-            <div class="day-accordion-card ${isFirstDayDefaultOpen}" id="${uniqueAccordionIdentifier}">
+            <div class="day-accordion-card ${dayIndex === 0 ? "expanded" : ""}" id="${uniqueAccordionIdentifier}">
               <div class="day-accordion-header" onclick="window.togglePremiumAccordion('${uniqueAccordionIdentifier}')">
                 <div class="day-header-left-pane">
                   <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
@@ -1060,43 +905,28 @@ if (generateBtn) {
         if (savePlanBtn) {
           savePlanBtn.addEventListener("click", async () => {
             const userId = localStorage.getItem("userId");
-            if (!userId) {
-              alert("Please authenticate first.");
-              return;
-            }
+            if (!userId) return;
             try {
-              const saveResponse = await fetch(
-                `${API_BASE_URL}/user/save-trip`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    userId,
-                    itinerary,
-                    cities: selectedCities,
-                    days: tripDaysInput.value,
-                  }),
-                },
+              await fetch(`${API_BASE_URL}/user/save-trip`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId,
+                  itinerary,
+                  cities: selectedCities,
+                  days: tripDaysInput.value,
+                }),
+              });
+              alert(
+                "✨ Expedition path successfully synced to Live Dashboard records!",
               );
-              const result = await saveResponse.json();
-              if (result.status === "success") {
-                alert(
-                  "✨ Expedition path successfully synced to Live Dashboard records!",
-                );
-                if (typeof loadMyTripsTracker === "function")
-                  document.getElementById("tabMyTrips").click();
-              }
+              document.getElementById("tabMyTrips").click();
             } catch (err) {
               console.error(err);
-              alert("Transmission interface failure.");
             }
           });
         }
       } catch (error) {
-        clearInterval(interval);
-        if (tripLoading) tripLoading.style.display = "none";
-        document.getElementById("tripResult").innerHTML =
-          `<div class="premium-attraction-item-card" style="padding:24px; color:#E74C3C; background:#FDF0ED; border:1px solid #FADBD8;">⚠️ Connection Fault: AI matrix pipelines are currently unreachable.</div>`;
         console.error(error);
       }
     }, 2000);
@@ -1111,12 +941,9 @@ if (tabCreate && tabTrips) {
     tabCreate.classList.add("active");
     tabCreate.style.background = "#fff";
     tabCreate.style.color = "#0b4a6f";
-    tabCreate.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
     tabTrips.classList.remove("active");
     tabTrips.style.background = "transparent";
     tabTrips.style.color = "#666";
-    tabTrips.style.boxShadow = "none";
-
     if (plannerCont) plannerCont.style.display = "block";
     if (trackerCont) trackerCont.style.display = "none";
   });
@@ -1125,15 +952,11 @@ if (tabCreate && tabTrips) {
     tabTrips.classList.add("active");
     tabTrips.style.background = "#fff";
     tabTrips.style.color = "#0b4a6f";
-    tabTrips.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
     tabCreate.classList.remove("active");
     tabCreate.style.background = "transparent";
     tabCreate.style.color = "#666";
-    tabCreate.style.boxShadow = "none";
-
     if (plannerCont) plannerCont.style.display = "none";
     if (trackerCont) trackerCont.style.display = "block";
-
     loadMyTripsTracker();
   });
 }
@@ -1141,44 +964,15 @@ if (tabCreate && tabTrips) {
 async function loadMyTripsTracker() {
   const userId = localStorage.getItem("userId");
   const container = document.getElementById("myTripsList");
-
-  if (!container) return;
-
-  if (!userId) {
-    container.innerHTML = `
-      <div class="error-card" style="text-align:center; padding:32px; color:#E74C3C; background:#FDF0ED; border-radius:16px; border:1px solid #FADBD8;">
-        <i class="fas fa-user-lock" style="font-size:2.5rem; margin-bottom:12px;"></i>
-        <p style="margin:0; font-weight:600; font-size:1.1rem;">Authentication Required</p>
-        <p style="margin:6px 0 0 0; color:#666; font-size:0.95rem;">Please sign in to view and interact with your personal visual itineraries.</p>
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="premium-loader-box">
-      <div class="pulse-spinner"></div>
-      <p style="color: #717171; font-weight: 500;">Synchronizing your Egyptian Expeditions...</p>
-    </div>`;
+  if (!container || !userId) return;
 
   try {
     const res = await fetch(`${API_BASE_URL}/users/${userId}`);
     const data = await res.json();
     const trips = data.data.user.saved_trips || [];
-
-    if (trips.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center; padding:48px 24px; color:var(--airbnb-gray); border: 2px dashed #EAEAEA; border-radius:16px;">
-          <i class="fas fa-suitcase-rolling" style="font-size:3.5rem; margin-bottom:16px; color:#CCCCCC;"></i>
-          <h4 style="margin:0; color:var(--airbnb-black); font-size:1.25rem;">No Expeditions Found</h4>
-          <p style="margin:8px 0 0 0; font-size:1rem;">Generate a fresh AI Plan on the configuration panel to begin tracking.</p>
-        </div>`;
-      return;
-    }
-
     let finalHtml = "";
-    const activeTripsStack = [...trips].reverse();
 
-    activeTripsStack.forEach((trip) => {
+    [...trips].reverse().forEach((trip) => {
       let totalActivitiesCount = 0;
       let completedActivitiesCount = 0;
       let accordionDaysHtml = "";
@@ -1188,7 +982,6 @@ async function loadMyTripsTracker() {
           let dayEstimatedCost = 0;
           let dayActivitiesCount = dayObj.places.length;
           totalActivitiesCount += dayActivitiesCount;
-
           let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
 
           dayObj.places.forEach((place, placeIndex) => {
@@ -1206,101 +999,35 @@ async function loadMyTripsTracker() {
 
             let curatedThumbnail =
               "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=250&q=70";
-            const textQuery = (place.name || "").toLowerCase();
-            if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("museum") ||
-              textQuery.includes("tahrir")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("temple") ||
-              textQuery.includes("luxor") ||
-              textQuery.includes("karnak")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("mosque") ||
-              textQuery.includes("citadel")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=250&q=70";
-            } else if (
-              textQuery.includes("church") ||
-              textQuery.includes("coptic")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=250&q=70";
-            }
-
-            const timeString = (place.time || "").toUpperCase();
+            const textString = (place.time || "").toUpperCase();
             let assignedPeriod = "afternoon";
-
-            if (timeString.includes("AM") || placeIndex === 0)
+            if (textString.includes("AM") || placeIndex === 0)
               assignedPeriod = "morning";
-            else if (
-              timeString.includes("PM") &&
-              (timeString.includes("5:") ||
-                timeString.includes("6:") ||
-                timeString.includes("7:") ||
-                timeString.includes("8:") ||
-                placeIndex === dayActivitiesCount - 1)
-            )
-              assignedPeriod = "evening";
-            else if (placeIndex === 1 && dayActivitiesCount > 2)
-              assignedPeriod = "afternoon";
-
-            const cleanNarrative = place.reason
-              ? place.reason.replace(/^"|焦点|"/g, "")
-              : "Visual AI recommendation optimized for historical context mapping.";
 
             const singleCardMarkup = `
               <div class="premium-attraction-item-card ${isCompleted ? "task-completed" : ""}" id="cardWrapper_${uniqueActivityId}">
                 <div class="task-checkbox-wrapper-premium">
-                  <input type="checkbox" class="modern-circular-checkbox tracker-checkbox-engine" data-id="${uniqueActivityId}" data-tripid="${trip.tripId}" ${isCompleted ? "checked" : ""} aria-label="Complete activity">
+                  <input type="checkbox" class="modern-circular-checkbox tracker-checkbox-engine" data-id="${uniqueActivityId}" data-tripid="${trip.tripId}" ${isCompleted ? "checked" : ""}>
                 </div>
-                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="${place.name || "Attraction Preview"}" loading="lazy"></div>
+                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Thumbnail" loading="lazy"></div>
                 <div class="attraction-details-frame">
-                  <h5>${place.name || "Historical Destination Landmark"}</h5>
-                  <p class="attraction-short-narrative">${cleanNarrative}</p>
-                  <div class="attraction-meta-row-tags">
-                    <span><i class="far fa-clock"></i> ${place.time || "Flexible Track"}</span>
-                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free Admission"}</span>
-                  </div>
-                </div>
-                <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 AI Engine matching alternative localized options...')"><i class="fas fa-exchange-alt"></i> Swap</button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ System entering time shifting adjustment panels...')"><i class="far fa-edit"></i> Edit</button>
+                  <h5>${place.name || "Destination Landmark"}</h5>
+                  <p class="attraction-short-narrative">${place.reason || "Optimated activity."}</p>
                 </div>
               </div>`;
-
             chronologicalSlots[assignedPeriod].push(singleCardMarkup);
           });
 
           let timelineBlocksContent = "";
           if (chronologicalSlots.morning.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div></div>`;
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title">Morning Exploration</div><div>${chronologicalSlots.morning.join("")}</div></div>`;
           if (chronologicalSlots.afternoon.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div></div>`;
-          if (chronologicalSlots.evening.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div></div>`;
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title">Afternoon High Tracks</div><div>${chronologicalSlots.afternoon.join("")}</div></div>`;
 
           accordionDaysHtml += `
             <div class="day-accordion-card ${dayIndex === 0 ? "expanded" : ""}" id="accordionDay_${trip.tripId}_d${dayObj.day}">
               <div class="day-accordion-header" onclick="window.togglePremiumAccordion('accordionDay_${trip.tripId}_d${dayObj.day}')">
-                <div class="day-header-left-pane">
-                  <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
-                  <div class="day-subtitle-tags">
-                    <span class="tag-lbl-item"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
-                    <span class="tag-divider-dot"></span>
-                    <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
-                  </div>
-                </div>
-                <div class="accordion-toggle-chevron"><i class="fas fa-chevron-down"></i></div>
+                <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Center"}</h4>
               </div>
               <div class="day-accordion-body-wrapper">
                 <div class="day-accordion-content-inner">${timelineBlocksContent}</div>
@@ -1319,104 +1046,26 @@ async function loadMyTripsTracker() {
         (activeProgressPercentage / 100) * svgRingCircumference;
 
       finalHtml += `
-        <div class="trip-operational-grand-card" style="margin-bottom:40px; border-bottom:1px solid #EAEAEA; padding-bottom:32px;">
+        <div class="trip-operational-grand-card" style="margin-bottom:40px;">
           <div class="sticky-trip-summary-header">
-            <div class="summary-meta-text">
-              <h4>Expedition inside ${trip.cities.join(", ")}</h4>
-              <p>Duration Vector Tracker: ${trip.days} Active Days Plan Matrix</p>
-            </div>
-            <div class="circular-progress-component">
-              <div class="summary-meta-text" style="text-align: right;">
-                <p style="font-weight:700; color:var(--airbnb-black);" id="counterText_${trip.tripId}">${completedActivitiesCount} of ${totalActivitiesCount} Visited</p>
-                <p style="font-size:0.85rem;">Live Completion Metrics</p>
-              </div>
-              <div class="progress-svg-frame">
-                <svg>
-                  <circle class="circle-track-bg" cx="32" cy="32" r="28"></circle>
-                  <circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" stroke-dasharray="${svgRingCircumference}" stroke-dashoffset="${initialStrokeDashOffset}"></circle>
-                </svg>
-                <div class="progress-percentage-label" id="badgePercentage_${trip.tripId}">${activeProgressPercentage}%</div>
-              </div>
+            <h4>Expedition inside ${trip.cities.join(", ")}</h4>
+            <div class="progress-svg-frame">
+              <svg><circle class="circle-track-bg" cx="32" cy="32" r="28"></circle><circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" stroke-dasharray="${svgRingCircumference}" stroke-dashoffset="${initialStrokeDashOffset}"></circle></svg>
+              <div class="progress-percentage-label" id="badgePercentage_${trip.tripId}">${activeProgressPercentage}%</div>
             </div>
           </div>
           <div class="itinerary-display-column">${accordionDaysHtml}</div>
         </div>`;
     });
-
     container.innerHTML = finalHtml;
-
-    document
-      .querySelectorAll(".tracker-checkbox-engine")
-      .forEach((checkbox) => {
-        checkbox.addEventListener("change", (event) => {
-          const uniqueActivityId = event.target.dataset.id;
-          const parentTripIdentifier = event.target.dataset.tripid;
-          const targetedCardContainer = document.getElementById(
-            `cardWrapper_${uniqueActivityId}`,
-          );
-
-          if (event.target.checked) {
-            localStorage.setItem(uniqueActivityId, "true");
-            if (targetedCardContainer)
-              targetedCardContainer.classList.add("task-completed");
-          } else {
-            localStorage.removeItem(uniqueActivityId);
-            if (targetedCardContainer)
-              targetedCardContainer.classList.remove("task-completed");
-          }
-
-          const grandParentCardScope = event.target.closest(
-            ".trip-operational-grand-card",
-          );
-          const aggregateCheckboxesCount =
-            grandParentCardScope.querySelectorAll(
-              ".tracker-checkbox-engine",
-            ).length;
-          const currentCheckedBoxesCount =
-            grandParentCardScope.querySelectorAll(
-              ".tracker-checkbox-engine:checked",
-            ).length;
-          const runtimeUpdatedPercentage = Math.round(
-            (currentCheckedBoxesCount / aggregateCheckboxesCount) * 100,
-          );
-
-          const localizedPercentageTextNode = document.getElementById(
-            `badgePercentage_${parentTripIdentifier}`,
-          );
-          const localizedCounterTextNode = document.getElementById(
-            `counterText_${parentTripIdentifier}`,
-          );
-          const targetSvgCircleElement = document.getElementById(
-            `svgCircleFill_${parentTripIdentifier}`,
-          );
-
-          if (localizedPercentageTextNode)
-            localizedPercentageTextNode.textContent = `${runtimeUpdatedPercentage}%`;
-          if (localizedCounterTextNode)
-            localizedCounterTextNode.textContent = `${currentCheckedBoxesCount} of ${aggregateCheckboxesCount} Visited`;
-
-          if (targetSvgCircleElement) {
-            const freshOffsetValue =
-              svgRingCircumference -
-              (runtimeUpdatedPercentage / 100) * svgRingCircumference;
-            targetSvgCircleElement.style.strokeDashoffset = freshOffsetValue;
-          }
-        });
-      });
   } catch (error) {
-    console.error("Critical Render Pipeline Failure:", error);
-    container.innerHTML = `
-      <div class="error-card" style="text-align:center; padding:24px; color:#E74C3C; background:#FDF0ED; border-radius:12px;">
-        <i class="fas fa-exclamation-triangle" style="font-size:1.5rem; margin-bottom:8px;"></i>
-        <p style="margin:0; font-weight:600;">Synchronization Fault Encountered</p>
-      </div>`;
+    console.error(error);
   }
 }
 
 window.togglePremiumAccordion = function (elementId) {
   const selectedAccordionFrame = document.getElementById(elementId);
   if (!selectedAccordionFrame) return;
-
   const contentSliderWrapper = selectedAccordionFrame.querySelector(
     ".day-accordion-body-wrapper",
   );
@@ -1432,14 +1081,11 @@ window.togglePremiumAccordion = function (elementId) {
     selectedAccordionFrame.classList.add("expanded");
     contentSliderWrapper.style.maxHeight =
       contentSliderWrapper.scrollHeight + "px";
-
     contentSliderWrapper.addEventListener(
       "transitionend",
-      function clearBounds(e) {
-        if (selectedAccordionFrame.classList.contains("expanded")) {
+      function clearBounds() {
+        if (selectedAccordionFrame.classList.contains("expanded"))
           contentSliderWrapper.style.maxHeight = "none";
-        }
-        contentSliderWrapper.removeEventListener("transitionend", clearBounds);
       },
     );
   }

@@ -1401,8 +1401,7 @@ html {
 
   /* 3. سكرول أفقي للكروت (عشان تتسحب يمين وشمال) */
   .cards,
-  #exploreGrid,
-  #categoriesContentWrapper {
+  #exploreGrid {
     display: flex !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
@@ -1616,13 +1615,7 @@ html {
     margin: 0 auto;
   }
 }
-/* إجبار الكروت اللي جاية من الباك إند إنها تتسحب بالعرض على الموبايل */
-@media (max-width: 768px) {
-  #categoriesContentWrapper > * {
-    min-width: 160px !important;
-    flex: 0 0 auto !important;
-  }
-}
+
 /* ======================================================= */
 /* 🌟 PREMIUM DISCOVERY CATEGORIES (Airbnb & GYG Style)   */
 /* ======================================================= */
