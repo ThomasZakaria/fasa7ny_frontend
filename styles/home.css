@@ -341,8 +341,8 @@ html {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 75%;
+  height: 75%;
   background: rgba(0, 0, 0, 0.8);
   z-index: 2000;
   display: flex;
@@ -1279,75 +1279,82 @@ html {
 /* ======================================================= */
 
 @media (max-width: 768px) {
-    /* 1. تظبيط كل السكاشن (Sections) عشان متدخلش في بعض */
-    section {
-        padding: 40px 15px !important; /* تقليل المسافات الفاضية المبالغ فيها */
-        height: auto !important;
-        min-height: auto !important;
-    }
+  /* 1. تظبيط كل السكاشن (Sections) عشان متدخلش في بعض */
+  section {
+    padding: 40px 15px !important; /* تقليل المسافات الفاضية المبالغ فيها */
+    height: auto !important;
+    min-height: auto !important;
+  }
 
-    /* 2. أي عناصر جنب بعض (Flex) هنخليها تنزل تحت بعض (Column) */
-    .hero-content, 
-    .ai-card, 
-    .modal-content, 
-    .calc-grid-2-col,
-    .profile-header {
-        display: flex !important;
-        flex-direction: column !important;
-        text-align: center !important;
-        gap: 15px !important;
-    }
+  /* 2. أي عناصر جنب بعض (Flex) هنخليها تنزل تحت بعض (Column) */
+  .hero-content,
+  .ai-card,
+  .modal-content,
+  .calc-grid-2-col,
+  .profile-header {
+    display: flex !important;
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 15px !important;
+  }
 
-    /* 3. الكروت (Cards) زي المعالم والأماكن، بدل ما تتزنق، هتاخد الشاشة كلها */
-    .cards, 
-    .profile-cards, 
-    #exploreGrid {
-        display: grid !important;
-        grid-template-columns: 1fr !important; /* عمود واحد بس في الموبايل */
-        gap: 15px !important;
-    }
+  /* 3. الكروت (Cards) زي المعالم والأماكن، بدل ما تتزنق، هتاخد الشاشة كلها */
+  .cards,
+  .profile-cards,
+  #exploreGrid {
+    display: grid !important;
+    grid-template-columns: 1fr !important; /* عمود واحد بس في الموبايل */
+    gap: 15px !important;
+  }
 
-    /* 4. النافبار (شريط التنقل اللي فوق) */
-    .navbar {
-        padding: 15px !important;
-        flex-wrap: wrap !important;
-        justify-content: space-between !important;
-    }
-    .nav-links {
-        display: none !important; /* بنخفي اللينكات في الموبايل عشان متعملش زحمة وتضرب اللوجو */
-    }
-    .login-btn, .scanner-btn {
-        font-size: 0.9rem !important;
-        padding: 8px 15px !important;
-    }
+  /* 4. النافبار (شريط التنقل اللي فوق) */
+  .navbar {
+    padding: 15px !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+  }
+  .nav-links {
+    display: none !important; /* بنخفي اللينكات في الموبايل عشان متعملش زحمة وتضرب اللوجو */
+  }
+  .login-btn,
+  .scanner-btn {
+    font-size: 0.9rem !important;
+    padding: 8px 15px !important;
+  }
 
-    /* 5. المودال (الـ Popups زي بتاع الحسابات أو تفاصيل المعلم) */
-    .modal-content {
-        width: 95% !important; /* ياخد الشاشة كلها بدل ما يخرج براها */
-        margin: 20px auto !important;
-        padding: 15px !important;
-        max-height: 90vh !important;
-        overflow-y: auto !important; /* عشان لو المحتوى طويل تعمل سكرول جوه البوب آب */
-    }
+  /* 5. المودال (الـ Popups زي بتاع الحسابات أو تفاصيل المعلم) */
+  .modal-content {
+    width: 95% !important; /* ياخد الشاشة كلها بدل ما يخرج براها */
+    margin: 20px auto !important;
+    padding: 15px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important; /* عشان لو المحتوى طويل تعمل سكرول جوه البوب آب */
+  }
 
-    /* 6. تصغير الخطوط العنيفة */
-    h1 { font-size: 1.8rem !important; }
-    h2 { font-size: 1.4rem !important; }
-    p { font-size: 0.95rem !important; }
+  /* 6. تصغير الخطوط العنيفة */
+  h1 {
+    font-size: 1.8rem !important;
+  }
+  h2 {
+    font-size: 1.4rem !important;
+  }
+  p {
+    font-size: 0.95rem !important;
+  }
 
-    /* 7. أي صور في الموقع تتلم جوه الشاشة */
-    img {
-        max-width: 100% !important;
-        height: auto !important;
-    }
-    
-    /* 8. فلاتر البحث (Smart Search) */
-    .smart-filters-container {
-        flex-direction: column !important;
-    }
-    .smart-filter-select {
-        width: 100% !important;
-    }
+  /* 7. أي صور في الموقع تتلم جوه الشاشة */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 8. فلاتر البحث (Smart Search) */
+  .smart-filters-container {
+    flex-direction: column !important;
+  }
+  .smart-filter-select {
+    width: 100% !important;
+  }
 }
 /* ======================================================= */
 /* 🚀 تحويل الموقع لشكل تطبيق موبايل (Mobile App UI) */
@@ -1355,259 +1362,264 @@ html {
 
 /* إخفاء البار السفلي في الديسكتوب */
 .bottom-nav {
-    display: none; 
+  display: none;
 }
 
 @media (max-width: 768px) {
-    /* 1. الهيرو سيكشن وتداخل صندوق البحث */
-    .hero {
-        min-height: 420px !important;
-        align-items: flex-start !important; /* نرفع المحتوى لفوق */
-        padding-top: 60px !important;
-    }
+  /* 1. الهيرو سيكشن وتداخل صندوق البحث */
+  .hero {
+    min-height: 420px !important;
+    align-items: flex-start !important; /* نرفع المحتوى لفوق */
+    padding-top: 60px !important;
+  }
 
-    .search-section {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        margin: -80px 15px 20px 15px !important; /* السر هنا: ده اللي بيسحب الصندوق فوق الصورة */
-        position: relative;
-        z-index: 10;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-    }
+  .search-section {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin: -80px 15px 20px 15px !important; /* السر هنا: ده اللي بيسحب الصندوق فوق الصورة */
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
 
-    /* 2. شبكة الفلاتر (Dropdowns) نخليها 2x2 زي الصورة */
-    .smart-filters-container {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 10px !important;
-        flex-direction: row !important; /* نلغي الكولم القديم */
-    }
-    
-    .smart-filter-select {
-        font-size: 0.8rem !important;
-        padding: 12px 10px !important;
-        border-radius: 12px !important;
-        border: 1px solid #ddd !important;
-        background: #f9f9f9 !important;
-    }
+  /* 2. شبكة الفلاتر (Dropdowns) نخليها 2x2 زي الصورة */
+  .smart-filters-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    flex-direction: row !important; /* نلغي الكولم القديم */
+  }
 
-    /* 3. سكرول أفقي للكروت (عشان تتسحب يمين وشمال) */
-    .cards, #exploreGrid, #categoriesContentWrapper {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        gap: 15px !important;
-        padding-bottom: 20px !important;
-        padding-left: 10px !important;
-        /* إخفاء شريط السكرول المزعج */
-        scrollbar-width: none; 
-        -ms-overflow-style: none; 
-        -webkit-overflow-scrolling: touch; 
-    }
-    .cards::-webkit-scrollbar, #exploreGrid::-webkit-scrollbar {
-        display: none; 
-    }
-    
-    /* عرض الكارت عشان يظهر جزء من اللي بعده ويشجع اليوزر يسحب */
-    .cards > *, #exploreGrid > * {
-        min-width: 160px !important; 
-        flex: 0 0 auto;
-    }
+  .smart-filter-select {
+    font-size: 0.8rem !important;
+    padding: 12px 10px !important;
+    border-radius: 12px !important;
+    border: 1px solid #ddd !important;
+    background: #f9f9f9 !important;
+  }
 
-    /* 4. إظهار البار السفلي وإخفاء اللينكات العلوية */
-    body {
-        padding-bottom: 80px !important; /* مساحة من تحت عشان البار ميغطيش الكلام */
-        background-color: #f4f7f6; /* لون خلفية هادي زي الأبلكيشنز */
-    }
-    
-    .navbar .nav-links, .navbar .login-btn {
-        display: none !important;
-    }
+  /* 3. سكرول أفقي للكروت (عشان تتسحب يمين وشمال) */
+  .cards,
+  #exploreGrid,
+  #categoriesContentWrapper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 15px !important;
+    padding-bottom: 20px !important;
+    padding-left: 10px !important;
+    /* إخفاء شريط السكرول المزعج */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cards::-webkit-scrollbar,
+  #exploreGrid::-webkit-scrollbar {
+    display: none;
+  }
 
-    .bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: white;
-        box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-        justify-content: space-around;
-        padding: 12px 0 20px 0;
-        z-index: 1000;
-        border-top-left-radius: 25px;
-        border-top-right-radius: 25px;
-    }
+  /* عرض الكارت عشان يظهر جزء من اللي بعده ويشجع اليوزر يسحب */
+  .cards > *,
+  #exploreGrid > * {
+    min-width: 160px !important;
+    flex: 0 0 auto;
+  }
 
-    .bottom-nav a {
-        text-decoration: none;
-        color: #888;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 0.75rem;
-        gap: 6px;
-        transition: 0.3s;
-    }
+  /* 4. إظهار البار السفلي وإخفاء اللينكات العلوية */
+  body {
+    padding-bottom: 80px !important; /* مساحة من تحت عشان البار ميغطيش الكلام */
+    background-color: #f4f7f6; /* لون خلفية هادي زي الأبلكيشنز */
+  }
 
-    .bottom-nav a i {
-        font-size: 1.3rem;
-    }
+  .navbar .nav-links,
+  .navbar .login-btn {
+    display: none !important;
+  }
 
-    .bottom-nav a.active {
-        color: #0b4a6f;
-        font-weight: 600;
-    }
-    
-    .bottom-nav a.active i {
-        color: #ff9800; /* لون الأيقونة المفعلة */
-    }
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+    justify-content: space-around;
+    padding: 12px 0 20px 0;
+    z-index: 1000;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+  }
 
-    /* 5. تظبيط زرار (أماكن قريبة مني) ليكون شبه الصورة */
-    .location-btn {
-        border-radius: 30px !important;
-        padding: 10px 25px !important;
-        font-size: 0.9rem !important;
-        background-color: #0b4a6f !important;
-        color: white !important;
-        width: auto !important;
-        margin: 0 auto !important;
-        display: block !important;
-    }
+  .bottom-nav a {
+    text-decoration: none;
+    color: #888;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.75rem;
+    gap: 6px;
+    transition: 0.3s;
+  }
+
+  .bottom-nav a i {
+    font-size: 1.3rem;
+  }
+
+  .bottom-nav a.active {
+    color: #0b4a6f;
+    font-weight: 600;
+  }
+
+  .bottom-nav a.active i {
+    color: #ff9800; /* لون الأيقونة المفعلة */
+  }
+
+  /* 5. تظبيط زرار (أماكن قريبة مني) ليكون شبه الصورة */
+  .location-btn {
+    border-radius: 30px !important;
+    padding: 10px 25px !important;
+    font-size: 0.9rem !important;
+    background-color: #0b4a6f !important;
+    color: white !important;
+    width: auto !important;
+    margin: 0 auto !important;
+    display: block !important;
+  }
 }
 /* ========================================= */
 /* 📱 تظبيطات سيكشن Explore Categories */
 /* ========================================= */
 
 .app-categories-section {
-    padding: 10px 15px 20px 15px;
+  padding: 10px 15px 20px 15px;
 }
 
 /* تظبيط العنوان وزرار View All على نفس السطر */
 .section-header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .app-section-title {
-    font-size: 1.15rem;
-    color: #0b4a6f;
-    margin: 0;
-    font-weight: 700;
+  font-size: 1.15rem;
+  color: #0b4a6f;
+  margin: 0;
+  font-weight: 700;
 }
 
 .view-all-btn {
-    font-size: 0.75rem;
-    color: #0b4a6f;
-    text-decoration: none;
-    border: 1.5px solid #0b4a6f;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-weight: 600;
-    transition: 0.3s;
+  font-size: 0.75rem;
+  color: #0b4a6f;
+  text-decoration: none;
+  border: 1.5px solid #0b4a6f;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  transition: 0.3s;
 }
 
 /* حاوية السحب الأفقي (Horizontal Scroll) */
 .app-horizontal-scroll {
-    display: flex;
-    overflow-x: auto;
-    gap: 12px;
-    padding-bottom: 10px;
-    scrollbar-width: none; /* إخفاء سكرول فايرفوكس */
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 10px;
+  scrollbar-width: none; /* إخفاء سكرول فايرفوكس */
 }
 .app-horizontal-scroll::-webkit-scrollbar {
-    display: none; /* إخفاء سكرول كروم */
+  display: none; /* إخفاء سكرول كروم */
 }
 
 /* الكارت نفسه */
 .app-category-card {
-    min-width: 140px; /* عرض الكارت الثابت عشان يسمح بالسحب */
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-    display: flex;
-    flex-direction: column;
+  min-width: 140px; /* عرض الكارت الثابت عشان يسمح بالسحب */
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
 }
 
 /* صورة الكارت من فوق */
 .app-category-card img {
-    width: 100%;
-    height: 90px;
-    object-fit: cover;
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
 }
 
 /* المعلومات اللي تحت الصورة */
 .card-info {
-    padding: 10px;
-    text-align: left;
+  padding: 10px;
+  text-align: left;
 }
 
 .card-info h4 {
-    font-size: 0.8rem;
-    color: #0b4a6f;
-    margin: 0 0 4px 0;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  font-size: 0.8rem;
+  color: #0b4a6f;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .card-info h4 i {
-    color: #666;
-    font-size: 0.75rem;
+  color: #666;
+  font-size: 0.75rem;
 }
 
 .card-info p {
-    font-size: 0.7rem !important;
-    color: #888;
-    margin: 0;
+  font-size: 0.7rem !important;
+  color: #888;
+  margin: 0;
 }
 /* ======================================================= */
 /* 💻 تظبيط الكروت عشان تملأ الشاشة في الديسكتوب (Desktop) */
 /* ======================================================= */
 
 @media (min-width: 769px) {
-    /* 1. نحول الحاوية لشبكة (Grid) بتوزع الكروت بالتساوي */
-    .app-horizontal-scroll {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important; /* 4 كروت جنب بعض */
-        gap: 25px !important;
-        overflow-x: hidden !important; /* نلغي السحب في الديسكتوب ملوش لازمة */
-        padding: 10px 0 !important;
-    }
+  /* 1. نحول الحاوية لشبكة (Grid) بتوزع الكروت بالتساوي */
+  .app-horizontal-scroll {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 4 كروت جنب بعض */
+    gap: 25px !important;
+    overflow-x: hidden !important; /* نلغي السحب في الديسكتوب ملوش لازمة */
+    padding: 10px 0 !important;
+  }
 
-    /* 2. نخلي كل كارت ياخد المساحة اللي الشبكة اديتهاله بالكامل */
-    .app-category-card {
-        width: 100% !important;
-        min-width: auto !important; /* نلغي الحجم الصغير بتاع الموبايل */
-        transition: 0.3s;
-    }
+  /* 2. نخلي كل كارت ياخد المساحة اللي الشبكة اديتهاله بالكامل */
+  .app-category-card {
+    width: 100% !important;
+    min-width: auto !important; /* نلغي الحجم الصغير بتاع الموبايل */
+    transition: 0.3s;
+  }
 
-    /* 3. نكبر طول الصورة شوية في الديسكتوب عشان تليق مع العرض الجديد */
-    .app-category-card img {
-        height: 140px !important; 
-    }
+  /* 3. نكبر طول الصورة شوية في الديسكتوب عشان تليق مع العرض الجديد */
+  .app-category-card img {
+    height: 140px !important;
+  }
 
-    /* 4. تأثير بسيط (Hover) لما الماوس يجي على الكارت في الديسكتوب */
-    .app-category-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-    
-    /* 5. نظبط المسافات الجانبية للسيكشن كله في الديسكتوب */
-    .app-categories-section {
-        padding: 40px 20px !important;
-        max-width: 1200px; /* عشان ميفردش أوي في الشاشات العملاقة */
-        margin: 0 auto;
-    }
+  /* 4. تأثير بسيط (Hover) لما الماوس يجي على الكارت في الديسكتوب */
+  .app-category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 5. نظبط المسافات الجانبية للسيكشن كله في الديسكتوب */
+  .app-categories-section {
+    padding: 40px 20px !important;
+    max-width: 1200px; /* عشان ميفردش أوي في الشاشات العملاقة */
+    margin: 0 auto;
+  }
 }
 /* إجبار الكروت اللي جاية من الباك إند إنها تتسحب بالعرض على الموبايل */
 @media (max-width: 768px) {
-    #categoriesContentWrapper > * {
-        min-width: 160px !important; 
-        flex: 0 0 auto !important;
-    }
+  #categoriesContentWrapper > * {
+    min-width: 160px !important;
+    flex: 0 0 auto !important;
+  }
 }

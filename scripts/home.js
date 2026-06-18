@@ -262,7 +262,7 @@ function openPlaceModal(placeData) {
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `https://maps.google.com/?q=${cleanCoords}`;
+    mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
@@ -291,7 +291,10 @@ function updateSaveButtonUI() {
   if (!saveBtn) return;
 
   const user = JSON.parse(localStorage.getItem("userProfile") || "{}");
-  const placeId = window.currentModalPlace.ID || window.currentModalPlace._id;
+  const placeData = window.currentModalPlace;
+  const placeId =
+    placeData.ID ||
+    (placeData._id ? placeData._id.$oid || placeData._id : null);
   const isSaved = user.saved_places?.some((p) => p.id == placeId);
 
   if (isSaved) {
