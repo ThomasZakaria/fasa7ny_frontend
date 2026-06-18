@@ -902,7 +902,7 @@ if (generateBtn) {
         }
 
         let html = `
-  <div class="premium-itinerary">
+  <div id="myTripsList">
     <h3>✨ Your Egypt Adventure</h3>
 `;
 
