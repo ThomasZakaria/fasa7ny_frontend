@@ -337,3 +337,26 @@ async function loadProfileTripsTracker() {
     container.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c;">Failed to load trips.</div>`;
   }
 }
+// تأثير الإضاءة (يُضاف في نهاية profile.js)
+document.addEventListener("DOMContentLoaded", () => {
+  // التحقق هل هناك تنقل لسكشن معين
+  if (window.location.hash === "#myTripsTracker") {
+    const trackerSection = document.getElementById("myTripsTracker");
+
+    if (trackerSection) {
+      // 1. تأخير بسيط لضمان تحميل البيانات أولاً
+      setTimeout(() => {
+        // 2. التنقل السلس
+        trackerSection.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // 3. إضافة تأثير الإضاءة
+        trackerSection.classList.add("highlight-tracker");
+
+        // 4. إزالة التأثير بعد ثانيتين
+        setTimeout(() => {
+          trackerSection.classList.remove("highlight-tracker");
+        }, 2000);
+      }, 500);
+    }
+  }
+});

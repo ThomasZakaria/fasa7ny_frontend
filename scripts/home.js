@@ -1067,6 +1067,7 @@ async function syncGlobalTracker() {
   const userId = localStorage.getItem("userId");
   const widget = document.getElementById("currentAdventureWidget");
   const floatingBtn = document.getElementById("floatingTrackerBtn");
+  const continueBtn = document.getElementById("continueJourneyBtn");
 
   if (!userId) {
     if (widget) widget.style.display = "none";
@@ -1079,20 +1080,22 @@ async function syncGlobalTracker() {
     const data = await res.json();
     const trips = data.data.user.saved_trips || [];
 
-    // الحصول على آخر رحلة تم حفظها
-    const activeTrip = trips.length > 0 ? trips[trips.length - 1] : null;
+    // البحث عن أول رحلة غير مكتملة (Active Trip) بدلاً من آخر رحلة عشوائية
+    const activeTrip = trips
+      .slice()
+      .reverse()
+      .find((t) => (t.progress || 0) < 100);
 
     if (activeTrip && activeTrip.itinerary && activeTrip.itinerary.days) {
-      // 1. حساب التقدم الحقيقي (Visited count)
+      // حساب التقدم الفعلي بناءً على الـ Checkboxes
       let totalPlaces = 0;
       let visitedPlaces = 0;
-      let nextAttraction = "Everything completed!";
+      let nextAttraction = "Continue your journey!";
       let foundNext = false;
 
       activeTrip.itinerary.days.forEach((day) => {
         day.places.forEach((place, pIndex) => {
           totalPlaces++;
-          // مطابقة مفتاح الـ ID المستخدم في الـ Dashboard
           const uniqueId = `chk_${activeTrip.tripId}_d${day.day}_p${pIndex}`;
           const isChecked = localStorage.getItem(uniqueId) === "true";
 
@@ -1108,7 +1111,7 @@ async function syncGlobalTracker() {
       const progress =
         totalPlaces === 0 ? 0 : Math.round((visitedPlaces / totalPlaces) * 100);
 
-      // 2. تحديث الـ Widget
+      // تحديث الـ Widget
       if (widget) {
         widget.style.display = "block";
         document.getElementById("widgetTripTitle").textContent =
@@ -1119,14 +1122,21 @@ async function syncGlobalTracker() {
           `${progress}%`;
         document.getElementById("widgetNextAttraction").textContent =
           `Next: ${nextAttraction}`;
+
+        // ربط زر الانتقال
+        if (continueBtn) {
+          continueBtn.onclick = () =>
+            (window.location.href = "profile.html#myTripsTracker");
+        }
       }
 
-      // 3. تحديث الـ Floating Button
+      // تحديث الـ Floating Button
       if (floatingBtn) {
         floatingBtn.style.display = "flex";
         document.getElementById("floatingPercent").textContent = `${progress}%`;
       }
     } else {
+      // إخفاء الأدوات إذا كانت كل الرحلات مكتملة أو لا توجد رحلات
       if (widget) widget.style.display = "none";
       if (floatingBtn) floatingBtn.style.display = "none";
     }
@@ -1134,6 +1144,11 @@ async function syncGlobalTracker() {
     console.error("Tracker Sync Error:", err);
   }
 }
+
+// استدعاء الدالة عند تحميل الصفحة
+document.addEventListener("DOMContentLoaded", syncGlobalTracker);
+// استدعاء الدالة عند تحميل الصفحة
+document.addEventListener("DOMContentLoaded", syncGlobalTracker);
 
 document.addEventListener("DOMContentLoaded", syncGlobalTracker);
 // Initialize on load

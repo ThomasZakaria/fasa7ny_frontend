@@ -118,3 +118,20 @@
   border-radius: 15px;
   border: 2px dashed #ddd;
 }
+/* تأثير النبض للإضاءة عند الوصول للرحلة */
+.highlight-tracker {
+  animation: pulse-highlight 2s ease-in-out;
+  border: 2px solid #0b4a6f !important;
+}
+
+@keyframes pulse-highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(11, 74, 111, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(11, 74, 111, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(11, 74, 111, 0);
+  }
+}
