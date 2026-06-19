@@ -9,11 +9,13 @@ window.tripCart = [];
 const API_BASE_URL = window.API_BASE_URL;
 const DEFAULT_THUMB =
   "https://s7g10.scene7.com/is/image/barcelo/pyramids-of-giza-facts_ancient-pyramids-of-giza?&&fmt=webp-alpha&qlt=75&wid=1300&fit=crop,1";
+
 window.handleImageError = function (imgElement) {
   if (!imgElement) return;
   imgElement.onerror = null;
   imgElement.src = DEFAULT_THUMB;
 };
+
 // DOM Elements Stack
 const placeModal = document.getElementById("placeModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
@@ -145,12 +147,7 @@ window.renderCards = function (places, container, limit = false) {
     container.insertAdjacentHTML(
       "beforeend",
       `<div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
-        <img
-  src="${optimizedMainUrl}"
-  alt="${name}"
-  loading="lazy"
-  onerror="window.handleImageError(this);"
-> alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
+        <img src="${optimizedMainUrl}" alt="${name}" loading="lazy" onerror="window.handleImageError(this);">
         <div style="padding: 15px;">
           <h3 style="color:#0b4a6f; font-size:1.1rem; margin-bottom:5px;">${name}</h3>
           <p style="color:#666; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${city}</p>
@@ -190,12 +187,7 @@ window.renderPremiumCards = function (places, container) {
       "beforeend",
       `<div class="premium-place-card place-card" data-placeid="${currentPlaceId}" style="cursor: pointer;">
         <div class="card-image-wrapper">
-          <img
-  src="${optimizedMainUrl}"
-  alt="${name}"
-  loading="lazy"
-  onerror="window.handleImageError(this);"
-> alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
+          <img src="${optimizedMainUrl}" alt="${name}" loading="lazy" onerror="window.handleImageError(this);">
         </div>
         <div class="card-content-wrapper">
           <h4 class="card-landmark-name">${name}</h4>
@@ -309,8 +301,7 @@ function openPlaceModal(placeData) {
         const thumb = document.createElement("img");
         thumb.src = optimizeImage(originalUrl, 100);
         thumb.onerror = function () {
-          this.onerror = null;
-          this.src = originalUrl;
+          window.handleImageError(this);
         };
         thumb.style.minWidth = "65px";
         thumb.style.height = "65px";
@@ -326,8 +317,7 @@ function openPlaceModal(placeData) {
           if (imgEl) {
             imgEl.src = optimizeImage(originalUrl, 800);
             imgEl.onerror = function () {
-              this.onerror = null;
-              this.src = originalUrl;
+              window.handleImageError(this);
             };
           }
           Array.from(galleryEl.children).forEach(
@@ -345,7 +335,7 @@ function openPlaceModal(placeData) {
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `http://maps.google.com/?q=${cleanCoords}`;
+    mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
@@ -654,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialCity = cityFilter ? cityFilter.value : "all";
   fetchAndRenderCategories(initialCity);
   if (tripResultContainer) setDefaultItineraryPlaceholder();
-  syncGlobalTracker(); // مزامنة التراكر عند التحميل
+  syncGlobalTracker();
 
   if (cityFilter) {
     cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
@@ -1304,7 +1294,7 @@ async function loadMyTripsTracker() {
                 <div class="task-checkbox-wrapper-premium">
                   <input type="checkbox" class="modern-circular-checkbox tracker-checkbox-engine" data-id="${uniqueActivityId}" data-tripid="${trip.tripId}" ${isCompleted ? "checked" : ""}>
                 </div>
-                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Thumbnail" loading="lazy"></div>
+                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Thumbnail" loading="lazy" onerror="window.handleImageError(this);"></div>
                 <div class="attraction-details-frame">
                   <h5>${place.name || "Destination Landmark"}</h5>
                   <p class="attraction-short-narrative">${place.reason || "Optimized structural route checkpoint activity."}</p>
@@ -1620,7 +1610,7 @@ if (generateBtn) {
                   <div class="task-checkbox-wrapper-premium">
                     <input type="checkbox" class="modern-circular-checkbox planner-checkbox-engine" data-dayidx="${dayIndex}" data-placeidx="${placeIndex}" ${completeCheckedAttr}>
                   </div>
-                  <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Preview" loading="lazy"></div>
+                  <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Preview" loading="lazy" onerror="window.handleImageError(this);"></div>
                   <div class="attraction-details-frame">
                     <div class="attraction-card-header-flex-wrapper">
                       <div class="attraction-headline-block">
