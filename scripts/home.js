@@ -326,7 +326,8 @@ function openPlaceModal(placeData) {
           if (imgEl) {
             imgEl.src = optimizeImage(originalUrl, 800);
             imgEl.onerror = function () {
-              window.handleImageError(this);
+              this.onerror = null;
+              this.src = originalUrl;
             };
           }
           Array.from(galleryEl.children).forEach(
