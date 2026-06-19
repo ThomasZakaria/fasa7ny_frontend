@@ -205,13 +205,10 @@ function renderSavedPlaces(savedPlaces) {
     container.insertAdjacentHTML("beforeend", cardHtml);
   });
 }
-
-/**
- * 6. جلب الرحلات المحفوظة وعرضها (My Trips Tracker)
- */
 async function loadProfileTripsTracker() {
   const userId = localStorage.getItem("userId");
   const container = document.getElementById("profileTripsList");
+  const heroContainer = document.getElementById("activeTripHeroContainer");
 
   if (!container) return;
 
@@ -227,114 +224,254 @@ async function loadProfileTripsTracker() {
     const data = await res.json();
     const trips = data.data.user.saved_trips || [];
 
+    // Sync navbar trip counts dynamically
+    document
+      .querySelectorAll("#navTripsCount")
+      .forEach((el) => (el.textContent = trips.length));
+    const statsTripsEl = document.getElementById("statsTotalTrips");
+    if (statsTripsEl) statsTripsEl.textContent = trips.length;
+
     if (trips.length === 0) {
-      container.innerHTML = `<div style="text-align:center; padding: 30px; color:#666;"><i class="fas fa-suitcase-rolling" style="font-size:3rem; margin-bottom:15px; color:#ddd;"></i><br>You haven't saved any trips yet.<br>Go to Home page to plan your first adventure!</div>`;
+      if (heroContainer) heroContainer.innerHTML = "";
+      container.innerHTML = `<div style="text-align:center; padding: 30px; color:#666;"><i class="fas fa-suitcase-rolling" style="font-size:3rem; margin-bottom:15px; color:#ddd;"></i><br>You haven't saved any adventures yet.<br>Go to Home page to plan your first adventure!</div>`;
       return;
     }
 
-    let html = "";
+    let globalVisited = 0;
+    let globalTotal = 0;
 
-    // الترتيب من الأحدث للأقدم
-    trips.reverse().forEach((trip) => {
-      let totalPlaces = 0;
-      let completedPlaces = 0;
-      let tasksHtml = "";
+    const getCityCoverImg = (cities) => {
+      const primaryCity = cities && cities[0] ? cities[0].toLowerCase() : "";
+      if (primaryCity.includes("cairo"))
+        return "https://images.unsplash.com/photo-1572252017456-29bf24beefdf?auto=format&fit=crop&w=600&q=70";
+      if (primaryCity.includes("giza"))
+        return "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=600&q=70";
+      if (primaryCity.includes("luxor"))
+        return "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=600&q=70";
+      if (primaryCity.includes("aswan"))
+        return "https://images.unsplash.com/photo-1599933310672-0402f1a6fbfb?auto=format&fit=crop&w=600&q=70";
+      if (primaryCity.includes("alexandria"))
+        return "https://images.unsplash.com/photo-1568322422998-8432ef2e6c43?auto=format&fit=crop&w=600&q=70";
+      return "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=600&q=70";
+    };
+
+    // Classify trip details and verify statuses
+    const processedTrips = trips.map((trip) => {
+      let tripTotalPlaces = 0;
+      let tripCompletedPlaces = 0;
+      let nextAttraction = "Journey Complete!";
+      let foundNext = false;
 
       if (trip.itinerary && trip.itinerary.days) {
         trip.itinerary.days.forEach((day) => {
-          tasksHtml += `<h5 style="margin: 15px 0 8px 0; color:#0b4a6f; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size:1.1rem;">📅 Day ${day.day} - ${day.city}</h5>`;
-
           day.places.forEach((place, pIndex) => {
-            totalPlaces++;
-            const placeName =
-              typeof place === "string" ? place : place.name || "Attraction";
-            // استخدام نفس الـ ID الفريد عشان المزامنة تتم عبر LocalStorage
+            tripTotalPlaces++;
+            globalTotal++;
             const uniqueId = `chk_${trip.tripId}_d${day.day}_p${pIndex}`;
-
             const isChecked = localStorage.getItem(uniqueId) === "true";
-            if (isChecked) completedPlaces++;
-
-            tasksHtml += `
-              <div class="place-task" id="profTaskDiv_${uniqueId}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${isChecked ? "#f0fdf4" : "#f9f9f9"}; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${isChecked ? "#27ae60" : "#ccc"}; transition: all 0.3s ease; flex-wrap: wrap; gap: 10px;">
-                <label style="display:flex; align-items:center; gap:12px; cursor:pointer; flex:1; min-width: 200px;">
-                  <input type="checkbox" class="prof-trip-checkbox" data-id="${uniqueId}" ${isChecked ? "checked" : ""} style="width:20px; height:20px; accent-color:#27ae60; cursor:pointer;">
-                  <span class="prof-task-text" style="font-weight:bold; font-size:1rem; color:${isChecked ? "#888" : "#2c3e50"}; text-decoration:${isChecked ? "line-through" : "none"}; transition: 0.3s;">${placeName}</span>
-                </label>
-                <div class="task-actions" style="display:flex; gap:8px;">
-                  <button onclick="alert('🔄 AI Swap feature is planned for V2!')" style="border:none; background:#e0f2fe; color:#0284c7; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fas fa-exchange-alt"></i> Swap</button>
-                  <button onclick="alert('✏️ Manual Edit feature coming soon!')" style="border:none; background:#fef08a; color:#c2410c; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fas fa-edit"></i> Edit</button>
-                </div>
-              </div>
-            `;
+            if (isChecked) {
+              tripCompletedPlaces++;
+              globalVisited++;
+            } else if (!foundNext) {
+              nextAttraction =
+                typeof place === "string" ? place : place.name || "Attraction";
+              foundNext = true;
+            }
           });
         });
       }
 
-      const progressPercent =
-        totalPlaces === 0
+      const percent =
+        tripTotalPlaces === 0
           ? 0
-          : Math.round((completedPlaces / totalPlaces) * 100);
+          : Math.round((tripCompletedPlaces / tripTotalPlaces) * 100);
+      let status = "upcoming";
+      if (percent === 100 && tripTotalPlaces > 0) {
+        status = "completed";
+      }
 
-      html += `
-        <div class="prof-day-card" style="margin-bottom:25px; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; background:#fff;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h4 style="margin:0; color:#e67e22; font-size:1.2rem;">🌍 Trip to ${trip.cities.join(", ")}</h4>
-            <span id="profBadge_${trip.tripId}" style="background:linear-gradient(90deg, #27ae60, #2ecc71); color:white; padding:5px 12px; border-radius:20px; font-weight:bold; font-size:1rem; transition: 0.4s;">${progressPercent}%</span>
-          </div>
-          
-          <div style="width: 100%; height: 12px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
-            <div id="profProgBar_${trip.tripId}" style="height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: ${progressPercent}%; transition: width 0.5s ease-in-out;"></div>
-          </div>
-          
-          <div style="margin-top: 20px;">
-            ${tasksHtml}
+      return {
+        ...trip,
+        percent,
+        totalPlaces: tripTotalPlaces,
+        completedPlaces: tripCompletedPlaces,
+        nextAttraction,
+        status,
+      };
+    });
+
+    // Compute active status logic: the latest uncompleted journey block
+    const reverseTrips = [...processedTrips].reverse();
+    const activeTripIndex = reverseTrips.findIndex(
+      (t) => t.status !== "completed",
+    );
+    if (activeTripIndex !== -1) {
+      reverseTrips[activeTripIndex].status = "active";
+    }
+
+    // Set Dashboard Live Metrics
+    const visitedEl = document.getElementById("statsPlacesVisited");
+    const remainingEl = document.getElementById("statsPlacesRemaining");
+    const rateEl = document.getElementById("statsCompletionRate");
+
+    if (visitedEl) visitedEl.textContent = globalVisited;
+    if (remainingEl) remainingEl.textContent = globalTotal - globalVisited;
+    if (rateEl)
+      rateEl.textContent = `${globalTotal === 0 ? 0 : Math.round((globalVisited / globalTotal) * 100)}%`;
+
+    // Render Active Trip Hero Panel
+    const activeTrip = reverseTrips.find((t) => t.status === "active");
+    if (activeTrip && heroContainer) {
+      const nowString = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      heroContainer.innerHTML = `
+        <div class="active-trip-hero">
+          <div class="active-trip-hero-bg" style="background-image: url('${getCityCoverImg(activeTrip.cities)}');"></div>
+          <div class="active-trip-hero-content">
+            <span style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">⭐ Active Adventure</span>
+            <h3 style="margin: 10px 0 5px 0; font-size: 1.4rem; color: white;">Expedition inside ${activeTrip.cities.join(", ")}</h3>
+            <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 15px; color: white;"><i class="fas fa-map-pin"></i> Next Stop: <b>${activeTrip.nextAttraction}</b></p>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 6px;">
+              <span>Progress Vector</span>
+              <span><b>${activeTrip.percent}%</b></span>
+            </div>
+            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; margin-bottom: 15px;">
+              <div style="height: 100%; background: #22c55e; width: ${activeTrip.percent}%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <button onclick="document.getElementById('tripCard_${activeTrip.tripId}').scrollIntoView({behavior: 'smooth', block: 'center'})" style="background: white; color: #0b4a6f; border: none; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">Continue Journey</button>
+              <span style="font-size: 0.75rem; opacity: 0.7;"><i class="far fa-clock"></i> Synced today at ${nowString}</span>
+            </div>
           </div>
         </div>
       `;
-    });
+    } else if (heroContainer) {
+      heroContainer.innerHTML = "";
+    }
 
-    container.innerHTML = html;
+    // Build the categorized travel board content HTML maps
+    let finalHtml = "";
 
-    // تفعيل تفاعل الـ Checkboxes والمزامنة
+    const renderTripGroup = (title, icon, statusType) => {
+      const filtered = reverseTrips.filter((t) => t.status === statusType);
+      if (filtered.length === 0) return "";
+
+      let sectionHtml = `<div class="adventure-section-title"><i class="${icon}"></i> ${title}</div>`;
+
+      filtered.forEach((trip) => {
+        let daysHtml = "";
+
+        if (trip.itinerary && trip.itinerary.days) {
+          trip.itinerary.days.forEach((day, dayIdx) => {
+            let placesHtml = "";
+
+            day.places.forEach((place, pIndex) => {
+              const uniqueId = `chk_${trip.tripId}_d${day.day}_p${pIndex}`;
+              const isChecked = localStorage.getItem(uniqueId) === "true";
+              const placeName =
+                typeof place === "string" ? place : place.name || "Attraction";
+
+              placesHtml += `
+                <div id="profTaskDiv_${uniqueId}" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: ${isChecked ? "#f0fdf4" : "#f9f9f9"}; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid ${isChecked ? "#27ae60" : "#ccc"}; transition: all 0.3s ease;">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+                    <input type="checkbox" class="prof-trip-checkbox" data-id="${uniqueId}" data-tripid="${trip.tripId}" ${isChecked ? "checked" : ""} style="width:18px; height:18px; accent-color:#27ae60; cursor:pointer;">
+                    <span class="prof-task-text" style="font-weight:600; font-size:0.92rem; color:${isChecked ? "#888" : "#2c3e50"}; text-decoration:${isChecked ? "line-through" : "none"};">${placeName}</span>
+                  </label>
+                </div>
+              `;
+            });
+
+            daysHtml += `
+              <div class="day-accordion-item">
+                <div class="day-acc-header" onclick="window.toggleDayAccordion('${trip.tripId}_d${day.day}')">
+                  <span style="font-weight:600; color:#0b4a6f;"><i class="far fa-calendar-alt"></i> Day ${day.day} - ${day.city || "Destination"}</span>
+                  <i class="fas fa-chevron-down" style="font-size:0.8rem; color:#64748b;"></i>
+                </div>
+                <div id="dayBody_${trip.tripId}_d${day.day}" class="day-acc-body" style="${dayIdx === 0 ? "display: block;" : "display: none;"}">
+                  ${placesHtml}
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        sectionHtml += `
+          <div id="tripCard_${trip.tripId}" class="dashboard-trip-card">
+            <div class="trip-banner-cover">
+              <img class="trip-banner-img" src="${getCityCoverImg(trip.cities)}" alt="Cover">
+              <div class="trip-banner-overlay"></div>
+              <span class="status-badge-pill status-${trip.status}">${trip.status}</span>
+              <div class="trip-banner-content">
+                <h4 style="margin:0; font-size:1.15rem; font-weight:700; color: white;">Journey to ${trip.cities.join(", ")}</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; font-size:0.85rem; opacity:0.9;">
+                  <span>${trip.days} Days Adventure</span>
+                  <span id="cardPercentText_${trip.tripId}" style="font-weight:bold;">${trip.percent}% Complete</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              ${daysHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      return sectionHtml;
+    };
+
+    finalHtml += renderTripGroup("Active Trips", "fas fa-bolt", "active");
+    finalHtml += renderTripGroup(
+      "Upcoming Trips",
+      "fas fa-hourglass-start",
+      "upcoming",
+    );
+    finalHtml += renderTripGroup(
+      "Completed Trips",
+      "fas fa-check-double",
+      "completed",
+    );
+
+    container.innerHTML = finalHtml;
+
+    // Expandable Day Accordions Engine
+    window.toggleDayAccordion = (id) => {
+      const el = document.getElementById(`dayBody_${id}`);
+      if (el) {
+        el.style.display = el.style.display === "none" ? "block" : "none";
+      }
+    };
+
+    // Attach dynamic state sync events
     document.querySelectorAll(".prof-trip-checkbox").forEach((chk) => {
       chk.addEventListener("change", (e) => {
         const id = e.target.dataset.id;
         const taskDiv = document.getElementById(`profTaskDiv_${id}`);
-        const tripId = id.split("_")[1];
         const taskText = taskDiv.querySelector(".prof-task-text");
 
         if (e.target.checked) {
-          localStorage.setItem(id, "true"); // المزامنة
+          localStorage.setItem(id, "true");
           taskDiv.style.borderLeftColor = "#27ae60";
           taskDiv.style.background = "#f0fdf4";
           taskText.style.color = "#888";
           taskText.style.textDecoration = "line-through";
         } else {
-          localStorage.removeItem(id); // المزامنة
+          localStorage.removeItem(id);
           taskDiv.style.borderLeftColor = "#ccc";
           taskDiv.style.background = "#f9f9f9";
           taskText.style.color = "#2c3e50";
           taskText.style.textDecoration = "none";
         }
 
-        const tripCard = taskDiv.closest(".prof-day-card");
-        const totalCheckboxes = tripCard.querySelectorAll(
-          ".prof-trip-checkbox",
-        ).length;
-        const checkedBoxes = tripCard.querySelectorAll(
-          ".prof-trip-checkbox:checked",
-        ).length;
-        const newPercent = Math.round((checkedBoxes / totalCheckboxes) * 100);
-
-        document.getElementById(`profProgBar_${tripId}`).style.width =
-          `${newPercent}%`;
-        document.getElementById(`profBadge_${tripId}`).textContent =
-          `${newPercent}%`;
+        // Live calculation loops to update dashboard components instantly
+        loadProfileTripsTracker();
       });
     });
   } catch (err) {
     console.error(err);
-    container.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c;">Failed to load trips.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c;">Failed to load adventures.</div>`;
   }
 }
 // تأثير الإضاءة (يُضاف في نهاية profile.js)

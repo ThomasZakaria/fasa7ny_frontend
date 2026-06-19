@@ -25,6 +25,12 @@
       <ul class="nav-links">
         <li><a href="home.html">Home</a></li>
         <li><a href="home.html#dynamicCategoriesContainer">Categories</a></li>
+        <li>
+          <a href="profile.html#myTripsTracker" class="active"
+            ><i class="fas fa-suitcase"></i> Trips
+            <span id="navTripsCount" class="nav-badge">0</span></a
+          >
+        </li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
@@ -117,7 +123,6 @@
         </div>
         <div id="interestsContainer" class="tags-container"></div>
       </section>
-
       <section
         class="profile-section"
         style="
@@ -128,6 +133,150 @@
           margin-bottom: 30px;
         "
       >
+        <style>
+          .adventure-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            margin-top: 15px;
+          }
+          .stat-card-premium {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+          }
+          .stat-card-num {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0b4a6f;
+            margin-bottom: 2px;
+          }
+          .stat-card-lbl {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+          }
+          .active-trip-hero {
+            background: linear-gradient(135deg, #0b4a6f 0%, #1e293b 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(11, 74, 111, 0.12);
+          }
+          .active-trip-hero-bg {
+            position: absolute;
+            inset: 0;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 1;
+          }
+          .active-trip-hero-content {
+            position: relative;
+            z-index: 2;
+          }
+          .adventure-section-title {
+            font-size: 1.2rem;
+            color: #0b4a6f;
+            font-weight: 600;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 8px;
+          }
+          .dashboard-trip-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+          }
+          .trip-banner-cover {
+            height: 120px;
+            position: relative;
+          }
+          .trip-banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .trip-banner-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              to top,
+              rgba(0, 0, 0, 0.7) 0%,
+              rgba(0, 0, 0, 0.1) 100%
+            );
+          }
+          .trip-banner-content {
+            position: absolute;
+            bottom: 12px;
+            left: 15px;
+            right: 15px;
+            color: white;
+          }
+          .status-badge-pill {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          .status-active {
+            background: #22c55e;
+            color: white;
+          }
+          .status-upcoming {
+            background: #3b82f6;
+            color: white;
+          }
+          .status-completed {
+            background: #64748b;
+            color: white;
+          }
+          .day-acc-header {
+            background: #f8fafc;
+            padding: 12px 15px;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+          }
+          .day-acc-header:hover {
+            background: #f1f5f9;
+          }
+          .day-acc-body {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-bottom: 1px solid #edf2f7;
+          }
+          .nav-badge {
+            background: #ff9800;
+            color: white;
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+          }
+        </style>
+
         <h2
           id="myTripsTracker"
           class="section-title"
@@ -137,13 +286,36 @@
             padding-bottom: 15px;
           "
         >
-          <i class="fas fa-route" style="color: #27ae60"></i> My Trips Tracker
+          <i class="fas fa-route" style="color: #27ae60"></i> My Adventures
         </h2>
-        <div id="profileTripsList" style="margin-top: 15px">
-          <p style="text-align: center; color: #666">Loading your trips...</p>
+
+        <div class="adventure-stats-grid">
+          <div class="stat-card-premium">
+            <div id="statsTotalTrips" class="stat-card-num">0</div>
+            <div class="stat-card-lbl">Total Trips</div>
+          </div>
+          <div class="stat-card-premium">
+            <div id="statsPlacesVisited" class="stat-card-num">0</div>
+            <div class="stat-card-lbl">Places Visited</div>
+          </div>
+          <div class="stat-card-premium">
+            <div id="statsPlacesRemaining" class="stat-card-num">0</div>
+            <div class="stat-card-lbl">Places Remaining</div>
+          </div>
+          <div class="stat-card-premium">
+            <div id="statsCompletionRate" class="stat-card-num">0%</div>
+            <div class="stat-card-lbl">Completion Rate</div>
+          </div>
+        </div>
+
+        <div id="activeTripHeroContainer"></div>
+
+        <div id="profileTripsList">
+          <p style="text-align: center; color: #666">
+            Loading your adventures...
+          </p>
         </div>
       </section>
-
       <section
         class="profile-section"
         style="

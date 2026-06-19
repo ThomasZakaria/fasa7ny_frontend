@@ -6,7 +6,7 @@
     <title>Fasa7ny - AI Tour Guide</title>
 
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../styles/home.css" />
@@ -44,61 +44,132 @@
 
   <body>
     <nav class="navbar">
-      <h2 class="logo">Fasa7ny<span>.</span></h2>
+      <h2 class="logo">
+        Fasa7ny
+        <span>.</span>
+      </h2>
       <ul class="nav-links">
         <li><a href="home.html" class="active">Home</a></li>
         <li><a href="#dynamicCategoriesContainer">Categories</a></li>
-        <li><a href="about.html">About</a></li>
+        <li>
+          <a href="profile.html#myTripsTracker">
+            <i class="fas fa-suitcase"></i>
+            Trips
+            <span
+              id="navTripsCount"
+              style="
+                background: #ff9800;
+                color: white;
+                border-radius: 10px;
+                padding: 1px 6px;
+                font-size: 0.75rem;
+                font-weight: bold;
+              "
+            >
+              0
+            </span>
+          </a>
+        </li>
+
         <li><a href="contact.html">Contact</a></li>
       </ul>
       <a href="auth.html" class="login-btn" id="loginBtn">Sign In</a>
     </nav>
-    <section
-      id="currentAdventureWidget"
-      class="adventure-widget-container"
-      style="display: none"
-    >
-      <div class="adventure-card">
-        <div class="adv-thumb">
-          <img
-            id="widgetThumbnail"
-            src="https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=200&q=80"
-            alt="Trip"
-          />
-        </div>
-        <div class="adv-info">
-          <span class="adventure-tag"
-            ><i class="fas fa-globe"></i> Current Adventure</span
-          >
-          <h3 id="widgetTripTitle">Aswan Expedition</h3>
-          <div class="next-stop-pill">
-            <i class="fas fa-map-pin"></i>
-            <span id="widgetNextAttraction">Next: Great Sphinx</span>
-          </div>
-        </div>
-        <div class="adv-progress">
-          <div class="progress-labels">
-            <span>Progress</span>
-            <span id="widgetProgressText">0%</span>
-          </div>
-          <div class="progress-bar-track">
-            <div id="widgetProgressBar" class="progress-fill"></div>
-          </div>
-        </div>
-        <button id="continueJourneyBtn" class="premium-cta">
-          Continue Journey
-        </button>
-      </div>
-    </section>
-    <section class="hero">
+    <section class="hero text-content-center">
+      <div class="hero-bg-tint"></div>
       <div class="hero-content">
-        <h1>Discover Egypt Through AI</h1>
-        <p>
-          Take a photo or upload an image to identify any historical landmark
-          instantly.
-        </p>
+        <div id="contextualHeroText">
+          <h1>Discover Egypt Through AI</h1>
+          <p>
+            Take a photo or upload an image to identify any historical landmark
+            instantly.
+          </p>
+        </div>
+        <div
+          id="currentAdventureWidget"
+          class="luxury-adventure-storycard"
+          style="display: none"
+        >
+          <div class="storycard-banner-wrapper">
+            <img
+              id="widgetTripCover"
+              src="https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=80"
+              alt="Trip Cover Banner"
+              class="storycard-hero-img"
+            />
+            <div class="storycard-gradient-shield"></div>
+            <div class="storycard-status-pill">
+              <span class="pulse-ring-live">●</span> ACTIVE ADVENTURE
+            </div>
+          </div>
 
-        <div class="ai-scanner-box">
+          <div class="storycard-narrative-container">
+            <div class="storycard-top-flexrow">
+              <div class="storycard-route-info">
+                <h3 id="widgetTripTitle">—</h3>
+                <div class="storycard-next-destination-block">
+                  <div class="checkpoint-thumb-frame">
+                    <img
+                      id="widgetNextAttractionThumb"
+                      src="https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=120&q=80"
+                      alt="Checkpoint Thumbnail"
+                    />
+                  </div>
+                  <p id="widgetNextAttraction">Next Stop: —</p>
+                </div>
+              </div>
+              <div class="storycard-progress-wrapper-outer">
+                <div class="storycard-progress-circle-wrap">
+                  <span
+                    id="widgetProgressText"
+                    class="progress-percentage-display"
+                    >0%</span
+                  >
+                </div>
+                <span class="progress-outside-caption">Journey Progress</span>
+              </div>
+            </div>
+
+            <div class="storycard-metrics-strip">
+              <div class="metric-block-item">
+                <i class="fas fa-check-circle"></i>
+                <div class="metric-text-label-combo">
+                  <span id="widgetPlacesCompletedCount">0</span
+                  ><label>Places Explored</label>
+                </div>
+              </div>
+              <div class="metric-block-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="metric-text-label-combo">
+                  <span id="widgetPlacesRemainingCount">0</span
+                  ><label>Places Ahead</label>
+                </div>
+              </div>
+              <div class="metric-block-item">
+                <i class="fas fa-wallet"></i>
+                <div class="metric-text-label-combo">
+                  <span id="widgetRemainingBudget">0 EGP</span
+                  ><label>Remaining Budget</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="storycard-footer-action-row">
+              <div class="progress-bar-track-luxury">
+                <div id="widgetProgressBar" class="progress-fill-luxury"></div>
+              </div>
+              <button
+                id="continueJourneyBtn"
+                class="premium-adventure-primary-action-cta"
+              >
+                <span>Continue Journey</span>
+                <i class="fas fa-location-arrow"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="aiScannerActionBox" class="ai-scanner-box">
           <input
             type="file"
             id="imageInput"
@@ -119,31 +190,30 @@
       </div>
     </section>
 
-    <section class="ai-assistant-section">
-      <div class="ai-card">
-        <div class="ai-card-left">
-          <div class="ai-card-icon">🤖</div>
-
-          <div class="ai-card-content">
-            <span class="ai-badge"> ✨ AI TRIP PLANNER </span>
-
-            <h2>Plan Your Egypt Adventure</h2>
-
+    <section class="ai-assistant-section-fluid">
+      <div class="ai-card-luxury-adventure-cta">
+        <div class="ai-card-luxury-left">
+          <div class="ai-card-luxury-icon-frame">
+            <i class="fas fa-compass"></i>
+          </div>
+          <div class="ai-card-luxury-content">
+            <span class="ai-badge-premium">BESPOKE TRAVEL EXPERIENCE</span>
+            <h2>Start Your Next Adventure</h2>
             <p>
-              Generate a personalized travel itinerary using AI based on your
-              destinations and trip duration.
+              Weave your dream Egyptian map instantly. Combine history,
+              duration, and tailored budget paths with smart local
+              recommendations.
             </p>
           </div>
         </div>
-
-        <div class="ai-card-action">
-          <button id="openTripPlannerBtn" class="ai-trip-btn">
-            Create My Trip →
+        <div class="ai-card-luxury-action">
+          <button id="openTripPlannerBtn" class="ai-trip-btn-luxury">
+            Design Itinerary
+            <i class="fas fa-sparkles"></i>
           </button>
         </div>
       </div>
     </section>
-
     <section class="search-section">
       <h2 class="section-title">Smart Search</h2>
       <p class="section-subtitle">
@@ -164,16 +234,18 @@
 
       <div class="smart-filters-container">
         <select id="filterCity" class="smart-filter-select">
-          <option value="all">📍 All Cities & Regions</option>
+          <option value="all">📍 All Cities &amp; Regions</option>
           <option value="cairo">Cairo (القاهرة)</option>
           <option value="giza">Giza (الجيزة)</option>
           <option value="alexandria">Alexandria (الإسكندرية)</option>
           <option value="luxor">Luxor (الأقصر)</option>
           <option value="aswan">Aswan (أسوان)</option>
-          <option value="qena">Qena & Dendera (قنا)</option>
+          <option value="qena">Qena &amp; Dendera (قنا)</option>
           <option value="fayoum">Fayoum (الفيوم)</option>
           <option value="minya">Minya (المنيا)</option>
-          <option value="sinai">Sinai & Red Sea (سيناء والبحر الأحمر)</option>
+          <option value="sinai">
+            Sinai &amp; Red Sea (سيناء والبحر الأحمر)
+          </option>
           <option value="egypt">Other (أخرى)</option>
         </select>
 
@@ -182,13 +254,17 @@
           <option value="temple">Ancient Temples (معابد)</option>
           <option value="pyramid">Pyramids (أهرامات)</option>
           <option value="mosque">Mosques (مساجد إسلامية)</option>
-          <option value="church">Churches & Monasteries (كنائس وأديرة)</option>
+          <option value="church">
+            Churches &amp; Monasteries (كنائس وأديرة)
+          </option>
           <option value="museum">Museums (متاحف)</option>
           <option value="palace">Palaces (قصور)</option>
-          <option value="tomb">Tombs & Necropolis (مقابر أثرية)</option>
-          <option value="fort">Forts & Citadels (قلاع وحصون)</option>
-          <option value="monument">Monuments & Statues (معالم وتماثيل)</option>
-          <option value="nature">Nature & Islands (طبيعة وجزر)</option>
+          <option value="tomb">Tombs &amp; Necropolis (مقابر أثرية)</option>
+          <option value="fort">Forts &amp; Citadels (قلاع وحصون)</option>
+          <option value="monument">
+            Monuments &amp; Statues (معالم وتماثيل)
+          </option>
+          <option value="nature">Nature &amp; Islands (طبيعة وجزر)</option>
         </select>
 
         <select id="filterBudget" class="smart-filter-select">
@@ -220,7 +296,8 @@
 
       <div style="text-align: center; margin-top: 30px">
         <button id="showMoreBtn" class="show-more-global-btn hidden">
-          Show More <i class="fas fa-chevron-down"></i>
+          Show More
+          <i class="fas fa-chevron-down"></i>
         </button>
       </div>
     </section>
@@ -229,7 +306,8 @@
       <h2 class="section-title">Places Near You</h2>
       <div class="center-btn-container">
         <button id="getLocationBtn" class="scanner-btn location-btn">
-          <i class="fas fa-map-marker-alt"></i> Find Places Near Me
+          <i class="fas fa-map-marker-alt"></i>
+          Find Places Near Me
         </button>
       </div>
       <div id="locationLoading" class="hidden loading-container">
@@ -240,7 +318,8 @@
 
       <div style="text-align: center; margin-top: 20px">
         <button id="showMoreNearMeBtn" class="show-more-global-btn hidden">
-          Show More Nearby <i class="fas fa-chevron-down"></i>
+          Show More Nearby
+          <i class="fas fa-chevron-down"></i>
         </button>
       </div>
     </section>
@@ -249,13 +328,14 @@
       <div class="premium-section-container">
         <div class="section-header-flex">
           <h3 class="app-section-title">
-            <i class="fas fa-compass"></i> Explore Extraordinary Places
+            <i class="fas fa-compass"></i>
+            Explore Extraordinary Places
           </h3>
 
           <div class="filter-select-wrapper">
             <select id="cityFilter" class="city-filter-dropdown">
-              <option value="all" selected>All Egypt</option>
-              <option value="cairo">Cairo & Giza</option>
+              <option value="all" selected="">All Egypt</option>
+              <option value="cairo">Cairo &amp; Giza</option>
               <option value="alexandria">Alexandria</option>
               <option value="luxor">Luxor</option>
               <option value="aswan">Aswan</option>
@@ -306,19 +386,22 @@
           </div>
 
           <div class="modal-meta">
-            <span
-              ><i class="fas fa-map-marker-alt"></i>
-              <b id="modalLocation">Location</b></span
-            >
-            <span><i class="fas fa-clock"></i> <b id="modalTime">Time</b></span>
-            <span
-              ><i class="fas fa-ticket-alt"></i>
-              <b id="modalPrice">Price</b></span
-            >
-            <span
-              ><i class="fas fa-tag"></i>
-              <b id="modalCategory">Category</b></span
-            >
+            <span>
+              <i class="fas fa-map-marker-alt"></i>
+              <b id="modalLocation">Location</b>
+            </span>
+            <span>
+              <i class="fas fa-clock"></i>
+              <b id="modalTime">Time</b>
+            </span>
+            <span>
+              <i class="fas fa-ticket-alt"></i>
+              <b id="modalPrice">Price</b>
+            </span>
+            <span>
+              <i class="fas fa-tag"></i>
+              <b id="modalCategory">Category</b>
+            </span>
           </div>
 
           <p id="modalHistory" class="modal-desc">History goes here...</p>
@@ -332,7 +415,8 @@
             "
           >
             <a href="#" id="modalMapLink" target="_blank" class="modal-map-btn">
-              <i class="fas fa-map-marked-alt"></i> Open in Maps
+              <i class="fas fa-map-marked-alt"></i>
+              Open in Maps
             </a>
             <button
               id="modalSaveBtn"
@@ -353,7 +437,8 @@
                 transition: all 0.3s ease;
               "
             >
-              <i class="fas fa-plus-circle"></i> Add to your trip
+              <i class="fas fa-plus-circle"></i>
+              Add to your trip
             </button>
           </div>
 
@@ -377,7 +462,8 @@
                 font-weight: 700;
               "
             >
-              <i class="fas fa-route"></i> Add to Existing Same-City Trip
+              <i class="fas fa-route"></i>
+              Add to Existing Same-City Trip
             </h4>
             <div
               style="
@@ -397,8 +483,9 @@
                     font-weight: 600;
                     text-transform: uppercase;
                   "
-                  >Select Trip</label
                 >
+                  Select Trip
+                </label>
                 <select
                   id="widgetSelectTrip"
                   class="smart-filter-select"
@@ -423,8 +510,9 @@
                     font-weight: 600;
                     text-transform: uppercase;
                   "
-                  >Select Day</label
                 >
+                  Select Day
+                </label>
                 <select
                   id="widgetSelectDay"
                   class="smart-filter-select"
@@ -477,7 +565,10 @@
             style="border-top: 1px solid #eee; padding-top: 20px"
           >
             <div class="modal-nearby-section" style="margin-bottom: 30px">
-              <h3><i class="fas fa-walking"></i> Nearest Landmarks</h3>
+              <h3>
+                <i class="fas fa-walking"></i>
+                Nearest Landmarks
+              </h3>
               <div
                 id="modalNearbyCards"
                 class="cards"
@@ -490,7 +581,8 @@
 
             <div class="modal-similar-section" style="margin-bottom: 30px">
               <h3 style="color: #ff9800">
-                <i class="fas fa-magic"></i> AI Similar Wonders
+                <i class="fas fa-magic"></i>
+                AI Similar Wonders
               </h3>
               <div
                 id="modalSimilarCards"
@@ -504,43 +596,38 @@
           </div>
 
           <div class="modal-rating">
-            <h3><i class="fas fa-star rating-star"></i> Average Rating</h3>
+            <h3>
+              <i class="fas fa-star rating-star"></i>
+              Average Rating
+            </h3>
             <div class="stars" id="modalStars">★★★★★</div>
           </div>
 
           <div class="modal-reviews-section" style="margin-top: 40px">
             <h3 class="section-subtitle-modal">
-              <i class="fas fa-comments"></i> Visitor Reviews
+              <i class="fas fa-comments"></i>
+              Visitor Reviews
             </h3>
             <div id="reviewFormContainer" class="review-form">
               <div class="star-rating">
-                <input type="radio" name="stars" id="star-5" value="5" /><label
-                  for="star-5"
-                  >★</label
-                >
-                <input type="radio" name="stars" id="star-4" value="4" /><label
-                  for="star-4"
-                  >★</label
-                >
-                <input type="radio" name="stars" id="star-3" value="3" /><label
-                  for="star-3"
-                  >★</label
-                >
-                <input type="radio" name="stars" id="star-2" value="2" /><label
-                  for="star-2"
-                  >★</label
-                >
-                <input type="radio" name="stars" id="star-1" value="1" /><label
-                  for="star-1"
-                  >★</label
-                >
+                <input type="radio" name="stars" id="star-5" value="5" />
+                <label for="star-5">★</label>
+                <input type="radio" name="stars" id="star-4" value="4" />
+                <label for="star-4">★</label>
+                <input type="radio" name="stars" id="star-3" value="3" />
+                <label for="star-3">★</label>
+                <input type="radio" name="stars" id="star-2" value="2" />
+                <label for="star-2">★</label>
+                <input type="radio" name="stars" id="star-1" value="1" />
+                <label for="star-1">★</label>
               </div>
               <textarea
                 id="reviewComment"
                 placeholder="Share your experience..."
               ></textarea>
               <button onclick="submitReview()" class="submit-review-btn">
-                <i class="fas fa-paper-plane"></i> Post Review
+                <i class="fas fa-paper-plane"></i>
+                Post Review
               </button>
             </div>
             <div id="reviewsList" class="reviews-list"></div>
@@ -555,11 +642,12 @@
           class="close-modal"
           id="close-calc-modal"
           style="left: 15px; right: auto"
-          >&times;</span
+          >×</span
         >
         <div class="calc-header">
           <h3 class="modal-title" style="color: #0b4a6f; margin: 0">
-            <i class="fas fa-wallet"></i> ميزانية الرحلة
+            <i class="fas fa-wallet"></i>
+            ميزانية الرحلة
           </h3>
           <select id="currency-switcher" class="currency-select">
             <option value="EGP">EGP (ج.م)</option>
@@ -589,12 +677,16 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           "
         >
-          <i class="fas fa-magic"></i> اقترح ميزانية بالذكاء الاصطناعي
+          <i class="fas fa-magic"></i>
+          اقترح ميزانية بالذكاء الاصطناعي
         </button>
 
         <div class="calc-grid-2-col">
           <div class="input-group">
-            <label><i class="far fa-calendar-alt"></i> الأيام:</label>
+            <label>
+              <i class="far fa-calendar-alt"></i>
+              الأيام:
+            </label>
             <div class="stepper-wrapper">
               <button
                 type="button"
@@ -603,7 +695,13 @@
               >
                 -
               </button>
-              <input type="number" id="calc-days" value="1" min="1" readonly />
+              <input
+                type="number"
+                id="calc-days"
+                value="1"
+                min="1"
+                readonly=""
+              />
               <button
                 type="button"
                 class="stepper-btn"
@@ -615,7 +713,10 @@
           </div>
 
           <div class="input-group">
-            <label><i class="fas fa-users"></i> المسافرين:</label>
+            <label>
+              <i class="fas fa-users"></i>
+              المسافرين:
+            </label>
             <div class="stepper-wrapper">
               <button
                 type="button"
@@ -629,7 +730,7 @@
                 id="calc-travelers"
                 value="1"
                 min="1"
-                readonly
+                readonly=""
               />
               <button
                 type="button"
@@ -643,7 +744,10 @@
         </div>
 
         <div class="input-group">
-          <label><i class="fas fa-bus"></i> المواصلات (إجمالي):</label>
+          <label>
+            <i class="fas fa-bus"></i>
+            المواصلات (إجمالي):
+          </label>
           <input
             type="number"
             id="calc-transport"
@@ -655,7 +759,10 @@
         </div>
 
         <div class="input-group">
-          <label><i class="fas fa-bed"></i> الإقامة (في الليلة):</label>
+          <label>
+            <i class="fas fa-bed"></i>
+            الإقامة (في الليلة):
+          </label>
           <input
             type="number"
             id="calc-accommodation"
@@ -667,10 +774,10 @@
         </div>
 
         <div class="input-group">
-          <label
-            ><i class="fas fa-utensils"></i> الأكل والأنشطة
-            (للفرد/يومياً):</label
-          >
+          <label>
+            <i class="fas fa-utensils"></i>
+            الأكل والأنشطة (للفرد/يومياً):
+          </label>
           <input
             type="number"
             id="calc-food"
@@ -684,22 +791,23 @@
         <div class="results-box">
           <div class="result-row">
             <span class="result-label">تكلفة الفرد:</span>
-            <span class="result-value secondary-val"
-              ><span id="cost-per-person">0</span>
-              <span class="curr-symbol">ج.م</span></span
-            >
+            <span class="result-value secondary-val">
+              <span id="cost-per-person">0</span>
+              <span class="curr-symbol">ج.م</span>
+            </span>
           </div>
           <div class="result-row hero-row">
             <span class="result-label">الإجمالي:</span>
-            <span class="result-value primary-val"
-              ><span id="total-cost">0</span>
-              <span class="curr-symbol">ج.م</span></span
-            >
+            <span class="result-value primary-val">
+              <span id="total-cost">0</span>
+              <span class="curr-symbol">ج.م</span>
+            </span>
           </div>
         </div>
 
         <button id="save-budget-btn" class="primary-action-btn">
-          <i class="fas fa-bookmark"></i> احفظ هذه الميزانية
+          <i class="fas fa-bookmark"></i>
+          احفظ هذه الميزانية
         </button>
       </div>
     </div>
@@ -709,13 +817,14 @@
           id="closeTripPlannerBtn"
           class="close-modal-premium"
           aria-label="Close Planner"
-          >&times;</span
+          >×</span
         >
 
         <div class="modal-body-premium">
           <header class="planner-brand-header">
             <div class="brand-badge">
-              <i class="fas fa-sparkles"></i> AI Engine Active
+              <i class="fas fa-sparkles"></i>
+              AI Engine Active
             </div>
             <h2>Egypt Adventure Planner</h2>
             <p>
@@ -725,10 +834,12 @@
 
           <div class="trip-tabs-premium">
             <button id="tabCreateTrip" class="tab-btn-premium active">
-              <i class="fas fa-sliders-h"></i> Plan New Itinerary
+              <i class="fas fa-sliders-h"></i>
+              Plan New Itinerary
             </button>
             <button id="tabMyTrips" class="tab-btn-premium">
-              <i class="fas fa-compass"></i> Live Tracker Dashboard
+              <i class="fas fa-compass"></i>
+              Live Tracker Dashboard
             </button>
           </div>
 
@@ -770,6 +881,38 @@
                 </div>
 
                 <div class="planner-step-card">
+                  <span class="step-lbl">💸 Budget Constraints Tier</span>
+                  <div class="select-dropdown-wrapper">
+                    <select
+                      id="plannerBudgetTier"
+                      class="smart-filter-select"
+                      style="
+                        width: 100%;
+                        height: 42px;
+                        border-radius: 10px;
+                        margin: 0;
+                        padding: 8px 12px;
+                        border: 1px solid #cbd5e1;
+                        background: #fff;
+                        font-size: 0.9rem;
+                      "
+                    >
+                      <option value="Budget">
+                        Economy Tier (Local Transportation / Free &amp; Low Cost
+                        Sites)
+                      </option>
+                      <option value="Moderate" selected="">
+                        Moderate Tier (Standard Exploration Mix)
+                      </option>
+                      <option value="Luxury">
+                        Premium Luxury Tier (Exclusive Full Access / Top-Tier
+                        Exhibits)
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="planner-step-card">
                   <span class="step-lbl">💡 Curated Exploration Interests</span>
                   <div class="city-chips-premium" id="interest-chips-container">
                     <button
@@ -798,13 +941,13 @@
                     </button>
                     <button
                       class="city-chip-v2 interest-chip-v2"
-                      data-interest="Church & Monastery"
+                      data-interest="Church &amp; Monastery"
                     >
                       ⛪ Coptic
                     </button>
                     <button
                       class="city-chip-v2 interest-chip-v2"
-                      data-interest="Nature & Islands"
+                      data-interest="Nature &amp; Islands"
                     >
                       🌿 Nature
                     </button>
@@ -816,42 +959,133 @@
                   <i class="fas fa-magic"></i>
                 </button>
               </div>
-
               <div
                 id="compactTripSummaryWidget"
                 class="compact-summary-panel-widget"
                 style="display: none"
               >
-                <h4 class="summary-widget-title">Selected Parameters</h4>
-                <div class="summary-meta-line-item">
-                  <span class="summary-meta-icon">📍</span>
-                  <div class="summary-meta-data-content">
-                    <label>Destinations</label>
-                    <p id="summaryLabelDestinations">—</p>
+                <h4
+                  class="summary-widget-title"
+                  style="
+                    font-size: 0.95rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: #64748b;
+                    margin-bottom: 16px;
+                  "
+                >
+                  <i class="fas fa-sliders-h"></i>
+                  Configurations
+                </h4>
+
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <div
+                    style="
+                      background: #f8fafc;
+                      padding: 10px 14px;
+                      border-radius: 12px;
+                      border: 1px solid #e2e8f0;
+                    "
+                  >
+                    <span
+                      style="
+                        font-size: 0.72rem;
+                        color: #64748b;
+                        display: block;
+                        font-weight: 600;
+                      "
+                    >
+                      DESTINATIONS
+                    </span>
+                    <strong
+                      id="summaryLabelDestinations"
+                      style="font-size: 0.88rem; color: #0b4a6f"
+                      >—</strong
+                    >
+                  </div>
+                  <div
+                    style="
+                      background: #f8fafc;
+                      padding: 10px 14px;
+                      border-radius: 12px;
+                      border: 1px solid #e2e8f0;
+                    "
+                  >
+                    <span
+                      style="
+                        font-size: 0.72rem;
+                        color: #64748b;
+                        display: block;
+                        font-weight: 600;
+                      "
+                      >DURATION</span
+                    >
+                    <strong
+                      id="summaryLabelDuration"
+                      style="font-size: 0.88rem; color: #0b4a6f"
+                      >—</strong
+                    >
+                  </div>
+                  <div
+                    style="
+                      background: #f8fafc;
+                      padding: 10px 14px;
+                      border-radius: 12px;
+                      border: 1px solid #e2e8f0;
+                    "
+                  >
+                    <span
+                      style="
+                        font-size: 0.72rem;
+                        color: #64748b;
+                        display: block;
+                        font-weight: 600;
+                      "
+                    >
+                      INTEREST FOCUS
+                    </span>
+                    <strong
+                      id="summaryLabelInterests"
+                      style="
+                        font-size: 0.88rem;
+                        color: #0b4a6f;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        display: block;
+                      "
+                    >
+                      —
+                    </strong>
                   </div>
                 </div>
-                <div class="summary-meta-line-item">
-                  <span class="summary-meta-icon">🗓️</span>
-                  <div class="summary-meta-data-content">
-                    <label>Duration Vector</label>
-                    <p id="summaryLabelDuration">—</p>
+
+                <div class="summary-widget-premium-stats">
+                  <div class="stat-mini-pill">
+                    <label>Est. Budget</label>
+                    <p id="summaryLabelBudget">Calculating...</p>
+                  </div>
+                  <div class="stat-mini-pill">
+                    <label>Trip Score</label>
+                    <p id="summaryLabelScore">✨ 9.9/10</p>
                   </div>
                 </div>
-                <div class="summary-meta-line-item">
-                  <span class="summary-meta-icon">🎯</span>
-                  <div class="summary-meta-data-content">
-                    <label>Exploration Scope</label>
-                    <p id="summaryLabelInterests">—</p>
-                  </div>
-                </div>
+
                 <button
                   id="editPreferencesBtn"
                   class="action-icon-pill-btn secondary-summary-revert-cta"
+                  style="
+                    margin-top: 16px;
+                    width: 100%;
+                    justify-content: center;
+                    height: 38px;
+                    font-size: 0.85rem;
+                  "
                 >
-                  <i class="fas fa-sliders-h"></i> Edit Preferences
+                  <i class="fas fa-undo"></i>
+                  Modify Setup
                 </button>
               </div>
-
               <div
                 id="tripLoading"
                 class="premium-loader-box"
@@ -887,15 +1121,26 @@
     <script src="../scripts/reviews.js"></script>
     <script src="../scripts/search.js"></script>
     <nav class="bottom-nav">
-      <a href="home.html" class="active"
-        ><i class="fas fa-home"></i><span>Home</span></a
-      >
-      <a href="#searchSection"
-        ><i class="fas fa-search"></i><span>Search</span></a
-      >
-      <a href="#"><i class="fas fa-suitcase"></i><span>Trips</span></a>
-      <a href="#"><i class="far fa-heart"></i><span>Favorites</span></a>
-      <a href="profile.html"><i class="far fa-user"></i><span>Profile</span></a>
+      <a href="home.html" class="active">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="#searchSection">
+        <i class="fas fa-search"></i>
+        <span>Search</span>
+      </a>
+      <a href="#">
+        <i class="fas fa-suitcase"></i>
+        <span>Trips</span>
+      </a>
+      <a href="#">
+        <i class="far fa-heart"></i>
+        <span>Favorites</span>
+      </a>
+      <a href="profile.html">
+        <i class="far fa-user"></i>
+        <span>Profile</span>
+      </a>
     </nav>
     <div
       id="premiumToastModal"

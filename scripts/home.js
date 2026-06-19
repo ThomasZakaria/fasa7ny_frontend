@@ -9,7 +9,11 @@ window.tripCart = [];
 const API_BASE_URL = window.API_BASE_URL;
 const DEFAULT_THUMB =
   "https://s7g10.scene7.com/is/image/barcelo/pyramids-of-giza-facts_ancient-pyramids-of-giza?&&fmt=webp-alpha&qlt=75&wid=1300&fit=crop,1";
-
+window.handleImageError = function (imgElement) {
+  if (!imgElement) return;
+  imgElement.onerror = null;
+  imgElement.src = DEFAULT_THUMB;
+};
 // DOM Elements Stack
 const placeModal = document.getElementById("placeModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
@@ -141,7 +145,12 @@ window.renderCards = function (places, container, limit = false) {
     container.insertAdjacentHTML(
       "beforeend",
       `<div class="card place-card ${isHiddenClass}" data-placeid="${currentPlaceId}" style="cursor: pointer;">
-        <img src="${optimizedMainUrl}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
+        <img
+  src="${optimizedMainUrl}"
+  alt="${name}"
+  loading="lazy"
+  onerror="window.handleImageError(this);"
+> alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
         <div style="padding: 15px;">
           <h3 style="color:#0b4a6f; font-size:1.1rem; margin-bottom:5px;">${name}</h3>
           <p style="color:#666; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${city}</p>
@@ -149,6 +158,15 @@ window.renderCards = function (places, container, limit = false) {
         </div>
       </div>`,
     );
+  });
+
+  container.querySelectorAll(".place-card").forEach((card) => {
+    card.onclick = (e) => {
+      const placeId = card.dataset.placeid;
+      if (window.globalPlacesMap[placeId]) {
+        openPlaceModal(window.globalPlacesMap[placeId]);
+      }
+    };
   });
 };
 
@@ -170,9 +188,14 @@ window.renderPremiumCards = function (places, container) {
 
     container.insertAdjacentHTML(
       "beforeend",
-      `<div class="premium-place-card place-card" data-placeid="${currentPlaceId}">
+      `<div class="premium-place-card place-card" data-placeid="${currentPlaceId}" style="cursor: pointer;">
         <div class="card-image-wrapper">
-          <img src="${optimizedMainUrl}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
+          <img
+  src="${optimizedMainUrl}"
+  alt="${name}"
+  loading="lazy"
+  onerror="window.handleImageError(this);"
+> alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='${originalMainUrl}';">
         </div>
         <div class="card-content-wrapper">
           <h4 class="card-landmark-name">${name}</h4>
@@ -181,6 +204,15 @@ window.renderPremiumCards = function (places, container) {
         </div>
       </div>`,
     );
+  });
+
+  container.querySelectorAll(".place-card").forEach((card) => {
+    card.onclick = (e) => {
+      const placeId = card.dataset.placeid;
+      if (window.globalPlacesMap[placeId]) {
+        openPlaceModal(window.globalPlacesMap[placeId]);
+      }
+    };
   });
 };
 
@@ -265,8 +297,7 @@ function openPlaceModal(placeData) {
     const originalHero = allImages.length > 0 ? allImages[0] : DEFAULT_THUMB;
     imgEl.src = optimizeImage(originalHero, 800);
     imgEl.onerror = function () {
-      this.onerror = null;
-      this.src = originalHero;
+      window.handleImageError(this);
     };
   }
 
@@ -295,8 +326,7 @@ function openPlaceModal(placeData) {
           if (imgEl) {
             imgEl.src = optimizeImage(originalUrl, 800);
             imgEl.onerror = function () {
-              this.onerror = null;
-              this.src = originalUrl;
+              window.handleImageError(this);
             };
           }
           Array.from(galleryEl.children).forEach(
@@ -314,7 +344,7 @@ function openPlaceModal(placeData) {
   const mapBtn = document.getElementById("modalMapLink");
   if (mapBtn && placeData.Coordinates) {
     const cleanCoords = placeData.Coordinates.replace(/\s+/g, "");
-    mapBtn.href = `https://www.google.com/maps?q=${cleanCoords}`;
+    mapBtn.href = `http://maps.google.com/?q=${cleanCoords}`;
     mapBtn.style.display = "inline-flex";
   } else if (mapBtn) {
     mapBtn.style.display = "none";
@@ -329,32 +359,32 @@ function openPlaceModal(placeData) {
     if (typeof loadReviews === "function") loadReviews(idStr);
     loadPlaceRecommendations(idStr);
   }
-  // ✨ تحديث حالة زر الإضافة إلى الرحلة (Add to your trip) بناءً على وجوده في السلة
-  // ==========================================
-  // SMART TRIP CART SELECTION LOGIC (Groq AI Integration)
-  // ==========================================
+
   const addToTripBtn = document.getElementById("addToTripBtn");
   if (addToTripBtn) {
-    addToTripBtn.addEventListener("click", (e) => {
+    const newBtn = addToTripBtn.cloneNode(true);
+    addToTripBtn.parentNode.replaceChild(newBtn, addToTripBtn);
+
+    const pName = placeData["Landmark Name (English)"] || placeData.name;
+    if (window.tripCart.includes(pName)) {
+      newBtn.style.background = "#0b4a6f";
+      newBtn.innerHTML = `<i class="fas fa-check-circle"></i> Added to Trip`;
+    } else {
+      newBtn.style.background = "#27ae60";
+      newBtn.innerHTML = `<i class="fas fa-plus-circle"></i> Add to your trip`;
+    }
+
+    newBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      if (!window.currentModalPlace) return;
-
-      const pName =
-        window.currentModalPlace["Landmark Name (English)"] ||
-        window.currentModalPlace.name;
-
       if (window.tripCart.includes(pName)) {
-        // إذا كان مضافاً بالفعل، نقوم بحذفه عند الضغط مرة أخرى
         window.tripCart = window.tripCart.filter((item) => item !== pName);
-        addToTripBtn.style.background = "#27ae60";
-        addToTripBtn.innerHTML = `<i class="fas fa-plus-circle"></i> Add to your trip`;
+        newBtn.style.background = "#27ae60";
+        newBtn.innerHTML = `<i class="fas fa-plus-circle"></i> Add to your trip`;
       } else {
-        // إضافة المعلم إلى مصفوفة الاختيارات اليدوية الخاصة بك
         window.tripCart.push(pName);
-        addToTripBtn.style.background = "#0b4a6f";
-        addToTripBtn.innerHTML = `<i class="fas fa-check-circle"></i> Added to Trip`;
+        newBtn.style.background = "#0b4a6f";
+        newBtn.innerHTML = `<i class="fas fa-check-circle"></i> Added to Trip`;
 
-        // إشعار فوري وتفاعلي لليوزر
         window.showPremiumToast(
           "Landmark Curated!",
           `"${pName}" has been pinned to your temporary workspace context preferences.`,
@@ -395,6 +425,7 @@ function updateSaveButtonUI() {
   }
 }
 
+const modalSaveBtn = document.getElementById("modalSaveBtn");
 if (modalSaveBtn) {
   modalSaveBtn.onclick = async function () {
     const userId = localStorage.getItem("userId");
@@ -492,12 +523,9 @@ window.updateStepper = function (inputId, change) {
 // ==========================================
 // 5. INITIALIZATION & Curated Categories Rendering
 // ==========================================
-
-// ✨ إصلاح الخلل المرجعي: قراءة الـ Object القادم من الباك إيند وتوزيع كروت الـ Premium بشكل سليم تماماً
 function renderGroupedCategories(groupedData, selectedCity) {
   if (!categoriesContentWrapper) return;
   categoriesContentWrapper.innerHTML = "";
-
   categoriesContentWrapper.className = "categories-main-block";
 
   const entries = Object.entries(groupedData || {});
@@ -529,7 +557,6 @@ function renderGroupedCategories(groupedData, selectedCity) {
     const carouselId = `carousel_cat_${index}_${Date.now()}`;
     const uniqueGridId = `grid_cat_${index}_${Date.now()}`;
 
-    // بناء الهيكل الفاخر مع حاوية الكاروسيل وأزرار التنقل الذكية
     const sectionHtml = `
       <section class="premium-category-section ${bgRowClass}">
         <div class="premium-section-container">
@@ -575,8 +602,7 @@ function renderGroupedCategories(groupedData, selectedCity) {
             }
           </div>
         </div>
-      </section>
-    `;
+      </section>`;
 
     categoriesContentWrapper.insertAdjacentHTML("beforeend", sectionHtml);
 
@@ -586,6 +612,7 @@ function renderGroupedCategories(groupedData, selectedCity) {
     }
   });
 }
+
 async function fetchAndRenderCategories(selectedCity = "all") {
   if (isFetchingCategories || !categoriesContentWrapper) return;
   isFetchingCategories = true;
@@ -602,7 +629,6 @@ async function fetchAndRenderCategories(selectedCity = "all") {
   } catch (error) {
     console.error("Home Load Error:", error);
   } finally {
-    // 🛠️ تصحيح الكلمة المفتاحية الإملائية القاتلة من 'finaly' إلى 'finally'
     if (categoriesLoading) categoriesLoading.classList.add("hidden");
     isFetchingCategories = false;
   }
@@ -627,6 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialCity = cityFilter ? cityFilter.value : "all";
   fetchAndRenderCategories(initialCity);
   if (tripResultContainer) setDefaultItineraryPlaceholder();
+  syncGlobalTracker(); // مزامنة التراكر عند التحميل
 
   if (cityFilter) {
     cityFilter.onchange = (e) => fetchAndRenderCategories(e.target.value);
@@ -667,8 +694,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalCostEl = document.getElementById("total-cost");
   const costPerPersonEl = document.getElementById("cost-per-person");
 
-  const exchangeRates = { EGP: 1, USD: 0.021, EUR: 0.019 };
-  let previousCurrency = "EGP";
   let lastCalcPlaceId = null;
 
   if (openCalcBtn) {
@@ -687,7 +712,6 @@ document.addEventListener("DOMContentLoaded", () => {
         inputs.accommodation.value = "";
         inputs.food.value = "";
         if (currencySelect) currencySelect.value = "EGP";
-        previousCurrency = "EGP";
         lastCalcPlaceId = currentPlaceId;
         window.triggerTripCalculation();
       }
@@ -750,14 +774,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-document.addEventListener("click", (e) => {
-  const card = e.target.closest(".place-card");
-  if (card) {
-    const data = window.globalPlacesMap[card.dataset.placeid];
-    if (data) openPlaceModal(data);
-  }
-});
-
 // ==========================================
 // 6. AI SCANNER & GPS LOGIC
 // ==========================================
@@ -788,7 +804,6 @@ if (uploadBtn && imageInput) {
     } catch (err) {
       console.error("AI Scan Error:", err);
     } finally {
-      // 🛠️ تصحيح الإملاء البرمجي القاتل هنا أيضاً
       if (loadState) loadState.classList.add("hidden");
       imageInput.value = "";
     }
@@ -841,237 +856,17 @@ document.addEventListener("click", (e) => {
   }
 });
 
-if (generateBtn) {
-  generateBtn.addEventListener("click", () => {
-    if (selectedCities.length === 0) {
-      alert("Please select at least one city to initialize layout paths.");
-      return;
-    }
-
-    if (tripLoading) tripLoading.style.display = "block";
-    document.getElementById("tripResult").innerHTML = "";
-
-    let msgIdx = 0;
-    const interval = setInterval(() => {
-      if (loadingMessage) {
-        loadingMessage.textContent = loadingMessages[msgIdx];
-        msgIdx = (msgIdx + 1) % loadingMessages.length;
-      }
-    }, 1000);
-
-    setTimeout(async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/trip-planner`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cities: selectedCities,
-            days: tripDaysInput ? tripDaysInput.value : 3,
-            interests: selectedInterests,
-            manualSelection: window.tripCart || [],
-          }),
-        });
-        const data = await response.json();
-        clearInterval(interval);
-        if (tripLoading) tripLoading.style.display = "none";
-
-        const itinerary = data?.data?.itinerary;
-        if (!itinerary || !itinerary.days) return;
-
-        document.getElementById("plannerInputsForm").style.display = "none";
-        document.getElementById("summaryLabelDestinations").textContent =
-          selectedCities.join(", ");
-        document.getElementById("summaryLabelDuration").textContent =
-          `${tripDaysInput ? tripDaysInput.value : 3} Days Scheduled`;
-        document.getElementById("summaryLabelInterests").textContent =
-          selectedInterests.length > 0
-            ? selectedInterests.join(", ")
-            : "General Historical Exploration Focus";
-
-        const summaryWidgetElement = document.getElementById(
-          "compactTripSummaryWidget",
-        );
-        if (summaryWidgetElement) summaryWidgetElement.style.display = "flex";
-
-        document.getElementById("editPreferencesBtn").onclick = function () {
-          if (summaryWidgetElement) summaryWidgetElement.style.display = "none";
-          document.getElementById("plannerInputsForm").style.display = "block";
-          setDefaultItineraryPlaceholder();
-        };
-
-        let accordionDaysHtml = "";
-        itinerary.days.forEach((dayObj, dayIndex) => {
-          let dayEstimatedCost = 0;
-          let dayActivitiesCount = dayObj.places.length;
-          let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
-
-          dayObj.places.forEach((place, placeIndex) => {
-            let entryFee = 0;
-            if (place.price_range) {
-              const numericMatch = place.price_range.match(/\d+/);
-              if (numericMatch) entryFee = parseInt(numericMatch[0]);
-            }
-            dayEstimatedCost += entryFee;
-
-            // 🔺 خطوة الصورة الموحدة: اختيار الصورة الفاخرة بناءً على الفئة لمنع انبعاج الأشكال
-            let curatedThumbnail =
-              "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=350&q=70";
-            const textQuery = (place.name || "").toLowerCase();
-            let resolvedCategoryTag = "Historic Landmark";
-
-            if (textQuery.includes("pyramid") || textQuery.includes("giza")) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Necropolis";
-            } else if (
-              textQuery.includes("museum") ||
-              textQuery.includes("tahrir") ||
-              textQuery.includes("grand")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Exhibition Gallery";
-            } else if (
-              textQuery.includes("temple") ||
-              textQuery.includes("luxor") ||
-              textQuery.includes("karnak")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Pharaonic Sanctuary";
-            } else if (
-              textQuery.includes("mosque") ||
-              textQuery.includes("citadel")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Islamic Architecture";
-            } else if (
-              textQuery.includes("church") ||
-              textQuery.includes("coptic")
-            ) {
-              curatedThumbnail =
-                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=350&q=70";
-              resolvedCategoryTag = "Coptic Heritage";
-            }
-
-            const timeString = (place.time || "").toUpperCase();
-            let assignedPeriod = "afternoon";
-            if (timeString.includes("AM") || placeIndex === 0)
-              assignedPeriod = "morning";
-            else if (
-              timeString.includes("PM") &&
-              (timeString.includes("5:") ||
-                timeString.includes("6:") ||
-                placeIndex === dayActivitiesCount - 1)
-            )
-              assignedPeriod = "evening";
-
-            const cleanNarrative = place.reason
-              ? place.reason.replace(/^"|焦点|"/g, "")
-              : "AI optimized recommendation.";
-
-            const singleCardMarkup = `
-              <div class="premium-attraction-item-card generation-mode-card">
-                <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Preview" loading="lazy"></div>
-                <div class="attraction-details-frame">
-                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">
-                    <h5>${place.name || "Destination Landmark"}</h5>
-                    <span class="category-badge-pill">${resolvedCategoryTag}</span>
-                  </div>
-                  <p class="attraction-short-narrative">${cleanNarrative}</p>
-                  <div class="attraction-meta-row-tags">
-                    <span><i class="far fa-clock"></i> ${place.time || "Flexible"}</span>
-                    <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Free"}</span>
-                  </div>
-                </div>
-                <div class="attraction-action-rail-buttons">
-                  <button class="action-icon-pill-btn swap-variant" onclick="alert('🔄 Swapping options...')"><i class="fas fa-exchange-alt"></i> Swap</button>
-                  <button class="action-icon-pill-btn" onclick="alert('✏️ Editing panel...')"><i class="far fa-edit"></i> Edit</button>
-                </div>
-              </div>`;
-            chronologicalSlots[assignedPeriod].push(singleCardMarkup);
-          });
-
-          let timelineBlocksContent = "";
-          if (chronologicalSlots.morning.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.morning.join("")}</div></div>`;
-          if (chronologicalSlots.afternoon.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.afternoon.join("")}</div></div>`;
-          if (chronologicalSlots.evening.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div><div style="display:flex; flex-direction:column; gap:12px;">${chronologicalSlots.evening.join("")}</div></div>`;
-
-          const uniqueAccordionIdentifier = `generationAccordionDay_d${dayObj.day}`;
-          accordionDaysHtml += `
-            <div class="day-accordion-card ${dayIndex === 0 ? "expanded" : ""}" id="${uniqueAccordionIdentifier}">
-              <div class="day-accordion-header" onclick="window.togglePremiumAccordion('${uniqueAccordionIdentifier}')">
-                <div class="day-header-left-pane">
-                  <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
-                  <div class="day-subtitle-tags">
-                    <span class="tag-lbl-item"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
-                    <span class="tag-divider-dot"></span>
-                    <span class="tag-lbl-item"><i class="fas fa-wallet"></i> Approx: ${dayEstimatedCost || 150} EGP</span>
-                  </div>
-                </div>
-                <div class="accordion-toggle-chevron"><i class="fas fa-chevron-down"></i></div>
-              </div>
-              <div class="day-accordion-body-wrapper">
-                <div class="day-accordion-content-inner">${timelineBlocksContent}</div>
-              </div>
-            </div>`;
-        });
-
-        document.getElementById("tripResult").innerHTML = `
-          <div class="generated-premium-itinerary-wrapper">
-            <div class="itinerary-display-column" style="margin-bottom: 24px;">${accordionDaysHtml}</div>
-            <div class="sticky-mobile-save-container">
-              <button id="saveAiTripBtn" class="primary-action-cta full-width-save-btn"><i class="fas fa-cloud-download-alt"></i> Commit & Save Plan to Dashboard</button>
-            </div>
-          </div>`;
-
-        const savePlanBtn = document.getElementById("saveAiTripBtn");
-        if (savePlanBtn) {
-          savePlanBtn.addEventListener("click", async () => {
-            const userId = localStorage.getItem("userId");
-            if (!userId) return;
-            try {
-              await fetch(`${API_BASE_URL}/user/save-trip`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  userId,
-                  itinerary,
-                  cities: selectedCities,
-                  days: tripDaysInput ? tripDaysInput.value : 3,
-                }),
-              });
-              // استبدل الـ alert المزعج بالـ Modal التفاعلي الجديد
-              window.showPremiumToast(
-                "Expedition Saved!",
-                "Your adventure path has been successfully synced to the Live Dashboard.",
-                true,
-              );
-              document.getElementById("tabMyTrips").click();
-            } catch (err) {
-              console.error(err);
-            }
-          });
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }, 2000);
-  });
-}
 async function syncGlobalTracker() {
   const userId = localStorage.getItem("userId");
   const widget = document.getElementById("currentAdventureWidget");
-  const floatingBtn = document.getElementById("floatingTrackerBtn");
   const continueBtn = document.getElementById("continueJourneyBtn");
+  const contextualHeroText = document.getElementById("contextualHeroText");
+  const scannerBox = document.getElementById("aiScannerActionBox");
 
   if (!userId) {
     if (widget) widget.style.display = "none";
-    if (floatingBtn) floatingBtn.style.display = "none";
+    if (scannerBox)
+      scannerBox.className = "ai-scanner-box primary-focus-scanner";
     return;
   }
 
@@ -1080,79 +875,345 @@ async function syncGlobalTracker() {
     const data = await res.json();
     const trips = data.data.user.saved_trips || [];
 
-    // البحث عن أول رحلة غير مكتملة (Active Trip) بدلاً من آخر رحلة عشوائية
+    document
+      .querySelectorAll("#navTripsCount")
+      .forEach((el) => (el.textContent = trips.length));
+
     const activeTrip = trips
       .slice()
       .reverse()
-      .find((t) => (t.progress || 0) < 100);
+      .find((t) => {
+        let tot = 0,
+          checked = 0;
+        if (t.itinerary && t.itinerary.days) {
+          t.itinerary.days.forEach((d) => {
+            d.places.forEach((p, pIdx) => {
+              tot++;
+              if (
+                localStorage.getItem(`chk_${t.tripId}_d${d.day}_p${pIdx}`) ===
+                "true"
+              )
+                checked++;
+            });
+          });
+        }
+        return tot === 0 ? false : checked < tot;
+      });
 
     if (activeTrip && activeTrip.itinerary && activeTrip.itinerary.days) {
-      // حساب التقدم الفعلي بناءً على الـ Checkboxes
       let totalPlaces = 0;
       let visitedPlaces = 0;
-      let nextAttraction = "Continue your journey!";
+      let nextAttraction = "Curated checkpoint";
       let foundNext = false;
+      let calculatedTripBudget = 0;
+      let currentDayIndex = 1;
 
-      activeTrip.itinerary.days.forEach((day) => {
+      activeTrip.itinerary.days.forEach((day, dIdx) => {
         day.places.forEach((place, pIndex) => {
           totalPlaces++;
           const uniqueId = `chk_${activeTrip.tripId}_d${day.day}_p${pIndex}`;
           const isChecked = localStorage.getItem(uniqueId) === "true";
 
+          let entryFee = 150;
+          if (place.price_range) {
+            const numericMatch = place.price_range.match(/\d+/);
+            if (numericMatch) entryFee = parseInt(numericMatch[0], 10);
+          }
+          calculatedTripBudget += entryFee;
+
           if (isChecked) {
             visitedPlaces++;
-          } else if (!foundNext) {
-            nextAttraction = place.name;
-            foundNext = true;
+          } else {
+            if (!foundNext) {
+              nextAttraction =
+                typeof place === "string" ? place : place.name || "Attraction";
+              currentDayIndex = dIdx + 1;
+              foundNext = true;
+            }
           }
         });
       });
 
       const progress =
         totalPlaces === 0 ? 0 : Math.round((visitedPlaces / totalPlaces) * 100);
+      const remainingPlacesCount = totalPlaces - visitedPlaces;
 
-      // تحديث الـ Widget
+      if (scannerBox) {
+        scannerBox.className = "ai-scanner-box secondary-subordinated-scanner";
+        const scannerBtn = scannerBox.querySelector(".scanner-btn");
+        if (scannerBtn)
+          scannerBtn.innerHTML = `<i class="fas fa-camera"></i> Scan Landmark`;
+      }
+
+      if (contextualHeroText) {
+        contextualHeroText.innerHTML = `
+          <h1 style="font-size: 2.4rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; color: #ffffff;">Welcome Back!</h1>
+          <p style="font-size: 1.1rem; opacity: 0.95; font-weight: 400; margin-bottom: 0; color: rgba(255,255,255,0.95);">Track your real-time adventure milestones below.</p>
+        `;
+      }
+
       if (widget) {
         widget.style.display = "block";
+
+        const destinationRegion = activeTrip.cities.join(" & ");
         document.getElementById("widgetTripTitle").textContent =
-          `${activeTrip.cities[0]} Expedition`;
+          `${destinationRegion} Expedition • Day ${currentDayIndex} of ${activeTrip.days}`;
         document.getElementById("widgetProgressText").textContent =
-          `${progress}% Complete`;
+          `${progress}%`;
         document.getElementById("widgetProgressBar").style.width =
           `${progress}%`;
-        document.getElementById("widgetNextAttraction").textContent =
-          `Next: ${nextAttraction}`;
+        document.getElementById("widgetPlacesCompletedCount").textContent =
+          visitedPlaces;
+        document.getElementById("widgetPlacesRemainingCount").textContent =
+          remainingPlacesCount;
+        document.getElementById("widgetRemainingBudget").textContent =
+          `${calculatedTripBudget} EGP`;
+        document.getElementById("widgetNextAttraction").innerHTML =
+          `Next Stop: <strong>${nextAttraction}</strong>`;
 
-        // ربط زر الانتقال
+        const queryNormal = nextAttraction.toLowerCase();
+        let coverImgUrl =
+          "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=80";
+        let thumbImgUrl =
+          "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=120&q=80";
+
+        if (queryNormal.includes("pyramid") || queryNormal.includes("giza")) {
+          coverImgUrl =
+            "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=800&q=80";
+          thumbImgUrl =
+            "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=120&q=80";
+        } else if (
+          queryNormal.includes("museum") ||
+          queryNormal.includes("grand")
+        ) {
+          coverImgUrl =
+            "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=800&q=80";
+          thumbImgUrl =
+            "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=120&q=80";
+        } else if (
+          queryNormal.includes("temple") ||
+          queryNormal.includes("luxor") ||
+          queryNormal.includes("karnak")
+        ) {
+          coverImgUrl =
+            "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=800&q=80";
+          thumbImgUrl =
+            "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=120&q=80";
+        }
+
+        const coverNode = document.getElementById("widgetTripCover");
+        const thumbNode = document.getElementById("widgetNextAttractionThumb");
+        if (coverNode) coverNode.src = coverImgUrl;
+        if (thumbNode) thumbNode.src = thumbImgUrl;
+
         if (continueBtn) {
-          continueBtn.onclick = () =>
-            (window.location.href = "profile.html#myTripsTracker");
+          continueBtn.onclick = () => {
+            if (modal) modal.classList.add("active");
+            tabTrips.click();
+
+            setTimeout(() => {
+              const uncheckedCard = document.querySelector(
+                `.premium-attraction-item-card:not(.task-completed)`,
+              );
+              if (uncheckedCard) {
+                uncheckedCard.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+                uncheckedCard.style.transform = "scale(1.025)";
+                uncheckedCard.style.borderColor = "#ff9800";
+                uncheckedCard.style.boxShadow =
+                  "0 20px 25px -5px rgba(255,152,0,0.15)";
+
+                let highlightPulseTrack = 0;
+                const highlightPulseInterval = setInterval(() => {
+                  uncheckedCard.style.backgroundColor =
+                    highlightPulseTrack % 2 === 0
+                      ? "rgba(255,152,0,0.06)"
+                      : "#ffffff";
+                  highlightPulseTrack++;
+                  if (highlightPulseTrack >= 6) {
+                    clearInterval(highlightPulseInterval);
+                    uncheckedCard.style.transform = "none";
+                    uncheckedCard.style.borderColor = "#e2e8f0";
+                    uncheckedCard.style.boxShadow =
+                      "0 1px 3px rgba(0,0,0,0.05)";
+                    uncheckedCard.style.backgroundColor = "#ffffff";
+                  }
+                }, 250);
+              }
+            }, 400);
+          };
         }
       }
-
-      // تحديث الـ Floating Button
-      if (floatingBtn) {
-        floatingBtn.style.display = "flex";
-        document.getElementById("floatingPercent").textContent = `${progress}%`;
-      }
     } else {
-      // إخفاء الأدوات إذا كانت كل الرحلات مكتملة أو لا توجد رحلات
       if (widget) widget.style.display = "none";
-      if (floatingBtn) floatingBtn.style.display = "none";
+      if (scannerBox)
+        scannerBox.className = "ai-scanner-box primary-focus-scanner";
+      if (contextualHeroText) {
+        contextualHeroText.innerHTML = `<h1 style="color: #ffffff;">Discover Egypt Through AI</h1><p style="color: rgba(255,255,255,0.85);">Take a photo or upload an image to identify any historical landmark instantly.</p>`;
+      }
     }
   } catch (err) {
     console.error("Tracker Sync Error:", err);
   }
 }
 
-// استدعاء الدالة عند تحميل الصفحة
-document.addEventListener("DOMContentLoaded", syncGlobalTracker);
-// استدعاء الدالة عند تحميل الصفحة
-document.addEventListener("DOMContentLoaded", syncGlobalTracker);
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.classList.contains("tracker-checkbox-engine")) {
+    const targetCheckboxId = e.target.dataset.id;
+    localStorage.setItem(targetCheckboxId, e.target.checked ? "true" : "false");
 
-document.addEventListener("DOMContentLoaded", syncGlobalTracker);
-// Initialize on load
-document.addEventListener("DOMContentLoaded", syncGlobalTracker);
+    const targetCardWrapper = document.getElementById(
+      `cardWrapper_${targetCheckboxId}`,
+    );
+    if (targetCardWrapper) {
+      if (e.target.checked) {
+        targetCardWrapper.classList.add("task-completed");
+      } else {
+        targetCardWrapper.classList.remove("task-completed");
+      }
+    }
+    syncGlobalTracker();
+  }
+});
+
+// Window-Scoped System Component Engine Extensions
+window.showCustomAlert = function (title, text) {
+  const modalHtml = `
+    <div class="custom-app-modal-overlay" id="customAlertModal">
+      <div class="custom-app-modal-card">
+        <h4><i class="fas fa-exclamation-circle" style="color:#0b4a6f;"></i> ${title}</h4>
+        <p>${text}</p>
+        <button class="modal-primary-btn" onclick="document.getElementById('customAlertModal').remove()">Acknowledge</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+};
+
+window.openCustomConfirmModal = function (title, text, confirmCallback) {
+  const modalId = "customConfirmModal_" + Date.now();
+  const modalHtml = `
+    <div class="custom-app-modal-overlay" id="${modalId}">
+      <div class="custom-app-modal-card">
+        <h4><i class="fas fa-exclamation-triangle" style="color:#e74c3c;"></i> ${title}</h4>
+        <p>${text}</p>
+        <div class="modal-actions-wrapper-row">
+          <button class="modal-secondary-btn" id="cancelBtn_${modalId}">Cancel</button>
+          <button class="modal-danger-btn" id="confirmBtn_${modalId}">Proceed</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+  document.getElementById(`cancelBtn_${modalId}`).onclick = () =>
+    document.getElementById(modalId).remove();
+  document.getElementById(`confirmBtn_${modalId}`).onclick = () => {
+    confirmCallback();
+    document.getElementById(modalId).remove();
+  };
+};
+
+window.openCustomEditModal = function (dayIdx, placeIdx) {
+  const place =
+    window.currentGeneratedTrip.itinerary.days[dayIdx].places[placeIdx];
+  const modalId = "customEditModal";
+  const modalHtml = `
+    <div class="custom-app-modal-overlay" id="${modalId}">
+      <div class="custom-app-modal-card">
+        <h4><i class="far fa-edit" style="color:#0b4a6f;"></i> Edit Assignment Frame</h4>
+        <label class="modal-form-label">Time Slot Allocation</label>
+        <input type="text" id="editTimeInput" class="modal-form-input" value="${place.time || "10:00 AM"}">
+        <label class="modal-form-label">Contextual Narrative Override</label>
+        <textarea id="editReasonInput" class="modal-form-input" rows="3">${place.reason || ""}</textarea>
+        <div class="modal-actions-wrapper-row">
+          <button class="modal-secondary-btn" onclick="document.getElementById('${modalId}').remove()">Discard</button>
+          <button class="modal-primary-btn" id="saveEditBtn">Apply Framework</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+  document.getElementById("saveEditBtn").onclick = () => {
+    const newTime = document.getElementById("editTimeInput").value;
+    const newReason = document.getElementById("editReasonInput").value;
+    window.currentGeneratedTrip.itinerary.days[dayIdx].places[placeIdx].time =
+      newTime;
+    window.currentGeneratedTrip.itinerary.days[dayIdx].places[placeIdx].reason =
+      newReason;
+    document.getElementById(modalId).remove();
+    window.renderGeneratedItineraryInterface();
+  };
+};
+
+window.openCustomSwapModal = function (dayIdx, placeIdx) {
+  const currentPlace =
+    window.currentGeneratedTrip.itinerary.days[dayIdx].places[placeIdx];
+  const modalId = "customSwapModal";
+  const alternatives = [
+    {
+      name: "Grand Egyptian Museum",
+      thumb:
+        "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=150&q=70",
+      rating: "4.9",
+      reason: "Highly rated local choice substitution match.",
+    },
+    {
+      name: "Coptic Hanging Church",
+      thumb:
+        "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=150&q=70",
+      rating: "4.8",
+      reason: "Historical vector track deviation alternative.",
+    },
+    {
+      name: "Khan El-Khalili Bazaar",
+      thumb:
+        "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=150&q=70",
+      rating: "4.7",
+      reason: "Cultural market lifestyle immersion variant.",
+    },
+  ];
+
+  let alternativesHtml = "";
+  alternatives.forEach((alt, idx) => {
+    alternativesHtml += `
+      <div class="swap-alternative-option-row" id="altOption_${idx}" style="display:flex; gap:12px; padding:12px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:10px; cursor:pointer;">
+        <img src="${alt.thumb}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+        <div style="flex-grow:1; text-align:left;">
+          <h5 style="margin:0 0 2px 0; color:#0b4a6f; font-size:0.95rem;">${alt.name}</h5>
+          <p style="margin:0; font-size:0.78rem; color:#64748b;">${alt.reason}</p>
+        </div>
+        <span style="font-weight:700; color:#eab308; font-size:0.85rem; white-space:nowrap;"><i class="fas fa-star"></i> ${alt.rating}</span>
+      </div>`;
+  });
+
+  const modalHtml = `
+    <div class="custom-app-modal-overlay" id="${modalId}">
+      <div class="custom-app-modal-card" style="max-width:480px;">
+        <h4><i class="fas fa-exchange-alt" style="color:#0b4a6f;"></i> Swap Attraction Vector</h4>
+        <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Select an alternative attraction pipeline to switch instantly:</p>
+        <div class="alternatives-scroll-container" style="max-height:260px; overflow-y:auto;">
+          ${alternativesHtml}
+        </div>
+        <button class="modal-secondary-btn" style="width:100%; margin-top:12px;" onclick="document.getElementById('${modalId}').remove()">Cancel</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+  alternatives.forEach((alt, idx) => {
+    document.getElementById(`altOption_${idx}`).onclick = () => {
+      window.currentGeneratedTrip.itinerary.days[dayIdx].places[placeIdx] = {
+        ...currentPlace,
+        name: alt.name,
+        reason: alt.reason,
+        price_range: currentPlace.price_range,
+      };
+      document.getElementById(modalId).remove();
+      window.renderGeneratedItineraryInterface();
+    };
+  });
+};
+
 // ==========================================
 // 8. PROGRESS TRACKER & TABS LOGIC
 // ==========================================
@@ -1192,6 +1253,11 @@ async function loadMyTripsTracker() {
     const trips = data.data.user.saved_trips || [];
     let finalHtml = "";
 
+    if (trips.length === 0) {
+      container.innerHTML = `<p class="empty-state-text">No customized routes saved yet. Initialize one in the planner view!</p>`;
+      return;
+    }
+
     [...trips].reverse().forEach((trip) => {
       let totalActivitiesCount = 0;
       let completedActivitiesCount = 0;
@@ -1199,7 +1265,6 @@ async function loadMyTripsTracker() {
 
       if (trip.itinerary && trip.itinerary.days) {
         trip.itinerary.days.forEach((dayObj, dayIndex) => {
-          let dayEstimatedCost = 0;
           let dayActivitiesCount = dayObj.places.length;
           totalActivitiesCount += dayActivitiesCount;
           let chronologicalSlots = { morning: [], afternoon: [], evening: [] };
@@ -1210,29 +1275,39 @@ async function loadMyTripsTracker() {
               localStorage.getItem(uniqueActivityId) === "true";
             if (isCompleted) completedActivitiesCount++;
 
-            let entryFee = 0;
-            if (place.price_range) {
-              const numericMatch = place.price_range.match(/\d+/);
-              if (numericMatch) entryFee = parseInt(numericMatch[0]);
-            }
-            dayEstimatedCost += entryFee;
-
             let curatedThumbnail =
               "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=250&q=70";
+            const textQuery = (place.name || "").toLowerCase();
+            if (textQuery.includes("pyramid"))
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=250&q=70";
+            else if (textQuery.includes("museum"))
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=250&q=70";
+            else if (textQuery.includes("temple"))
+              curatedThumbnail =
+                "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=250&q=70";
+
             const textString = (place.time || "").toUpperCase();
             let assignedPeriod = "afternoon";
             if (textString.includes("AM") || placeIndex === 0)
               assignedPeriod = "morning";
+            else if (
+              textString.includes("PM") &&
+              (textString.includes("6:") || textString.includes("7:"))
+            )
+              assignedPeriod = "evening";
 
             const singleCardMarkup = `
-              <div class="premium-attraction-item-card ${isCompleted ? "task-completed" : ""}" id="cardWrapper_${uniqueActivityId}">
+              <div class="premium-attraction-item-card static-tracker-card-view ${isCompleted ? "task-completed" : ""}" id="cardWrapper_${uniqueActivityId}">
                 <div class="task-checkbox-wrapper-premium">
                   <input type="checkbox" class="modern-circular-checkbox tracker-checkbox-engine" data-id="${uniqueActivityId}" data-tripid="${trip.tripId}" ${isCompleted ? "checked" : ""}>
                 </div>
                 <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Thumbnail" loading="lazy"></div>
                 <div class="attraction-details-frame">
                   <h5>${place.name || "Destination Landmark"}</h5>
-                  <p class="attraction-short-narrative">${place.reason || "Optimized activity."}</p>
+                  <p class="attraction-short-narrative">${place.reason || "Optimized structural route checkpoint activity."}</p>
+                  <span class="tracker-time-pill-micro"><i class="far fa-clock"></i> ${place.time || "Scheduled Slot"}</span>
                 </div>
               </div>`;
             chronologicalSlots[assignedPeriod].push(singleCardMarkup);
@@ -1240,14 +1315,17 @@ async function loadMyTripsTracker() {
 
           let timelineBlocksContent = "";
           if (chronologicalSlots.morning.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title">Morning Exploration</div><div>${chronologicalSlots.morning.join("")}</div></div>`;
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning</div><div>${chronologicalSlots.morning.join("")}</div></div>`;
           if (chronologicalSlots.afternoon.length > 0)
-            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title">Afternoon High Tracks</div><div>${chronologicalSlots.afternoon.join("")}</div></div>`;
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon</div><div>${chronologicalSlots.afternoon.join("")}</div></div>`;
+          if (chronologicalSlots.evening.length > 0)
+            timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening</div><div>${chronologicalSlots.evening.join("")}</div></div>`;
 
           accordionDaysHtml += `
             <div class="day-accordion-card ${dayIndex === 0 ? "expanded" : ""}" id="accordionDay_${trip.tripId}_d${dayObj.day}">
               <div class="day-accordion-header" onclick="window.togglePremiumAccordion('accordionDay_${trip.tripId}_d${dayObj.day}')">
-                <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Center"}</h4>
+                <h4 class="day-title-txt"><i class="fas fa-calendar-day"></i> Day ${dayObj.day} — ${dayObj.city || "Destination"}</h4>
+                <i class="fas fa-chevron-down accordion-chevron-icon"></i>
               </div>
               <div class="day-accordion-body-wrapper">
                 <div class="day-accordion-content-inner">${timelineBlocksContent}</div>
@@ -1260,65 +1338,29 @@ async function loadMyTripsTracker() {
         totalActivitiesCount === 0
           ? 0
           : Math.round((completedActivitiesCount / totalActivitiesCount) * 100);
-      const svgRingCircumference = 2 * Math.PI * 28;
-      const initialStrokeDashOffset =
-        svgRingCircumference -
-        (activeProgressPercentage / 100) * svgRingCircumference;
 
       finalHtml += `
-        <div class="trip-operational-grand-card" style="margin-bottom:40px;">
-          <div class="sticky-trip-summary-header">
-            <h4>Expedition inside ${trip.cities.join(", ")}</h4>
-            <div class="progress-svg-frame">
-              <svg><circle class="circle-track-bg" cx="32" cy="32" r="28"></circle><circle class="circle-progress-fill" id="svgCircleFill_${trip.tripId}" cx="32" cy="32" r="28" stroke-dasharray="${svgRingCircumference}" stroke-dashoffset="${initialStrokeDashOffset}"></circle></svg>
-              <div class="progress-percentage-label" id="badgePercentage_${trip.tripId}">${activeProgressPercentage}%</div>
+        <div class="trip-operational-grand-card-simplified">
+          <div class="tracker-dashboard-header-analytics-travel">
+            <div class="travel-analytic-meta">
+              <span class="travel-headline-lbl">Adventure Progress</span>
+              <h4>${trip.cities.join(" & ")} Journey</h4>
+              <p class="travel-sub-text-lbl">${completedActivitiesCount} stops completed • ${totalActivitiesCount - completedActivitiesCount} remaining checkpoints</p>
+            </div>
+            <div class="travel-progress-ring-box">
+              <span class="travel-percentage-large">${activeProgressPercentage}%</span>
+              <span class="travel-percentage-subtext">curated milestones</span>
             </div>
           </div>
-          <div class="itinerary-display-column">${accordionDaysHtml}</div>
+          <div class="itinerary-display-column-clean">${accordionDaysHtml}</div>
         </div>`;
     });
     container.innerHTML = finalHtml;
   } catch (error) {
-    console.error(error);
+    console.error("Tracker Load Error:", error);
   }
 }
-/**
- * دالة بديلة للـ Alert المزعج تظهر Modal تفاعلي فاخر
- * @param {String} title - عنوان الرسالة
- * @param {String} message - نص الرسالة الداخلي
- * @param {Boolean} isSuccess - هل العملية ناجحة أم خطأ لتغيير الأيقونة والألوان
- */
-window.showPremiumToast = function (title, message, isSuccess = true) {
-  const toastModal = document.getElementById("premiumToastModal");
-  const toastIcon = document.getElementById("toastIcon");
-  const toastTitle = document.getElementById("toastTitle");
-  const toastMessage = document.getElementById("toastMessage");
-  const closeToastBtn = document.getElementById("closeToastBtn");
 
-  if (!toastModal) return;
-
-  // تخصيص الشكل بناءً على نوع الرسالة (ناجحة أم تنبيه/خطأ)
-  if (isSuccess) {
-    toastIcon.className = "fas fa-check-circle";
-    toastIcon.parentElement.style.background = "rgba(16, 185, 129, 0.1)";
-    toastIcon.parentElement.style.color = "#10b981";
-  } else {
-    toastIcon.className = "fas fa-info-circle";
-    toastIcon.parentElement.style.background = "rgba(255, 152, 0, 0.1)";
-    toastIcon.parentElement.style.color = "#ff9800";
-  }
-
-  toastTitle.textContent = title;
-  toastMessage.textContent = message;
-
-  // إظهار الـ Modal
-  toastModal.classList.add("active");
-
-  // إغلاق عند الضغط على الزر
-  closeToastBtn.onclick = () => {
-    toastModal.classList.remove("active");
-  };
-};
 window.togglePremiumAccordion = function (elementId) {
   const selectedAccordionFrame = document.getElementById(elementId);
   if (!selectedAccordionFrame) return;
@@ -1346,3 +1388,466 @@ window.togglePremiumAccordion = function (elementId) {
     );
   }
 };
+
+// ==========================================
+// 9. ITINERARY MATRIX ENGINE DECK
+// ==========================================
+if (generateBtn) {
+  generateBtn.addEventListener("click", () => {
+    if (selectedCities.length === 0) {
+      window.showCustomAlert(
+        "Destination Missing",
+        "Please select at least one target city to initialize travel matrix pathways.",
+      );
+      return;
+    }
+
+    if (tripLoading) tripLoading.style.display = "block";
+    document.getElementById("tripResult").innerHTML = "";
+
+    let msgIdx = 0;
+    const interval = setInterval(() => {
+      if (loadingMessage) {
+        loadingMessage.textContent = loadingMessages[msgIdx];
+        msgIdx = (msgIdx + 1) % loadingMessages.length;
+      }
+    }, 1000);
+
+    const budgetTier = document.getElementById("plannerBudgetTier")
+      ? document.getElementById("plannerBudgetTier").value
+      : "Moderate";
+
+    setTimeout(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/trip-planner`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cities: selectedCities,
+            days: tripDaysInput ? tripDaysInput.value : 3,
+            interests: selectedInterests,
+            manualSelection: window.tripCart || [],
+            budgetLimit: budgetTier,
+          }),
+        });
+        const data = await response.json();
+        clearInterval(interval);
+        if (tripLoading) tripLoading.style.display = "none";
+
+        const itinerary = data?.data?.itinerary;
+        if (!itinerary || !itinerary.days) return;
+
+        document.getElementById("plannerInputsForm").style.display = "none";
+
+        const summaryDestinations = document.getElementById(
+          "summaryLabelDestinations",
+        );
+        if (summaryDestinations)
+          summaryDestinations.textContent = selectedCities.join(", ");
+
+        const summaryDuration = document.getElementById("summaryLabelDuration");
+        if (summaryDuration)
+          summaryDuration.textContent = `${tripDaysInput ? tripDaysInput.value : 3} Days Scheduled`;
+
+        const summaryInterests = document.getElementById(
+          "summaryLabelInterests",
+        );
+        if (summaryInterests) {
+          summaryInterests.textContent =
+            selectedInterests.length > 0
+              ? selectedInterests.join(", ")
+              : "General Historical Exploration Focus";
+        }
+
+        const summaryWidgetElement = document.getElementById(
+          "compactTripSummaryWidget",
+        );
+        if (summaryWidgetElement) {
+          summaryWidgetElement.style.display = "flex";
+          summaryWidgetElement.style.flexWrap = "wrap";
+          summaryWidgetElement.style.gap = "12px";
+          summaryWidgetElement.style.padding = "16px";
+          summaryWidgetElement.style.background = "#f8fafc";
+          summaryWidgetElement.style.borderRadius = "12px";
+          summaryWidgetElement.style.border = "1px solid #e2e8f0";
+        }
+
+        document.getElementById("editPreferencesBtn").onclick = function () {
+          if (summaryWidgetElement) summaryWidgetElement.style.display = "none";
+          document.getElementById("plannerInputsForm").style.display = "block";
+          setDefaultItineraryPlaceholder();
+        };
+
+        let totalTripEstimatedCost = 0;
+        let totalActivitiesGenerated = 0;
+
+        itinerary.days.forEach((dayObj) => {
+          totalActivitiesGenerated += dayObj.places.length;
+          dayObj.places.forEach((place) => {
+            let entryFee = 150;
+            if (place.price_range) {
+              const numericMatch = place.price_range.match(/\d+/);
+              if (numericMatch) entryFee = parseInt(numericMatch[0], 10);
+            }
+            totalTripEstimatedCost += entryFee;
+          });
+        });
+
+        window.currentGeneratedTrip = {
+          itinerary: itinerary,
+          cities: selectedCities,
+          days: tripDaysInput ? parseInt(tripDaysInput.value) : 3,
+          totalCost: totalTripEstimatedCost,
+          totalStops: totalActivitiesGenerated,
+          budgetTier: budgetTier,
+        };
+
+        window.renderGeneratedItineraryInterface = function () {
+          let accordionDaysHtml = "";
+          let calculatedCostAccumulator = 0;
+          let calculatedStopsAccumulator = 0;
+
+          window.currentGeneratedTrip.itinerary.days.forEach((dayObj) => {
+            if (dayObj && dayObj.places) {
+              calculatedStopsAccumulator += dayObj.places.length;
+            }
+          });
+
+          window.currentGeneratedTrip.itinerary.days.forEach((dayObj) => {
+            if (!dayObj || !dayObj.places) return;
+            dayObj.places.forEach((place) => {
+              let entryFee = 150;
+              if (place.price_range) {
+                const numericMatch = place.price_range.match(/\d+/);
+                if (numericMatch) entryFee = parseInt(numericMatch[0], 10);
+              }
+              calculatedCostAccumulator += entryFee;
+            });
+          });
+
+          const getCityCoverImg = (cities) => {
+            const primaryCity =
+              cities && cities[0] ? cities[0].toLowerCase() : "";
+            if (primaryCity.includes("cairo"))
+              return "https://images.unsplash.com/photo-1572252017456-29bf24beefdf?auto=format&fit=crop&w=800&q=70";
+            if (primaryCity.includes("giza"))
+              return "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=70";
+            if (primaryCity.includes("luxor"))
+              return "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=800&q=70";
+            if (primaryCity.includes("aswan"))
+              return "https://images.unsplash.com/photo-1599933310672-0402f1a6fbfb?auto=format&fit=crop&w=800&q=70";
+            if (primaryCity.includes("alexandria"))
+              return "https://images.unsplash.com/photo-1568322422998-8432ef2e6c43?auto=format&fit=crop&w=800&q=70";
+            return "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=800&q=70";
+          };
+
+          const destinationBannerUrl = getCityCoverImg(
+            window.currentGeneratedTrip.cities,
+          );
+
+          window.currentGeneratedTrip.itinerary.days.forEach(
+            (dayObj, dayIndex) => {
+              if (!dayObj || !dayObj.places) return;
+              let dayEstimatedCost = 0;
+              let dayActivitiesCount = dayObj.places.length;
+              let chronologicalSlots = {
+                morning: [],
+                afternoon: [],
+                evening: [],
+              };
+
+              dayObj.places.forEach((place, placeIndex) => {
+                let dayEntryFee = 150;
+                if (place.price_range) {
+                  const numericMatch = place.price_range.match(/\d+/);
+                  if (numericMatch) dayEntryFee = parseInt(numericMatch[0], 10);
+                }
+                dayEstimatedCost += dayEntryFee;
+
+                let curatedThumbnail =
+                  "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=350&q=70";
+                const textQuery = (place.name || "").toLowerCase();
+                let resolvedCategoryTag = "Historic Landmark";
+
+                if (
+                  textQuery.includes("pyramid") ||
+                  textQuery.includes("giza")
+                ) {
+                  curatedThumbnail =
+                    "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&w=350&q=70";
+                  resolvedCategoryTag = "Necropolis";
+                } else if (
+                  textQuery.includes("museum") ||
+                  textQuery.includes("tahrir") ||
+                  textQuery.includes("grand")
+                ) {
+                  curatedThumbnail =
+                    "https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?auto=format&fit=crop&w=350&q=70";
+                  resolvedCategoryTag = "Exhibition Gallery";
+                } else if (
+                  textQuery.includes("temple") ||
+                  textQuery.includes("luxor") ||
+                  textQuery.includes("karnak")
+                ) {
+                  curatedThumbnail =
+                    "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&w=350&q=70";
+                  resolvedCategoryTag = "Pharaonic Sanctuary";
+                }
+
+                const timeString = (place.time || "").toUpperCase();
+                let assignedPeriod = "afternoon";
+                if (timeString.includes("AM") || placeIndex === 0)
+                  assignedPeriod = "morning";
+                else if (
+                  timeString.includes("PM") &&
+                  (timeString.includes("5:") ||
+                    timeString.includes("6:") ||
+                    placeIndex === dayActivitiesCount - 1)
+                )
+                  assignedPeriod = "evening";
+
+                const cleanNarrative = place.reason
+                  ? place.reason.replace(/^"|焦点|"/g, "")
+                  : "AI optimized recommendation.";
+                const completeCheckedAttr = place.isCompleted ? "checked" : "";
+                const completedCardClass = place.isCompleted
+                  ? "task-completed"
+                  : "";
+
+                const singleCardMarkup = `
+                <div class="premium-attraction-item-card generation-mode-card ${completedCardClass}">
+                  <div class="task-checkbox-wrapper-premium">
+                    <input type="checkbox" class="modern-circular-checkbox planner-checkbox-engine" data-dayidx="${dayIndex}" data-placeidx="${placeIndex}" ${completeCheckedAttr}>
+                  </div>
+                  <div class="attraction-thumbnail-frame"><img src="${curatedThumbnail}" alt="Preview" loading="lazy"></div>
+                  <div class="attraction-details-frame">
+                    <div class="attraction-card-header-flex-wrapper">
+                      <div class="attraction-headline-block">
+                        <h5>${place.name || "Destination Landmark"}</h5>
+                        <div class="badge-ratings-row-luxury">
+                          <span class="rating-stars-luxury"><i class="fas fa-star"></i> 4.9</span>
+                          <span class="must-visit-badge"><i class="fas fa-award"></i> Must Visit</span>
+                        </div>
+                      </div>
+                      <span class="category-badge-pill">${resolvedCategoryTag}</span>
+                    </div>
+                    <p class="attraction-short-narrative">${cleanNarrative}</p>
+                    <div class="attraction-meta-grid-specs">
+                      <span><i class="far fa-clock"></i> ${place.time || "09:00 AM"}</span>
+                      <span><i class="fas fa-ticket-alt"></i> ${place.price_range || "Moderate"}</span>
+                    </div>
+                  </div>
+                  <div class="attraction-action-rail-buttons">
+                    <button class="action-icon-pill-btn swap-variant" data-dayidx="${dayIndex}" data-placeidx="${placeIndex}"><i class="fas fa-exchange-alt"></i> Swap</button>
+                    <button class="action-icon-pill-btn edit-variant" data-dayidx="${dayIndex}" data-placeidx="${placeIndex}"><i class="far fa-edit"></i> Edit</button>
+                    <button class="action-icon-pill-btn delete-variant" data-dayidx="${dayIndex}" data-placeidx="${placeIndex}"><i class="far fa-trash-alt"></i></button>
+                  </div>
+                </div>`;
+                chronologicalSlots[assignedPeriod].push(singleCardMarkup);
+              });
+
+              let timelineBlocksContent = "";
+              if (chronologicalSlots.morning.length > 0)
+                timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-sun"></i> Morning Exploration</div><div class="timeline-cards-stack-wrapper">${chronologicalSlots.morning.join("")}</div></div>`;
+              if (chronologicalSlots.afternoon.length > 0)
+                timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-cloud-sun"></i> Afternoon High Tracks</div><div class="timeline-cards-stack-wrapper">${chronologicalSlots.afternoon.join("")}</div></div>`;
+              if (chronologicalSlots.evening.length > 0)
+                timelineBlocksContent += `<div class="chronological-timeline-slot"><div class="timeline-slot-anchor-title"><i class="fas fa-moon"></i> Evening Leisure Paths</div><div class="timeline-cards-stack-wrapper">${chronologicalSlots.evening.join("")}</div></div>`;
+
+              const uniqueAccordionIdentifier = `generationAccordionDay_d${dayObj.day}`;
+              accordionDaysHtml += `
+              <div class="day-accordion-card expanded" id="${uniqueAccordionIdentifier}">
+                <div class="day-accordion-header" onclick="window.togglePremiumAccordion('${uniqueAccordionIdentifier}')">
+                  <div class="day-header-left-pane">
+                    <h4 class="day-title-txt">Day ${dayObj.day} — ${dayObj.city || "Regional Center"}</h4>
+                    <div class="day-header-premium-meta-metrics">
+                      <span class="day-metric-badge"><i class="fas fa-map-marked-alt"></i> ${dayActivitiesCount} Activities</span>
+                      <span class="day-metric-badge"><i class="fas fa-wallet"></i> ${dayEstimatedCost} EGP</span>
+                    </div>
+                  </div>
+                  <div class="accordion-toggle-chevron"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="day-accordion-body-wrapper">
+                  <div class="day-accordion-content-inner">${timelineBlocksContent}</div>
+                </div>
+              </div>`;
+            },
+          );
+
+          const regionTitle = window.currentGeneratedTrip.cities.join(" & ");
+
+          document.getElementById("tripResult").innerHTML = `
+            <div class="generated-premium-itinerary-wrapper" style="animation: modalFadeInPref 0.4s ease-out;">
+              <div style="background: #e6f4ea; border: 1px solid #34a853; border-radius: 12px; padding: 14px 20px; color: #137333; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                <span>✓ Itinerary Generated Successfully! Your bespoke ${regionTitle} expedition roadmap is unlocked and ready for launch.</span>
+              </div>
+
+              <div class="luxury-adventure-storycard" style="max-width: 100% !important; margin: 0 0 25px 0 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                <div class="storycard-banner-wrapper" style="height: 180px;">
+                  <img src="${destinationBannerUrl}" alt="Destination Cover" class="storycard-hero-img" style="filter: brightness(0.85);" />
+                  <div class="storycard-gradient-shield"></div>
+                  <div class="storycard-status-pill" style="background: #ff9800; color: white; border-color: #ff9800;">
+                    <i class="fas fa-sparkles"></i> AI CURATED MAP READY
+                  </div>
+                </div>
+
+                <div class="storycard-narrative-container" style="margin-top: -25px; padding: 0 24px 24px 24px;">
+                  <div class="storycard-top-flexrow" style="align-items: flex-start; margin-bottom: 15px;">
+                    <div class="storycard-route-info">
+                      <h3 style="font-size: 1.8rem; margin-bottom: 4px;">${regionTitle} Expedition</h3>
+                      <div class="storycard-next-destination-block" style="background: transparent; border: none; padding: 0;">
+                        <p style="color: #64748b; font-size: 0.95rem;"><i class="fas fa-calendar-alt"></i> Plan Status: Review & Accept Journey Framework</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="storycard-metrics-strip" style="grid-template-columns: repeat(3, 1fr) !important; background: #f8fafc; padding: 16px;">
+                    <div class="metric-block-item">
+                      <i class="fas fa-history"></i>
+                      <div class="metric-text-label-combo">
+                        <span>${window.currentGeneratedTrip.days} Days</span><label>Duration</label>
+                      </div>
+                    </div>
+                    <div class="metric-block-item">
+                      <i class="fas fa-map-signs"></i>
+                      <div class="metric-text-label-combo">
+                        <span>${calculatedStopsAccumulator} Stops</span><label>Attractions</label>
+                      </div>
+                    </div>
+                    <div class="metric-block-item">
+                      <i class="fas fa-wallet"></i>
+                      <div class="metric-text-label-combo">
+                        <span>${calculatedCostAccumulator} EGP</span><label>Est. Budget</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap; margin-top: 20px;">
+                    <button id="editPreferencesBtnInline" class="action-icon-pill-btn" style="height: 46px; border-radius: 12px; font-weight: 600; padding: 0 20px;"><i class="fas fa-sliders-h"></i> Edit Preferences</button>
+                    <button id="saveAiTripBtn" class="save-plan-primary-cta" style="height: 46px; border-radius: 12px; font-size: 0.95rem; padding: 0 26px; display: inline-flex; align-items: center; gap: 8px;"><i class="fas fa-bookmark"></i> Accept Itinerary & Start Journey</button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 15px; text-align: left;"><h4 style="color: #0b4a6f; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-stream"></i> Route Timeline Breakdown</h4></div>
+              <div class="itinerary-display-column">
+                ${accordionDaysHtml}
+              </div>
+            </div>`;
+
+          const editInlineBtn = document.getElementById(
+            "editPreferencesBtnInline",
+          );
+          if (editInlineBtn) {
+            editInlineBtn.onclick = () => {
+              const summaryWidgetElement = document.getElementById(
+                "compactTripSummaryWidget",
+              );
+              if (summaryWidgetElement)
+                summaryWidgetElement.style.display = "none";
+              document.getElementById("plannerInputsForm").style.display =
+                "block";
+              setDefaultItineraryPlaceholder();
+            };
+          }
+
+          document.getElementById("saveAiTripBtn").onclick = async () => {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+              window.showCustomAlert(
+                "Authentication Required",
+                "Please sign in to save itineraries.",
+              );
+              return;
+            }
+            try {
+              await fetch(`${API_BASE_URL}/user/save-trip`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId,
+                  itinerary: window.currentGeneratedTrip.itinerary,
+                  cities: window.currentGeneratedTrip.cities,
+                  days: window.currentGeneratedTrip.days,
+                }),
+              });
+              window.showPremiumToast(
+                "Expedition Saved!",
+                "Your adventure path has been successfully synced to the Live Dashboard.",
+                true,
+              );
+              syncGlobalTracker();
+              document.getElementById("tabMyTrips").click();
+            } catch (err) {
+              console.error(err);
+            }
+          };
+
+          document
+            .querySelectorAll(".planner-checkbox-engine")
+            .forEach((box) => {
+              box.onchange = (e) => {
+                const dayIdx = parseInt(e.target.dataset.dayidx, 10);
+                const placeIdx = parseInt(e.target.dataset.placeidx, 10);
+                window.currentGeneratedTrip.itinerary.days[dayIdx].places[
+                  placeIdx
+                ].isCompleted = e.target.checked;
+                window.renderGeneratedItineraryInterface();
+              };
+            });
+
+          document.querySelectorAll(".swap-variant").forEach((btn) => {
+            btn.onclick = (e) => {
+              const target = e.target.closest(".swap-variant");
+              const dayIdx = parseInt(target.dataset.dayidx, 10);
+              const placeIdx = parseInt(target.dataset.placeidx, 10);
+              window.openCustomSwapModal(dayIdx, placeIdx);
+            };
+          });
+
+          document.querySelectorAll(".edit-variant").forEach((btn) => {
+            btn.onclick = (e) => {
+              const target = e.target.closest(".edit-variant");
+              const dayIdx = parseInt(target.dataset.dayidx, 10);
+              const placeIdx = parseInt(target.dataset.placeidx, 10);
+              window.openCustomEditModal(dayIdx, placeIdx);
+            };
+          });
+
+          document.querySelectorAll(".delete-variant").forEach((btn) => {
+            btn.onclick = (e) => {
+              const target = e.target.closest(".delete-variant");
+              const dayIdx = parseInt(target.dataset.dayidx, 10);
+              const placeIdx = parseInt(target.dataset.placeidx, 10);
+              window.openCustomConfirmModal(
+                "Delete Attraction",
+                "Are you sure you want to drop this attraction from your roadmap?",
+                () => {
+                  window.currentGeneratedTrip.itinerary.days[
+                    dayIdx
+                  ].places.splice(placeIdx, 1);
+                  if (
+                    window.currentGeneratedTrip.itinerary.days[dayIdx].places
+                      .length === 0
+                  ) {
+                    window.currentGeneratedTrip.itinerary.days.splice(
+                      dayIdx,
+                      1,
+                    );
+                  }
+                  window.renderGeneratedItineraryInterface();
+                },
+              );
+            };
+          });
+        };
+
+        window.renderGeneratedItineraryInterface();
+      } catch (error) {
+        console.error(error);
+        if (tripLoading) tripLoading.style.display = "none";
+      }
+    }, 2000);
+  });
+}
